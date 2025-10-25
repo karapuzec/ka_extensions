@@ -1,0 +1,8 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[$model[$key]]]></search>
+			<text><![CDATA[$this->static_model[$key]]]></text>
+		</operation>
+	</changes>
+</kapatch>

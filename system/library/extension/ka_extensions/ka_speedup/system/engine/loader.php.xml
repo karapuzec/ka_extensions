@@ -1,0 +1,12 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[foreach ($data as $key => $value) {]]></search>
+			<text><![CDATA[
+				if ('ka_speedup') {
+					$template->setData($data);
+				} else
+				foreach ($data as $key => $value) {]]></text>
+		</operation>
+	</changes>
+</kapatch>

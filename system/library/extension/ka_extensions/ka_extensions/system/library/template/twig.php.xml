@@ -1,0 +1,26 @@
+<kapatch version="1.0">
+	<changes>
+<!-- this is not used because kamod automatically removes the  word 'final' on copying the file to kamod cache
+		<operation type="replace">
+			<search><![CDATA[final class Twig ]]></search>
+			<text><![CDATA[class Twig ]]></text>
+		</operation>
+-->
+		<operation type="replace">
+			<search regexp="true"><![CDATA[([^\s]*)twig = new(.*)\n]]></search>
+			<text><![CDATA[
+			//ka-extensions: pass the twig to a child class to add a custom extension
+			$loader = $this->replaceLoader($loader);
+			$1twig = new$2
+			$code = '';
+			//ka-extensions: extend twig with our functions
+			$this->extendTwig($1twig);
+			
+			// save the twig object and re-use it in future calls
+			if (isset($ka_twig_engine) && empty($ka_twig_engine)) {
+				$ka_twig_engine = $twig;
+			}
+]]></text>
+		</operation>
+	</changes>
+</kapatch>

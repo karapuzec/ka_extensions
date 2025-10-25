@@ -1,0 +1,21 @@
+<kapatch version="1.0">
+	<changes>
+		<operation skip="true" type="replace">
+			<search><![CDATA[final class Twig ]]></search>
+			<text><![CDATA[class Twig ]]></text>
+		</operation>
+		<operation type="replace">
+			<search regexp="true"><![CDATA[n render\((.*)\n]]></search>
+			<text><![CDATA[n render(\1
+			static $ka_twig_engine = null;
+			if (!empty($ka_twig_engine) && !empty($filename) && empty($code)) {
+				return $ka_twig_engine->render($filename . '.twig', $this->data);
+			}
+]]></text>
+		</operation>
+		<operation skip="true" type="replace">
+			<search><![CDATA[private $]]></search>
+			<text><![CDATA[protected $]]></text>
+		</operation>
+	</changes>
+</kapatch>

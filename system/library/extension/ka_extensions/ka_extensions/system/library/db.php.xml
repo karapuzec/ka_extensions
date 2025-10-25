@@ -1,0 +1,9 @@
+<kapatch version="1.0">
+	<changes>
+		<operation skip="true" type="replace">
+			<search><![CDATA[private $adaptor;]]></search>
+			<text><![CDATA[// private $adaptor;
+			protected $adaptor;]]></text>
+		</operation>
+	</changes>
+</kapatch>

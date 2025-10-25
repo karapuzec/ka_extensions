@@ -1,0 +1,11 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[</form>]]></search>
+			<text><![CDATA[{# ka-ext #}
+			{% include 'extension/ka_extensions/ka_extensions/translation_form/html.twig' %}
+			{# ka-ext #}
+			</form>]]></text>
+		</operation>
+	</changes>
+</kapatch>

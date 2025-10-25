@@ -1,0 +1,12 @@
+<kapatch version="1.0">
+	<changes>
+		<operation skip="true" type="replace">
+			<search><![CDATA[final class Template ]]></search>
+			<text><![CDATA[class Template ]]></text>
+		</operation>
+		<operation skip="true" type="replace">
+			<search><![CDATA[private $]]></search>
+			<text><![CDATA[protected $]]></text>
+		</operation>
+	</changes>
+</kapatch>

@@ -1,0 +1,8 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search regexp="true"><![CDATA[\{\{ logout \}\}(.*)<\/ul>]]></search>
+			<text><![CDATA[{{ logout }}$1</ul>{% include 'extension/ka_extensions/ka_extensions/header/kamod_status.twig' ignore missing %}]]></text>
+		</operation>
+	</changes>
+</kapatch>

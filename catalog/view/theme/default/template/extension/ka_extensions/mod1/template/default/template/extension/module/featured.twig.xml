@@ -1,0 +1,8 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search skip="true"><![CDATA[pizdec]]></search>
+			<text><![CDATA[Kruto!]]></text>
+		</operation>
+	</changes>
+</kapatch>

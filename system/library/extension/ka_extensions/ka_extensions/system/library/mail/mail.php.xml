@@ -1,0 +1,12 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[foreach ($this->attachments as $attachment) {]]></search>
+			<text><![CDATA[foreach ($this->attachments as $file_title => $attachment) {]]></text>
+		</operation>
+		<operation type="replace">
+			<search><![CDATA[basename($attachment)]]></search>
+			<text><![CDATA[(!is_numeric($file_title) ? $file_title : basename($attachment))]]></text>
+		</operation>
+	</changes>
+</kapatch>
