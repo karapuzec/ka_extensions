@@ -1,0 +1,59 @@
+{# //karapuz: before:<footer #}
+<script type="text/javascript"><!--
+{% if ka_js_labels %}
+
+	var ka_js_labels = [];
+
+	{% for k,v in ka_js_labels %}
+	ka_js_labels['{{ k }}'] = "{{ v|e }}";
+	{% endfor %}	
+
+{% endif %}
+
+{% if ka_enable_form_validation %}
+$(document).ready(function() {
+
+	$('button[form]').each(function() {
+	
+		var formid = $(this).attr('form');
+		var $form = $('#' + formid);
+		if (!$form) {
+			return;
+		}
+
+		$form.on('submit', function(e) {
+		
+			var $form = $(this);
+			
+			var error = '';
+			
+			$form.find('[required]').each(function(idx, el) {
+					if (!el.checkValidity()) {
+						var name = $(el).closest('.form-group').find('label.control-label').text();
+						if (!name) {
+							name = $(el).attr('name');
+						}
+						if (!name) {
+							name = el.tagName;
+						}
+						
+						if (error) {
+							error += ', ';
+						}
+						error += (name);
+					}
+			});
+
+			if (error) {
+				ka_extensions.showMessage(ka_js_labels['txt_field_validation_error'] + error, 'E');
+				e.preventDefault();
+				return;
+			}
+		});
+	});
+});
+{% endif %}
+//--></script>
+{# ///karapuz #}
+<footer id="footer">{{ text_footer }}<br />{{ text_version }}</footer></div>
+</body></html>

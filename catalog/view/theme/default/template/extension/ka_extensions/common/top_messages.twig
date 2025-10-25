@@ -1,0 +1,23 @@
+{# 
+ Project: Ka Extensions
+ Author : karapuz <support@ka-station.com>
+
+ Version: 4 ($Revision: 381 $) 
+#}
+
+{% if (top_messages) %} 
+  {% for top_message in top_messages %} 
+    {% if (top_message['type'] == 'E') %} 
+	    <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i>
+    {% elseif top_message.type == 'W' %} 
+  	  <div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i>
+    {% elseif top_message['type'] == 'I' %} 
+	    <div class="alert alert-info"><i class="fa fa-info-circle"></i>
+		{% else %}    
+  	  <div class="alert alert-success"><i class="fa fa-check-circle"></i>
+    {% endif %} 
+   	{{ top_message['content'] }} 
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		</div>    	
+  {% endfor %} 
+{% endif %}

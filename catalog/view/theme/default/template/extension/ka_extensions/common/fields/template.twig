@@ -1,0 +1,18 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+          <div data-id="field-{{ field.code }}" class="form-group {% if field.required %} required {% endif %}">
+            <label class="{% if label_width_class %}{{ label_width_class }}{% else %}col-sm-2{% endif %} control-label" 
+            	for="input-{{ field.code }}{{ language_id }}">
+            	{% if _context['txt_tooltip_' ~ field.code] %}<span data-toggle="tooltip" title="{{ t('txt_tooltip_' ~ field.code) }}">{% endif %}
+            	{% if field.title %}{{ field.title }}{% else %}{{ t('txt_title_' ~ field.code) }}{% endif %}
+            	{% if field.tooltip %}</span>{% endif %}
+            </label>
+            <div class="{% if extra_class_value %}{{ extra_class_value }} {% endif %}{% if value_width_class %}{{ value_width_class }}{% else %}col-sm-10{% endif %}">
+              {% block field_value %}{% endblock %}
+              {% if field.error %}
+              <div class="text-danger">{{ field.error }}</div>
+              {% endif %} </div>
+          </div>

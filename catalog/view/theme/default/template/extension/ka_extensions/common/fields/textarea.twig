@@ -1,0 +1,23 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+#}
+{% if template %}
+	{% set template = 'template_' ~ template %}
+{% else %}
+	{%	set template = 'template' %}
+{% endif %}
+{% extends '@ka_common/fields/' ~ template ~ '.twig' %}
+
+{% block field_value %}
+              <textarea rows="5" {% if field.required %} required {% endif %} 
+              	name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
+              	placeholder="{{ field.placeholder }}" id="input-{{ field.code }}{{ language_id }}" class="form-control"
+              	{% if field.maxlength %} maxlength="{{ field.maxlength }}" {% endif %}
+              >{{ field.value }}</textarea>
+{% endblock %}

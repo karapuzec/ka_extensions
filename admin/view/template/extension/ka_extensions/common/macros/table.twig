@@ -1,0 +1,57 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+{% macro sort_url(column_name, sort, order, context) %}
+	{% if (sort == column_name) %} 
+		href="{{ context['sort_' ~ column_name] }}" class="{{ order|lower }}"
+	{% else %} 
+		href="{{ context['sort_' ~ column_name] }}"
+	{% endif %}
+{% endmacro %}
+
+{% macro button_add(href) %}
+	<a href="{{ href }}" data-toggle="tooltip" title="{{ t('button_add') }}" class="btn l-button-add btn-primary"><i class="fa fa-plus"></i></a>
+{% endmacro %}
+
+{% macro button_redirect(href, title, icon) %}
+	<a href="{{ href }}" data-toggle="tooltip" title="{{ title }}" class="btn btn-primary">{% if icon %}<i class="fa {{ icon }}"></i>{% endif %}{% if title %} {{ title }}{% endif %}</a>
+{% endmacro %}
+
+{% macro button_delete(action, form = 'frm-standard', has_confirm = true) %}
+	<button type="submit" formaction="{{ action }}" form="{{ form }}" data-toggle="tooltip" title="{{ button_delete }}" {% if has_confirm %}onclick="return confirm('{{ t('Are you sure?') }}');" {% endif %} class="btn l-button-delete btn-danger"><i class="fa fa-trash-o"></i></button>
+{% endmacro %}	
+
+{% macro button_save(action, form) %}
+	<button type="submit" formaction="{{ action }}" form="{{ form }}" data-toggle="tooltip" title="{{ button_save }}" class="btn l-button-save btn-primary"><i class="fa fa-save"></i></button>
+{% endmacro %}
+
+{% macro button_save_and_stay(action, form) %}
+	<button type="submit" formaction="{{ action }}&save_and_stay=1" form="{{ form }}" data-toggle="tooltip" title="{{ t('Save & Stay') }}" class="btn l-button-save btn-success"><i class="fa fa-save"></i></button>
+{% endmacro %}
+
+{% macro button_back(href) %}
+	<a href="{{ href }}" data-toggle="tooltip" title="{{ button_back }}" class="btn l-button-back btn-default"><i class="fa fa-reply"></i></a>
+{% endmacro %}
+
+{% macro button_filter(formid) %}
+	<button type="button" form="{{ formid }}" class="btn l-button-filter btn-primary"><i class="fa fa-filter"></i> {{ t('button_filter') }}</button>
+{% endmacro %}
+
+{% 	macro button_reset(formid) %}
+	<button type="button" onclick="javascript: ka_extensions.resetForm('{{ formid }}');" class="btn l-button-reset btn-default"><i class="fa fa-eraser"></i> {{ t('Reset Filter') }}</button>
+{% endmacro %}
+
+{#
+	General buttons without titles 
+#}
+
+{% macro button_submit(action, form, title, icon, type = 'primary') %}
+	<button type="submit" formaction="{{ action }}" form="{{ form }}" data-toggle="tooltip" title="{{ title }}" class="btn l-button-submit btn-{{ type }}">{% if icon %}<i class="fa {{ icon }}"></i>{% endif %} {% if title %}{{ title }}{% endif %}</button>
+{% endmacro %}
+
+{% macro button_js(js, title, icon, type = 'primary') %}
+	<button type="submit" {{ js }} data-toggle="tooltip" title="{{ title }}" class="btn l-button-submit btn-{{ type }}">{% if icon %}<i class="fa {{ icon }}"></i>{% endif %} {% if title %}{{ title }}{% endif %}</button>
+{% endmacro %}

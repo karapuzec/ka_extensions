@@ -1,0 +1,37 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+{% import '@ka_common/macros/table.twig' as macros %}
+
+{% extends '@ka_common/pages/page.twig' %}
+
+{% block page_buttons %}
+	{{ macros.button_save(action_save, 'frm-standard') }}
+	{{ macros.button_back(action_back) }}
+{% endblock %}        
+
+{% block page_contents %}
+
+	{% embed '@ka_common/card.twig' with {'header': t('txt_form_page_title'), icon:'fa-list'} %}
+		{% block contents %}
+
+			<form action="{{ action_save }}" method="post" class="form-horizontal" enctype="multipart/form-data" id="frm-standard">
+				{% for k,f in fields %}
+					{% if f.type %}
+						{% include '@ka_common/fields/' ~ f.type ~ '.twig' with {'field': f } %}
+					{% else %}
+						{% include '@ka_common/fields/text.twig' with {'field': f } %}
+					{% endif %}
+				{% endfor %}
+			</form>
+			
+		{% endblock %}
+	{% endembed %}
+
+<script>
+
+</script>
+
+{% endblock %}

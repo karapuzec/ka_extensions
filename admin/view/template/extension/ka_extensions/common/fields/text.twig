@@ -1,0 +1,28 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+	
+	language_id - value is defined for the specified language id
+	array       - field is in that array
+#}
+
+{% if template %}
+	{% set template = 'template_' ~ template %}
+{% else %}
+	{%	set template = 'template' %}
+{% endif %}
+{% extends 'extension/ka_extensions/common/fields/' ~ template ~ '.twig' %}
+
+{% block field_value %}
+	<input {% if field.required %} required {% endif %} type="text" 
+		name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}"
+		value="{{ field.value }}" 
+		{% if field.pattern %} pattern="{{ field.pattern }}" {% endif %}
+		{% if field.placeholder %} placeholder="{{ field.placeholder }}" {% endif %}
+		id="input-{{ field.code }}{{ language_id }}" class="form-control" />
+{% endblock %}

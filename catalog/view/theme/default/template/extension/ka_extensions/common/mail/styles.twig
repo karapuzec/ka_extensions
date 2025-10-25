@@ -1,0 +1,73 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+    
+    These styles can be used in emails like this
+    
+    {% import '@ka_common/mail/styles.twig' as css %}
+    <table style="{{ css.table() }}">
+    
+#}
+{# p { #}
+{% macro p() %}
+  margin-top: 0px;
+  margin-bottom: 20px;
+{% endmacro %}
+
+{# a, a:visited, a b { #}
+{% macro a() %}
+  color: #378DC1;
+  text-decoration: underline;
+  cursor: pointer;
+{% endmacro %}  
+
+{# a img #}
+{% macro a_img() %}
+  border: none;
+{% endmacro %}  
+
+{# #logo { #}
+{% macro id_logo() %}
+  margin-bottom: 20px; border: none;
+{% endmacro %}
+
+{# table { #}
+{% macro table() %}
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #DDDDDD;
+  margin-bottom: 20px;
+{% endmacro %}  
+
+{# table tbody td { #}
+{% macro table_tbody_td() %}
+  vertical-align: top;
+  padding: 7px 5px;
+  border: 1px solid #DDDDDD;
+  font-size: 12px;
+{% endmacro %}  
+
+{# table thead th { #}
+{% macro table_thead_th() %}
+  background-color: #EFEFEF;
+  padding: 2px 5px;
+  text-decoration: none;
+  color: #222222;
+  font-weight: bold;
+  border: 1px solid #DDDDDD;
+  font-size: 12px;
+{% endmacro %}
+
+{% macro table_right() %}
+	text-align: right; padding: 7px;
+{% endmacro %}
+
+{% macro table_center() %}
+	text-align: center;
+{% endmacro %}
+
+{% macro p_notice() %}
+  color: gray;
+  font-size: 10px;
+{% endmacro %}

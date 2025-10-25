@@ -1,0 +1,78 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+#}
+{% if template %}
+	{% set template = 'template_' ~ template %}
+{% else %}
+	{%	set template = 'template' %}
+{% endif %}
+{% extends 'default/template/extension/ka_extensions/common/fields/' ~ template ~ '.twig' %}
+
+{% block field_value %}
+
+<style>
+
+.image-content {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	padding-left: 4px;
+	padding-top: 4px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+	cursor: pointer;
+}
+
+.image-container:hover .img-thumbnail {
+    box-shadow: 0 0 0px 1px #23a1d1;
+}
+
+.image-container:hover .image-content {
+    box-shadow: 0 0 0px 1px #23a1d1;
+    color: #23a1d1;
+}
+
+.image-content .fa {
+	margin: 6px;
+	font-size: 18px;	
+}
+
+.image-container {
+  padding: 10px;
+  position: relative;
+  display: inline-block;
+}
+
+</style>
+            	<div draggable="true" class="image-container">
+	            	<a href="" id="thumb-{{ field.code }}" data-toggle="image" class="img-thumbnail">
+	            		<img src="{{ field.thumb }}" alt="" title="" data-placeholder="{{ image_placeholder }}" />
+	            	</a>
+  	          	<input data-id="image" type="hidden" data-default_value="{{ field.default_value }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value }}" id="input-{{ field.code }}" />
+					      <div data-id="add" {% if field.value %} style="display:none;" {% endif %} onclick="javascript: $('#thumb-{{ field.code }}').trigger('click');" class="image-content"><i class="fa fa-plus"></i></div>
+					      <div data-id="delete" {% if not field.value %} style="display:none;" {% endif %} onclick="javascript: Images_restoreDefault('{{ field.code }}');" class="image-content"><i class="fa fa-trash"></i></div>
+					    </div>
+
+<script>
+
+function Images_restoreDefault(code) {
+
+	// restore the image
+	$('#thumb-' + code + ' img').attr('src', $('#thumb-' + code + ' img').data('placeholder'));
+	
+	// set hidden field
+	$('#input-' + code).val($('#input-' + code).data('default_value'));
+
+	$('[data-id=field-' + code + ']').find('[data-id=add]').show();
+	$('[data-id=field-' + code + ']').find('[data-id=delete]').hide();
+}
+
+</script>
+{% endblock %}

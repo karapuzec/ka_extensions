@@ -1,0 +1,21 @@
+{#
+	PARAMS
+	field.title - field title
+	field.code  - field code (only a-z,0-9_)
+	field.name  - field.name (can be an array value like products[123])
+	field.options  - array
+	field.value    - field value
+	field.required -
+	first_line  - text
+	field.error - error
+#}
+{% block field_value %}
+
+              <select name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" id="input-{{ field.code }}" class="form-control">
+							  {% if not field.hide_first_line %}<option value="">{{ t('text_select') }}</option>{% endif %}
+								{% for k,v in field.options %} 
+								  <option value="{{ k }}" {% if (field.value == k) %} selected="selected" {% endif %}>{{ v }}</option>
+								{% endfor %}
+							</select>
+
+{% endblock %}

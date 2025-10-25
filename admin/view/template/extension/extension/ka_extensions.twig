@@ -1,0 +1,265 @@
+{#
+    $Project: Ka Extensions $
+    $Author: karapuz team <support@ka-station.com> $
+    $Version: 4.1.1.22 $ ($Revision: 560 $)
+#}
+
+<fieldset>
+  <legend>{{ heading_title }}</legend>
+  
+  {{ ka_top }}
+
+{% if vendor == 'ka_extensions' %}  
+    <div class="alert alert-info">
+    	<div class="pull-left">
+				<table>
+					<tr>
+						<td><b>Ka Extensions Version</b>: {{ extension_version }}&nbsp;&nbsp;&nbsp;</td>
+						<td><b>Author</b>: karapuz team&nbsp;&nbsp;&nbsp;</td>
+						<td><b>Contact Us</b>: &nbsp;&nbsp;&nbsp;
+							<a href="mailto:support@ka-station.com"><i class="fa fa-envelope"></i> E-mail</a>&nbsp; | 
+							&nbsp; <a href="https://www.ka-station.com/tickets/" target="_blank"><i class="fa fa-pencil"></i> Help Desk</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="pull-right">
+				<a href="{{ link_settings }}" class="btn btn-primary btn-xs"><i class="fa fa-cog"></i></a>
+			</div>
+    </div>
+{% endif %}
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <td class="text-left" style="width: 50%">{{ t('Name') }}</td>
+          <td class="text-left" style="width: 10%">{{ t('Version') }}</td>
+          <td class="text-center" style="width: 15%">{{ t('Registration') }}</td>
+          <td class="text-left" style="width: 10%">{{ t('Show Related') }}</td>
+          <td class="text-right" style="width: 15%">{{ t('Show Action') }}</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% if extensions %}
+        {% set row = 0 %}
+        {% for extension in extensions %}
+        {% set row = row + 1 %}
+        <tr>        
+          <td>{{ extension.name }}
+	          <div>
+	          	{% if extension.ext_link %}<a href="{{ extension.ext_link }}" target="_blank">{{ t('Info') }}</a>{% endif %}
+	          	{% if extension.docs_link %} | <a href="{{ extension.docs_link }}" target="_blank">{{ t('Docs') }}</a>{% endif %}
+	          </div>
+          </td>          
+          <td>{{ extension.version }}</td>
+          <td class="text-center">
+          	{% if extension.is_free %}
+          		{{ t('Free') }}
+          	{% elseif extension.expiry_date %}
+							<div data-toggle="tooltip" title="{{ t('Key') }}: {{ extension.masked_key }}">{{ t('Registered') }}<br />(Exp.date: {{ extension.expiry_date }})</div>
+						{% else %}
+							{% if extension.is_wrong_license %}
+								<span style="display: block; margin: 4px; color: red;" data-toggle="tooltip" title="The website does not have a valid license. The extension is functional but you should contact our support team to resolve this issue.">{{ t('Invalid License') }}</span>
+								<span id="row_spin_{{ row }}"></span><button type="button" class="btn btn-warning" id="row_link_{{ row }}" onclick="javascript: onRegister(event, '{{ row }}', '{{ extension.extension }}');">Register</button>
+	          	{% elseif extension.is_registered %}
+		         		<span data-toggle="tooltip" title="{{ t('Key') }}: {{ extension.masked_key }}">{{ t('Registered') }}</span>
+	          	{% else %}
+	          		<span id="row_spin_{{ row }}"></span><button type="button" class="btn btn-warning" id="row_link_{{ row }}" onclick="javascript: onRegister(event, '{{ row }}', '{{ extension.extension }}');">Register</button>
+	          	{% endif %}
+	          {% endif %}
+          </td>
+          <td class="text-center">
+          	{% if extension.is_installed %}
+       			<input style="display:none" code="{{ extension.extension }}" type="checkbox" name="extension[{{ extension.extension }}][show_related]" {% if extension.show_related %} checked="checked" {% endif %} />
+            {% endif %}
+          </td>
+				  <td class="text-right">
+	         	{% if extension.is_installed %}
+		            <a href="{{ extension.action.edit.href }}" data-toggle="tooltip" title="{{ extension.action.edit.text }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+		            <a href="{{ extension.action.uninstall.href }}" data-toggle="tooltip" title="{{ extension.action.uninstall.text }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
+	            {% else %}
+		            <button type="button" class="btn btn-primary" disabled="disabled"><i class="fa fa-pencil"></i></button>
+		            {% if extension.is_registered or extension.is_free %}
+			            <a href="{{ extension.action.install.href }}" data-toggle="tooltip" title="{{ extension.action.install.text }}" class="btn btn-success"><i class="fa fa-plus-circle"></i></a>
+			          {% else %}
+		            	<button type="button" class="btn btn-success" disabled="disabled" data-toggle="tooltip" title="Register the extension first"><i class="fa fa-plus-circle"></i></button>
+			        {% endif %}
+	          {% endif %}
+				  </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td class="text-center" colspan="5">{{ t('No Results') }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+		<tbody id="ka_related">
+		</tbody>
+    </table>
+  </div>
+</fieldset>
+
+<script type="text/javascript"><!--
+
+function onRegister(event, row, ext_code) {
+
+	event.preventDefault();
+	event.stopPropagation();
+	
+	if (!row) {
+		row = 0;
+		ext_code = 'any';
+	}
+
+	$('#modal-input-key').remove();
+
+	$.ajax({
+		url: 'index.php?route=extension/extension/ka_extensions/inputKey&user_token=' + getURLVar('user_token') + '&extension=' + ext_code,
+		dataType: 'html',
+		beforeSend: function() {
+			$('#row_spin_' + row).html('<i class="fa fa-circle-o-notch fa-spin"></i>');
+			$('#row_link_' + row).hide();
+		},
+		complete: function() {
+			$('#row_spin_' + row).html('');
+			$('#row_link_' + row).show();
+		},
+		success: function(html) {
+			$('body').append('<div id="modal-input-key" class="modal">' + html + '</div>');
+			$('#modal-input-key').modal('show');
+		}
+	});	
+
+}
+
+// array of all related extensions prefetched from ka-station.com server
+//
+var related_extensions = null;
+
+// keep last state of shown related extensions
+//
+var shown_extensions = null;
+
+var store_info = {};
+
+store_info['oc_version'] = "{{ oc_version }}";
+store_info['location']   = "{{ http_catalog }}";
+store_info['extensions'] = {};
+
+{% if extensions %}
+
+	{% for k,v in extensions %} 
+	store_info['extensions']['{{ v.extension }}'] = {
+		code: '{{ v.extension }}',
+		version: '{{ v.version }}',
+		is_installed: '{% if v.is_installed %}1{% else %}0{% endif %}'
+	}
+	{% endfor %}
+
+{% endif %}
+
+function prefetchRelated() {
+
+		// send information to ka-station.com in order to get related extensions
+		//
+		$.ajax({
+			url: '{{ ka_station_url }}/index.php?route=extension/related/getRelated',
+			data: {'data':JSON.stringify(store_info)},
+			dataType: 'json',
+			type:'post',
+			success: function(json) {
+				if (json) {
+					related_extensions = json;
+
+					if (shown_extensions == null) {
+						refreshRelated();
+					}
+				}
+			}
+		});  // ajax
+}
+
+
+function getShowRelatedStates() {
+	var extensions = {};
+	
+	$("input[name*='show_related']").each(function(index, element) {
+		if (!related_extensions[$(element).attr('code')]) {
+			$(element).hide();
+			extensions[$(element).attr('code')] = 0;			
+		} else {
+			$(element).show();
+			if ($(element).prop('checked')) {
+				extensions[$(element).attr('code')] = 1;
+			} else {
+				extensions[$(element).attr('code')] = 0;
+			}
+		}
+	});
+	
+	return extensions;
+}
+
+
+function refreshRelated() {
+
+	var extensions = getShowRelatedStates();
+
+	$.ajax({
+		url: 'index.php?route=extension/extension/ka_extensions/updateRelated&user_token=' + getURLVar('user_token'),
+		data: extensions,
+		type:'post',
+		dataType: 'json',
+		success: function(json) {
+		}
+	});
+
+	var html = '';
+	
+	var active_extensions = {};
+	
+	for (var parent_code in related_extensions) {	
+	
+		if (extensions[parent_code] == 1) {
+			for (var related_code in related_extensions[parent_code]) {
+				if (!active_extensions[related_code]) {
+					active_extensions[related_code] = 1;
+					html += '<tr>';
+					html += '  <td class="text-left" style="opacity: 0.7;">' + related_extensions[parent_code][related_code]['name'] + '</td>';
+					html += '  <td class="text-left">&nbsp;</td>';
+					html += '  <td class="text-left">&nbsp;</td>';
+					html += '  <td class="text-left">&nbsp;</td>';
+					html += '  <td class="text-left"><a target="_blank" href="' + related_extensions[parent_code][related_code]['info_url'] + '">View Info</a></td>';
+					html += '</tr>';
+				}
+			}
+		}
+	}
+
+	if (shown_extensions == null) {
+
+		$('#ka_related').html(html);
+		shown_extensions = active_extensions;
+		
+	} else {
+		$('#ka_related').fadeOut(500, function(){
+			$('#ka_related').html(html);
+			$('#ka_related').fadeIn(1500);
+			shown_extensions = active_extensions;			
+		});
+	}
+}
+
+$(document).ready(function() {
+
+	prefetchRelated();
+	
+	$(document).on('click', "input[name*='show_related']", function(e) {
+		refreshRelated();
+	});
+
+});
+
+//--></script>

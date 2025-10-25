@@ -1,0 +1,59 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+{% import '@ka_common/macros/table.twig' as macros %}
+
+{% extends '@ka_common/pages/page.twig' %}
+
+{% block page_buttons %}
+	{{ macros.button_save(action_save, 'frm-settings') }}
+	{{ macros.button_back(action_cancel) }}
+{% endblock %}        
+
+{% block page_contents %}
+
+{% if vendor == 'ka_extensions' %}
+		<div id="service_line" class="well well-sm">
+			<table>
+				<tr>
+					<td><b>Module Version</b>: {{ extension_version }}&nbsp;&nbsp;&nbsp;</td>
+					<td><b>Author</b>: karapuz team&nbsp;&nbsp;&nbsp;</td>
+					<td><b>Contact Us</b>: &nbsp;&nbsp;&nbsp;
+						<a href="mailto:support@ka-station.com"><i class="fa fa-envelope"></i> E-mail</a>&nbsp; | 
+						&nbsp; <a href="https://www.ka-station.com/tickets/" target="_blank"><i class="fa fa-pencil"></i> Help Desk</a>
+					</td>
+				</tr>
+			</table>
+		</div>
+{% endif %}
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ t('Extension Settings') }}</h3>
+      </div>
+      <div class="panel-body">
+				<form class="form-horizontal" action="{{ action }}" method="post" enctype="multipart/form-data" id="frm-settings">
+					<input type="hidden" name="mode" value="" id="mode" />
+					{% set label_width_class = 'col-sm-4' %}
+					{% set value_width_class = 'col-sm-8' %}					
+					
+	      	{% block settings_contents %}
+	      		{% if fields %}
+							{% for k,f in fields %}
+								{% if f.type %}
+									{% include '@ka_common/fields/' ~ f.type ~ '.twig' with {'field': f } %}
+								{% else %}
+									{% include '@ka_common/fields/text.twig' with {'field': f } %}
+								{% endif %}
+							{% endfor %}
+	      		{% else %}
+			      	<p>The extension does not have any settings.</p>
+			      {% endif %}
+	      	{% endblock %}
+	      </form>
+      </div>
+    </div>
+{% endblock %}

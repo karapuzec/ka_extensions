@@ -1,0 +1,12 @@
+2023-12-21 15:38:17 - PHP Warning:  fopen(F:/htdocs/ka_ext/oc3000a1/system/storage/cache/cache.store.1703176697): failed to open stream: No such file or directory in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 49
+2023-12-21 15:38:17 - PHP Warning:  flock() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 51
+2023-12-21 15:38:17 - PHP Warning:  fwrite() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 53
+2023-12-21 15:38:17 - PHP Warning:  fflush() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 55
+2023-12-21 15:38:17 - PHP Warning:  flock() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 57
+2023-12-21 15:38:17 - PHP Warning:  fclose() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 59
+2023-12-21 15:38:17 - PHP Warning:  fopen(F:/htdocs/ka_ext/oc3000a1/system/storage/cache/cache.order_status.1.1703176697): failed to open stream: No such file or directory in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 49
+2023-12-21 15:38:17 - PHP Warning:  flock() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 51
+2023-12-21 15:38:17 - PHP Warning:  fwrite() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 53
+2023-12-21 15:38:17 - PHP Warning:  fflush() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 55
+2023-12-21 15:38:17 - PHP Warning:  flock() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 57
+2023-12-21 15:38:17 - PHP Warning:  fclose() expects parameter 1 to be resource, bool given in F:\htdocs\ka_ext\oc3000a1\system\library\cache\file.php on line 59

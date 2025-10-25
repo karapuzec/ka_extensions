@@ -1,0 +1,17 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+{% if logged %}
+  <ul class="nav pull-right">
+    <li>
+    	<a href="{{ kalog_errors_link }}" title="Kamod Health Status">
+    		<i class="fa fa-ambulance fa-lg"></i>
+    		{% if kalog_errors_total %}<span class="badge">{{ kalog_errors_total }}</span>{% endif %}
+    	</a>    
+    </li>
+  </ul>
+{% endif %}
+  

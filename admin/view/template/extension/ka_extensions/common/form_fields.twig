@@ -1,0 +1,23 @@
+{% set is_section_started = false %}
+
+{% for f in fields %}
+	{% if f.section %}
+	
+		{% if is_section_started %}
+			</fieldset>
+		{% endif %}
+		
+    <fieldset>
+      <legend>{{ f.section }}</legend>
+    {% set is_section_started = true %}
+  {% endif %}
+	
+	{% if f.type %}
+		{{ include('@ka_common/fields/' ~ f.type ~ '.twig', {'field': f }, ignore_missing = true) }}
+	{% else %}
+		{% include '@ka_common/fields/text.twig' with {'field': f } %}
+	{% endif %}						
+
+	{% block process_field %}{% endblock %}
+	
+{% endfor %}

@@ -1,0 +1,40 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+	
+	array       - field is in that array
+	
+#}
+{% if template %}
+	{% set template = 'template_' ~ template %}
+{% else %}
+	{%	set template = 'template' %}
+{% endif %}
+{% extends 'extension/ka_extensions/common/fields/' ~ template ~ '.twig' %}
+
+{% block field_value %}
+      	<div class="input-group date">
+          <input {% if field.required %} required {% endif %} 
+          	type="text" name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
+          	value="{{ field.value }}" placeholder="{{ field.placeholder }}" 
+          	data-date-format="YYYY-MM-DD"
+          	id="input-{{ field.code }}" 
+          	class="form-control"
+           />
+          <span class="input-group-btn">
+          <button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
+          </span>
+        </div>
+
+<script type="text/javascript"><!--
+$('#input-{{ field.code }}').datetimepicker({
+	language: '{{ datepicker }}',
+	pickTime: false
+});
+//--></script> 
+{% endblock %}

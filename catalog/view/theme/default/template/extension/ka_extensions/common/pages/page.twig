@@ -1,0 +1,47 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+    
+    
+#}
+{{ header }}
+{% block common_header_scripts %}
+{# js file is loaded by code for now (to make it available under all themes at once)
+	<script src="catalog/view/javascript/extension/ka_extensions/common.js" type="text/javascript"></script>
+#}
+<link href="catalog/view/theme/default/stylesheet/extension/ka_extensions/stylesheet.css" rel="stylesheet" media="screen" />
+
+{% endblock %}
+{% block header_scripts %}{% endblock %}
+<div id="{{ page_id }}" class="container">
+	{% block breadcrumbs %}
+		{% if ka_breadcrumbs %}
+			{{ ka_breadcrumbs }}
+		{% else %}
+			{% include '@ka_common/breadcrumbs.twig' %}
+		{% endif %}
+	{% endblock %}
+	{% block top_messages %}
+		{% if ka_top %}
+			{{ ka_top }}
+		{% else %}
+			{% include('@ka_common/top_messages.twig') %}	
+		{% endif %}
+	{% endblock %}
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+	    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+	    {% set class = 'col-sm-9' %}
+    {% else %}
+  	  {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">{{ content_top }}
+    	{% block page_contents %}{% endblock %}
+		{{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{% block footer_scripts %}
+{% endblock footer_scripts %}
+{{ footer }}

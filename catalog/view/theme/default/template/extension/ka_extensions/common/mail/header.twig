@@ -1,0 +1,38 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>{{ subject|e }}</title>
+		<style type="text/css">
+		{#
+			Styles do not work in some email clients (like thunderbird).
+			To get a full compatibility you should use macros to include styles from styles.twig file
+
+			Example:
+				{% import '/default/template/extension/ka_extensions/common/mail/styles.twig' as css %}
+			
+			later
+				<th style="{{ table_thead_th() }}">{{ column_model }}</th>
+				
+			But if it does not matter, feel free to declar css styles right here
+		#}
+			a:hover {
+			  color: #378DC1;
+			  cursor: pointer;
+			  text-decoration: none;
+			}
+		</style>
+	</head>
+	<body style="color: #000000; font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
+		<div id="container" style="width: 680px;">
+			{% if logo %}
+			<a href="{{ store_url }}" title="{{ store_name }}"><img src="{{ logo }}" alt="{{ store_name }}" style="max-height: 80px; margin-bottom: 20px; border: none;" id="logo" /></a>
+			<br />
+			{% endif %}
+	

@@ -1,0 +1,31 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+#}
+{% if template %}
+	{% set template = 'template_' ~ template %}
+{% else %}
+	{%	set template = 'template' %}
+{% endif %}
+{% extends 'default/template/extension/ka_extensions/common/fields/' ~ template ~ '.twig' %}
+
+{% block field_value %}
+	<div class="well well-sm" style="height: 150px; overflow: auto;">
+		{% for ok, ov in field.options %}
+		  <div class="checkbox">
+		    <label>
+		      <input type="checkbox" 
+		      	name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}[]" 
+		      	value="{{ ok }}" 
+		      	{% if ok in field.value %} checked="checked" {% endif %}
+		      />
+		      {{ ov }}</label>
+		  </div>
+	  {% endfor %}
+	</div>
+{% endblock %}

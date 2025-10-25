@@ -1,0 +1,32 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+{{ header }}
+{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+      	{% block page_buttons %}{% endblock %}
+      </div>
+      <h1>{{ heading_title }}</h1>
+      {{ ka_breadcrumbs }}
+    </div>
+  </div>
+  <div class="container-fluid">
+  {{ ka_top }}
+		{% block page_contents %}The page does not have any contents.{% endblock %}
+	</div>
+	<style>
+		.radio input[type=radio] {
+			top: 3px;
+		}
+		.checkbox input[type=checkbox] {
+			top: 2px;
+		}
+	</style>
+</div>
+{{ footer }}

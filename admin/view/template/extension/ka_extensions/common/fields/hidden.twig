@@ -1,0 +1,17 @@
+{#
+	PARAMS
+	field.code  - field code (only a-z,0-9_)
+	field.title - field title
+	field.name  - field.name (can be an array value like products[123])
+	field.value - field value
+	field.required -
+	field.error - error
+	
+	language_id - value is defined for the specified language id
+	array       - field is in that array
+#}
+<input type="hidden" 
+		name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
+		value="{{ field.value }}" 
+		id="input-{{ field.code }}{{ language_id }}" class="form-control" 
+/>

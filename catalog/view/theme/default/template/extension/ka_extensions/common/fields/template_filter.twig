@@ -1,0 +1,13 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+	    <div data-id="filter-{{ field.code }}" class="{% if extra_class_field %}{{ extra_class_field }} {% endif %}form-group {% if field.required %} required {% endif %}" {% if field.hidden %} style="display: none" {% endif %}>
+	      <label class="control-label"
+	      	for="filter-{{ field.code }}{{ language_id }}"
+	      >
+	      	{% if field.title %}{{ field.title }}{% else %}{{ t('txt_title_' ~ field.code) }}{% endif %}
+	     	</label>
+				{% block field_value %}{% endblock %}
+	    </div>

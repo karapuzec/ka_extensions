@@ -1,0 +1,11 @@
+{% extends '@ka_common/pages/page.twig' %}
+
+{% block page_contents %}
+
+	{% embed '@ka_common/panel.twig' %}
+		{% block contents %}
+        <textarea wrap="off" rows="15" readonly class="form-control">{{ log }}</textarea>
+	  {% endblock %}
+	{% endembed %}
+
+{% endblock %}

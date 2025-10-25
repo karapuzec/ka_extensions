@@ -1,0 +1,86 @@
+<?php
+/*
+	This file was patched by kamod.
+	More information can be found at https://www.ka-station.com/kamod
+	
+	Original file:
+	system/engine/action.php
+	
+	The following patches were applied:
+	system/library/extension/ka_extensions/ka_extensions/system/engine/action.php.xml
+*/
+?><?php
+/*
+	This file was inherited by kamod.
+	More information can be found at https://www.ka-station.com/kamod
+	
+	Original file: system/engine/action.php
+*/
+//karapuz: regex|replace:/(.)[\s]*$/
+//$1
+//}
+///karapuz
+//karapuz: before:class Action {
+@include_once ( DIR_SYSTEM . "library/extension/ka_extensions/startup.php");
+
+if (!class_exists('\Action')) {
+///karapuz
+class Action_kamod  {
+	private $id;
+	protected $route;
+	private $method = 'index';
+
+	public function __construct($route) {
+		$this->id = $route;
+		
+		$parts = explode('/', preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route));
+
+		// Break apart the route
+		while ($parts) {
+			$file = DIR_APPLICATION . 'controller/' . implode('/', $parts) . '.php';
+
+			if (is_file($file)) {
+				$this->route = implode('/', $parts);		
+				
+				break;
+			} else {
+				$this->method = array_pop($parts);
+			}
+		}
+	}
+	
+	public function getId() {
+		return $this->id;
+	}
+	
+	public function execute($registry, array $args = array()) {
+		// Stop any magical methods being called
+		if (substr($this->method, 0, 2) == '__') {
+			return new \Exception('Error: Calls to magic methods are not allowed!');
+		}
+
+		$file = DIR_APPLICATION . 'controller/' . $this->route . '.php';		
+		$class = 'Controller' . preg_replace('/[^a-zA-Z0-9]/', '', $this->route);
+		
+		// Initialize the class
+		if (is_file($file)) {
+//karapuz: before:nclude_once(
+			if  ( ! empty ( $class )  &&  ! class_exists ( $class ) )
+///karapuz				
+			include_once($file);
+		
+			$controller = new $class($registry);
+		} else {
+			return new \Exception('Error: Could not call ' . $this->route . '/' . $this->method . '!');
+		}
+		
+		$reflection = new ReflectionClass($class);
+		
+		if ($reflection->hasMethod($this->method) && $reflection->getMethod($this->method)->getNumberOfRequiredParameters() <= count($args)) {
+			return call_user_func_array(array($controller, $this->method), $args);
+		} else {
+			return new \Exception('Error: Could not call ' . $this->route . '/' . $this->method . '!');
+		}
+	}
+}
+}

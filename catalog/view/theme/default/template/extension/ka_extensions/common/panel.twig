@@ -1,0 +1,16 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+
+    <div class="panel panel-default">
+    {% if heading_text %}
+      <div class="panel-heading">
+        <h3 class="panel-title">{% if heading_icon %}<i class="fa {{ heading_icon }}"></i>{% endif %} {{ heading_text }}</h3>
+      </div>
+    {% endif %}
+      <div class="panel-body">
+      	{% block contents %}{% endblock %}
+     	</div>
+    </div>

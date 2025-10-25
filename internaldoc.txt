@@ -1,0 +1,118 @@
+1. How to overwrite output of standard controllers in child classes
+
+- make a child class
+- include trait extension\ka_extensions\TraitController there. That will give you two methods: 
+	- getRenderData()
+	- getRenderTemplate();	
+  These methods will return information from the last render call i.e.
+  	$this->load->view(<template>, <data>)
+
+- therefore you can do in your controller a code like this:
+  
+class ControllerAccountLogin extends \ControllerAccountLogin {
+
+	use \extension\ka_extensions\TraitController;
+
+	public function index() {
+
+		$this->load->kaDisableRender('account/login');
+		parent::index();
+		$this->load->kaEnableRender('account/login');
+		
+		$data = $this->getRenderData();
+		$template = $this->getRenderTemplate();
+		
+		// later you can replace the data and the template
+		$data['column_right'] = '';
+		
+		$this->response->setOutput($this->load->view($template, $data));
+	}
+} 
+  	
+
+2. Language variables has to be included with t() function in template files. But t has to be used in separate templates
+only to prevent fatal error when ka-ext is not installed. Therefore you have to include files to existing template.
+
+Example:
+			{% if is_ka_multivendor_installed %}
+				{% include 'default/template/extension/ka_extensions/ka_multivendor/account.twig' %}
+			{% endif %}
+
+			
+3. We started to use extend/block constructions of the twig
+https://twig.symfony.com/doc/2.x/functions/index.html
+
+The following files are available for extending:
+catalog\view\theme\default\template\extension\ka_extensions\common\page.twig
+admin\view\template\extension\ka_extensions\common\page.twig
+
+
+
+4. Settings page
+
+You can create a settings page by inheritating ControllerSettings class. Next you have to define tables in onLoad
+function.
+
+
+protected function getFields() - should return a list of settings in format:
+
+		$fields = array(
+			'ka_multivendor_default_vendor_group_id' => array(
+				'code' => 'ka_multivendor_default_vendor_group_id',
+				'default_value' => '',
+				'options' => array(),
+				'type' => 'select',				
+			),
+		);
+);
+
+
+if you need to use a custom template, you have to overwrite the index function like this:
+
+	public function index() {
+
+		$this->disableRender();
+		parent::index();
+		$this->enableRender();
+
+		$this->data['is_ka_smethods_installed'] = \KaGlobal::isKaInstalled('ka_smethods');
+		
+		$this->showPage('ka_multivendor/settings');
+	}
+
+The custom template has to embed the 'settings_contents' block to the common/settings page like this:
+
+{% extends 'extension/ka_extensions/common/settings.twig' %}
+{% block settings_contents %}
+...your html..
+{% endblock %}
+
+
+
+5. Form trait
+
+It allows to collect data from field values to a standard format ($fields array)
+
+It can validate fields.
+
+
+6. Template inheritance logic
+
+- Templates without blocks are wrapped in the 'parent_template' block always. If you simply want to extend it with
+new information you can put it like this:
+```
+my new html
+{{ parent }}
+```
+
+It might be better to add all new information to your own blocks. In that case you will have to use the parent
+block explicitly like this:
+
+```
+{% block parent_template %}
+	{% block newhtml %}
+		my new html
+	{% endblock %}
+{{ parent }}
+{% endblock %}
+```

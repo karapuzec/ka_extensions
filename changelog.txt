@@ -1,0 +1,297 @@
+4.1.1.22
+- Fixes to the installer and setting pages for 3rd party vendor extensions.
+- A standard overridden model class might be ignored and a default model class was loaded. Fixed.
+
+4.1.1.21
+- added pages for 3rd party vendors to the 'extensions' list
+- added an extra parameter for language variables in t() function in twig
+- fixed a minor bug in email function
+
+4.1.1.20
+- postedFiles class was heavily reworked. It is not compatible anymore with the previous version.
+- removed ExceptionAmbigousData class, it should be replaced with ExceptionData
+- added KA_DEBUG_DEPRECATED constant to the code. A developer can track if any deprecated features are used.
+- removed ATable class
+- moved kadb::safeQuery to db::ka_safeQuery
+
+4.1.1.19
+- added custom templates for multiple twig fields;
+- a module code might be incorrectly extracted on builing kamod cache. Fixed.
+- the query builder does not generate a query on empty parameters;
+- the recordset may work with compound primary fields;
+- added a user.php file to simplify user detection
+- added a common page.twig file as a default template in admin area
+- changed a patch of action.php class for compatibility with lightning cache module
+- changed a logic of checking 'ka extensions' library installation for better compatibility with 'ocmodify' framework
+
+4.1.1.18
+- recordset changes
+- changed order of applying vqmod patch to twig files. Now, vqmod applies twig patches after kamod.
+
+4.1.1.17
+- disabled store version compatibility check to simplify installation of existing modules to Opencart 3.0.4.x
+
+4.1.1.16
+- function_exists does not work at some servers. Fixed.
+
+4.1.1.15
+- fixed a type error with language_id variable in format.php file
+- creation of dynamic properties in pagination.php caused an error. Fixed.
+- modified ka_format.php language file might cause a warning message because of an incorrect inclusion path. Fixed.
+
+4.1.1.14
+- twig files patched by vqmod were ignored. Fixed.
+
+4.1.1.13
+- iterator class returned warnings on php 8.1. Fixed.
+
+4.1.1.12
+- language files patched by vqmod might be ignored by kamod and some languge variables were not visible in the store. Fixed.
+
+4.1.1.11
+- 'public const' declaration caused an error on some php versions. Fixed.
+- added exteneded information about an error line in kamod.log file
+
+4.1.1.10
+- improved ocmod patch anchors in several files
+
+4.1.1.9
+- classes with the underline character were ignored by kamod. Fixed.
+- a warning message occurred on ka-extensions page when no extensions are installed. Fixed.
+- kamod might ignore some action controllers. Fixed.
+- disabled a warning about closed store, now the script checks the lock in 3 seconds.
+- added initialization of the route variable in action.php to prevent a default Opencart warning 
+  for an invalid route
+
+4.1.1.8
+- moved the footer code from ocmod to kamod in back-end
+- added the ability to specify file names for email attachments
+- arrays:insertAfter, insertBefore did not work correctly for some arrays. Fixed.
+- added compatibility with twig3
+- RenderDisable/Enable did not work for events. The functionality was moved from controller to action class 
+  to handle controller loading there.
+- added depends_on field in manifest modules
+- added language file inheritance
+- moved some language files from common to ka_extensions directory
+- added ka_insert/ka_update methods to db class.
+- added hasPrimaryRecord method to ADBTable class
+- fixed renderDisable method for cases with inheritance of custom classes
+- added automatic titles to fields; 
+- fixed an empty file generation
+- added language files and updated changelog.txt for ka_extensions 4.1.1.8
+- ADBTable might return incorrect primary keys. Fixed.
+- fileutf8 file caused a deprecated warning on php8. Fixed.
+- mail class did not use specified language in rendering templates. Fixed.
+
+4.1.1.7
+- vqmod changes might be missed in kamod cache. Fixed.
+- added plainurl field. Removed the pointer style from plain text fields in back-end.
+- added a 'success' top message instead of the 'info' on saving a form.
+
+4.1.1.6
+- prevent throwing an error on empty array in update/insert operations (to be compatible with older ka-extensions behavior).
+
+4.1.1.5
+- KaGlobal::iterator() did not initialize the query. Fixed.
+- minor changes to template files
+- new template files
+- class alias was not generated for some cases in kamod cache. Fixed.
+
+4.1.1.4.2
+- added support of raw html in language editor
+- added 'reply-to' support to mail functions
+- hide the logo image in emails when it is not uploaded on the store settings page
+
+4.1.1.4.1
+- changed anchor for ambulance icon in back-end
+
+4.1.1.4
+- the sql filters were moved from a child db class to a dbproxy.
+- 'where' parameter is optional for adbtable::delete method.
+- moved permisssion checking in admin to kamod file. Now we allow to check permissions for any controller under 
+  the 'admin/controller/extension' directory.
+- when disableRender had a parameter, the output might fail. Fixed.
+- reduced the visible permissions list. kamod files and non-php files are removed from the permissions list because
+  permissions do not affect them directly.
+- ocmod modification files for kamod-modified files were ignored when the admin directory had a non-standard name. Fixed.
+- design theme files in a theme.kamod directory were ignored. Fixed.
+- added theme files generation on opening the modifications page in back-end
+
+4.1.1.3
+- added the ability to specify the temlate file for some fields in twig (in back-end for now)
+- hide_first_line parameter of select.twig field was moved to the field variable
+- added the ability to specify hidden fields in twig
+- added extra_class_value parameter to template.twig
+- minor twig modifications
+- getFields method was moved to ControllerForm trait.
+- kadb class was optimized. 'where' parameters in some methods can contain arrays.
+- a standard language class was extended with getka() method
+- linka() method was extended with $is_js parameter
+- onload() method does not return any value anymore. It may throw an exception if required.
+- qb methods do not require $this parameter anymore.
+- qb::leftJoin method did not work properly. Fixed.
+- added card.twig file to admin back-end
+- added hidden, text, plaintext fields to twig in back-end
+- added twig macros directory to back-end
+- added controllerForm and controllerList classes as basic classes for list/form pages
+- added a recordset model file. The recordset helps to reduce writing a standard code for forms and lists.
+- KA_MAIL_IMAGES_ARE_ENCLOSED constant was replaced with a setting at the 'Ka Extensions settings' page.
+- the safe mode now requires an extra code parameter in URL. The code can be defined on the 'KA Extensions settings' page.
+- some free extensions required a license key. Fixed.
+- model::onLoad returns true for compatibility purposes.
+
+4.1.1.2
+- minor template tweaks in back-end
+- added an overlay function to ka_extensions js object
+- changed 'id' of the setting form to prevent its automatic submission by Opencart standard code
+- minor changes to ATable class
+- the settings page template was moved to the pages directory
+- added 'delete' method to the db class
+- fixed 'OR' condition in QB->where method
+- load glyphicons in our stylesheet file in back-end
+- added ADBTable class as a possible replacement of the 'Table' class. It looks cleaner and simpler.
+- added ControllerPage class as a foundation class for regular pages
+- the safe mode loads oc modifications by default, but the full safe mode 
+  can be used after defining KA_SAFE_MODE_FULL constant in admin/config.php
+- added the ability to disable view rendering for specific routes
+
+4.1.1.1
+- added support of extra top message types
+- added space between an icon and text in top messages
+- added 'dir' custom twig function
+- some QB function return this to make chain calls
+- extensions outside ka_extensions directory were not activated by kamod. Fixed.
+- fake vqmod file was renamed to vqmodka to avoid false vqmod detection in 3rd party code
+- added disalbing 'data-lang' attribute on product and category pages because they may generate a javascript error
+
+4.1.1.0
+- kamod engine added to the Ka Extension Library. https://www.ka-station.com/kamod
+- many templates were added for using them with twig embed/include/extend functions
+- minor interface changes to the ka extensions page
+- added the 'Ka Extensions Settings' page
+- added a safe mode to open the store without modifications
+
+
+4.1.0.27
+- improved compatibility with php 8.0-8.1
+
+4.1.0.26
+- twig patch improvements for Opencart 3.0.3.7 and newer
+
+4.1.0.26.rc2
+- fixed big logo issue in emails. 
+- Added KaUrlParams class to the package.
+- disabled field type checking in ka-extensions installer
+- suppress warnings and notices on loading a non-existing email template
+
+4.1.0.26.rc1
+- kacurl: improved image download from a dropbox.com
+- kacurl: added the ability to supply extra headers to a curl request
+- added saveSetting(..) function for adding or updating a setting in Opencart settings
+- changed a text at the 'Enter license key' popup window.
+
+4.1.0.25
+- replaced + with %20 in kacurl urls
+- a 'register key' button did not show for temporary licenses which were not linked to the domain. Fixed.
+- kadb->queryInsert, kadb->queryUpdate now support unescaped field assignment like "date_added = NOW()"
+
+4.1.0.24
+- added support of asterisk in image urls
+- Some images did not download properly. Replaced + with %20 in kacurl urls to prevent this situation.
+
+4.1.0.23
+- added support of partial image download to kacurl file
+
+4.1.0.22
+- Improved fseek function speed in FileUTF8 when no stream filter are applied
+- added the ability to specify meta tags for documents
+
+4.1.0.21
+- the logo image for email was taken from the store image. Now the standard logo image is used in the email.
+- added 'KA_MAIL_IMAGES_AS_URLS' constant support to control email image location.
+- disable theme editor changes when there is a modification file
+- added support of different language templates for emails
+- added our ka-ext twig functions to templates loaded by theme editor. Prior that, t() function could generate a twig error
+  for these templates.
+- added common header and footer email templates. Extensions can provide only the main part of email to sendContent() function
+- added the ability to patch files modified by the theme editor
+
+4.1.0.20
+- replaced hard-coded text with language variables
+
+4.1.0.19
+- sql error might occur during extension installation due to strict sql mode. Now the installer disables strict
+  sql_mode temporarily. It should help to install extensions without that error.
+- improved queryInsert routine in kadb.php. SQL insert operations might run slightly faster.
+
+4.1.0.18
+- improvements to license validation mechanism
+
+4.1.0.17
+- improvement: mail function was unable to find templates in a default theme when the template is not available in 
+  the current theme. 
+
+4.1.0.16
+- feature: invalid licenses allow the extension working while it is installed.
+
+4.1.0.15
+- custom twig functions could not be found on some servers due to a case sensitive path. Fixed.
+
+4.1.0.14
+- showing exp.date on ka-extensions page
+- showing docs link, extension link
+- added extra response validation
+- added support of twig include functions to Opencart 3.0.3.5 and newer
+- fixed loading of our custom twig functions like t() in Opencart 3.0.3.5 and newer
+
+4.1.0.13
+- added the ability to attach files to emails through our kamail.php wrapper;
+
+4.1.0.12
+- email template search was not compatible with product_warranty extension format. Fixed.
+
+4.1.0.11
+- kafileutf8 class may ignore some text content while reading in some cases. Fixed.
+- a deprecated warning occured on php 7.4 in queryUpdate method. Fixed.
+
+4.1.0.10
+- fix to email template path verification
+- removed feature: email templates are searched in the theme and default directories now 
+
+4.1.0.9
+- email templates are searched in the theme and default directories now.
+- a utility function for finding template files was added to KaGlobal class
+
+4.1.0.8
+- Email wrapper did not work properly with SMTP configuration. Fixed.
+
+4.1.0.7
+- fix to email submission in secondary stores
+- added the ability to show a part of the license key on the ka extensions page
+- added support of free extensions
+- fixed a wrong position of a spin icon when multiple extensions needed a registration
+- disabled the ability to install an extension without registration
+- added service headers to files in a new format
+- related products show for not installed extensions only
+
+
+4.1.0.6
+- autoload for controller and model classes with paths is added
+- format language file is added
+
+
+4.1.0.5
+- minor syntax changes to kaglobal to prevent parse errors on some servers
+
+
+4.1.0.4
+- rewind function is added to KaFileUTF8 class
+
+
+4.0.3.2
+- server internal error occured on the ka-extensions page when the modifications cache did not exist.
+  It is fixed by showing a warning message asking to refresh the modifications cache.
+
+
+4.0.3.1
+no information.

@@ -1,0 +1,34 @@
+/*
+	$Project$
+	$Author$
+
+	$Version$ ($Revision$)
+
+*/
+
+#ka-alert {
+	position: fixed;
+	top: 10px;
+	left: 50%;
+    transform: translateX(-50%);
+    z-index: 4999;
+    min-width: 160px;
+}
+
+#ka-alert .alert {
+	box-shadow: 9px 9px 4px 0px rgb(0 0 0 / 10%);
+	margin-bottom: 10px;
+}
+
+/* Opencart fails to load glyph icons. We do it ourselves */
+@font-face {
+	font-family: 'Glyphicons Halflings';
+	src: url('../../../javascript/bootstrap/fonts/glyphicons-halflings-regular.eot'),
+		url('../../../javascript/bootstrap/fonts/glyphicons-halflings-regular.woff2') format('woff2'), 
+		url('../../../javascript/bootstrap/fonts/glyphicons-halflings-regular.woff') format('woff'), 
+		url('../../../javascript/bootstrap/fonts/glyphicons-halflings-regular.ttf') format('truetype') 
+}
+
+.ka-plaintext {
+	padding-top: 9px;
+}

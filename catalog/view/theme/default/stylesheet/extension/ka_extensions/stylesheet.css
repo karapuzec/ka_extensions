@@ -1,0 +1,15 @@
+/*
+	$Project$
+	$Author$
+
+	$Version$ ($Revision$)
+*/
+
+.table a.asc:after {
+	content: " \f106";
+	font-family: FontAwesome;
+}
+.table a.desc:after {
+	content: " \f107";
+	font-family: FontAwesome;
+}
