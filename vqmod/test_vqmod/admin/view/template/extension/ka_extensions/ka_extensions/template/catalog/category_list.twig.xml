@@ -1,0 +1,9 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[<div id="content">]]></search>
+			<text><![CDATA[<div id="content">
+			<h1>This line was added by KA_MOD</h1>]]></text>
+		</operation>
+	</changes>
+</kapatch>

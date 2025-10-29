@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Change category list file</name>
+  <code>default</code>
+  <version>1.0</version>
+  <author>OpenCart Ltd</author>
+  <link>http://www.opencart.com</link>
+  <file path="admin/view/template/catalog/category_list.twig">
+	<operation>
+      <search>
+        <![CDATA[<div id="content">]]>
+      </search>
+      <add position="after">
+        <![CDATA[<h1>This line was added by OC_MOD</h1>]]>
+      </add>
+    </operation>
+  </file>
+  <file path="catalog/view/theme/default/template/product/category.twig">
+	<operation>
+      <search>
+        <![CDATA[<div id="product-category"]]>
+      </search>
+      <add position="after">
+        <![CDATA[<h1>This line was added by OC_MOD</h1>]]>
+      </add>
+    </operation>
+  </file>
+</modification>

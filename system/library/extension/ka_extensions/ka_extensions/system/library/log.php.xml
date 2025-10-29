@@ -1,0 +1,8 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[private $h]]></search>
+			<text><![CDATA[protected $h]]></text>
+		</operation>
+	</changes>
+</kapatch>

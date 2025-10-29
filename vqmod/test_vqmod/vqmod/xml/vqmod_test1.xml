@@ -1,0 +1,25 @@
+<modification>
+    <id>test1</id>
+    <version>1.4.x and above</version>
+    <vqmver required="true">2.6.0</vqmver>
+    <author>vqmod.com</author>
+
+    <file name="admin/view/template/catalog/category_list.twig">
+        <operation>
+            <search position="after" index="1"><![CDATA[<div id="content">]]></search>
+            <add><![CDATA[<h1>This line was added by VQMOD</h1>]]></add>
+        </operation>
+	</file>
+        
+  <file name="catalog/view/theme/default/template/product/category.twig">
+	<operation>
+      <search  position="after" index="1">
+        <![CDATA[<div id="product-category"]]>
+      </search>
+      <add position="after">
+        <![CDATA[<h1>This line was added by VQMOD</h1>]]>
+      </add>
+    </operation>
+  </file>
+        
+</modification>
