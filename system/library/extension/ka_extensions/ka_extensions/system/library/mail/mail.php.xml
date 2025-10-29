@@ -8,5 +8,25 @@
 			<search><![CDATA[basename($attachment)]]></search>
 			<text><![CDATA[(!is_numeric($file_title) ? $file_title : basename($attachment))]]></text>
 		</operation>
+		<operation type="replace">
+			<search><![CDATA[$header .= 'X-Mailer: PHP]]></search>
+			<text><![CDATA[
+			// add extra headers like 'Message-ID' and 'In-Reply-To'
+			//
+			if (!empty($this->headers)) {
+				foreach ($this->headers as $hk => $meta) {
+					if (is_array($meta)) {
+						if (!empty($meta['encode'])) {
+							$header .= $hk . ': =?UTF-8?B?' . base64_encode($meta['value']) . '?=' . PHP_EOL;
+						} else {
+							$header .= $hk . ': ' . $meta['value'] . PHP_EOL;
+						}
+					} else {
+						$header .= $hk . ': ' . $meta . PHP_EOL;
+					}
+				}
+			}
+			$header .= 'X-Mailer: PHP]]></text>
+		</operation>
 	</changes>
 </kapatch>

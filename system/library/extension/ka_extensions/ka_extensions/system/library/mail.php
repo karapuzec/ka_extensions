@@ -4,6 +4,8 @@ namespace extension\ka_extensions\library;
 
 class Mail extends \Mail {
 
+	protected $headers;
+
 	public function addNamedAttachment($filename, $name) {
 		$this->attachments[$name] = $filename;
 	}
@@ -52,5 +54,10 @@ class Mail extends \Mail {
 		if ($log_emails) {
 			$this->logEmail('success');
 		}
+	}
+	
+	
+	public function setHeaders($headers) {
+		$this->headers = $headers;
 	}
 }

@@ -103,6 +103,11 @@ class Twig extends \Template\Twig {
 			}
 		}
 		
+		// include shared templates directory
+		if (is_dir(DIR_SYSTEM . 'shared_template')) {
+			$fs_mod_loader->addPath(DIR_SYSTEM . 'shared_template/');
+		}
+		
 		if (class_exists('\Twig\Loader\ChainLoader')) {
 			$chain_loader = new \Twig\Loader\ChainLoader(array($fs_mod_loader, $loader, $fs_mod_after_loader));
 		} else {

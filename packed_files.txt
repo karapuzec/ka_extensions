@@ -1,3 +1,4 @@
+system/library/extension/ka_extensions/traitcontrollerform.php
 system/library/extension/ka_extensions/curl.php
 system/library/extension/ka_extensions/kamodbuilder.php
 system/library/extension/ka_extensions/kamodmanager.php
@@ -21,7 +22,6 @@ system/library/extension/ka_extensions/adbtable.php
 system/library/extension/ka_extensions/controllerlist.php
 system/library/extension/ka_extensions/modelrecordset.php
 system/library/extension/ka_extensions/qb.php
-system/library/extension/ka_extensions/traitcontrollerform.php
 system/library/extension/ka_extensions/twigextension.php
 system/library/extension/ka_extensions/controllerinstaller.php
 system/library/extension/ka_extensions/controllersettings.php

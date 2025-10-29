@@ -1,4 +1,4 @@
-admin\config.php
+admin/config.php
 admin\controller\extension\extension\x.diff
 admin\controller\extension\ka_extensions\csv_product_import
 admin\controller\extension\ka_extensions\csv_product_import.php
@@ -8,7 +8,7 @@ admin\view\template\extension\extension\x.diff
 admin\view\template\extension\ka_extensions\ka_pager
 config.php
 image\cache
-*.xml
+./*.xml
 system\storage
 tmp_files.bat
 tmp_files.txt
@@ -21,3 +21,4 @@ pack_nitrofix.bat
 .svn
 _install
 !!.txt
+install.xml
