@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 557 $)
+	$Version: 4.1.1.0 $ ($Revision: 569 $)
 */
 	
 namespace extension\ka_extensions;
@@ -109,6 +109,12 @@ class Mail {
 			$sender = html_entity_decode($this->store_config->get('config_name'));
 		} else {
 			$sender = html_entity_decode($this->data['sender']);
+		}
+		
+		// pass headers to the email
+		//
+		if (!empty($extra['headers'])) {
+			$this->mail->setHeaders($extra['headers']);
 		}
 
 		// HTML Mail
