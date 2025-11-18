@@ -3,11 +3,14 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.22 $ ($Revision: 560 $)
+	$Version: 4.1.1.22 $ ($Revision: 575 $)
 */
 
 use \extension\ka_extensions\Curl;
 
+/**
+	@internal
+*/
 class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	protected $settings;
 	protected $kacurl;

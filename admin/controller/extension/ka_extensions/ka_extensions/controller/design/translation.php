@@ -7,6 +7,9 @@
 */
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 class ControllerDesignTranslation extends \ControllerDesignTranslation {
 
 	use \extension\ka_extensions\TraitController;

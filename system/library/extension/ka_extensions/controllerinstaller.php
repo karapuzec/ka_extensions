@@ -3,11 +3,17 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.22 $ ($Revision: 560 $)
+	$Version: 4.1.1.22 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
+/**
+	@internal
+
+	This class contains essential parts of the module settings page. All module setting pages should inherate
+	from that class.
+*/
 abstract class ControllerInstaller extends Controller {
 
 	// contstants

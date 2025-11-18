@@ -11,6 +11,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Stores submitted files via POST request in a temporary location.
+*/
 class PostedFiles {
 
 	protected $files_tmp_dir = DIR_CACHE;

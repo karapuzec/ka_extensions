@@ -1,10 +1,10 @@
 <?php
-/*
+/**
 	$Project$
 	$Author$
 
 	$Version$ ($Revision$)
-	
+
 	This file adds an automatic class loader for kamod cached files.
 */
 
@@ -13,6 +13,9 @@ namespace extension\ka_extensions;
 include_once(__DIR__ . '/functions.php');
 include_once(__DIR__ . '/kamodmanager.php');
 
+/**
+	@internal
+*/
 class Autoloader {
 
 	protected $kamod_manager;

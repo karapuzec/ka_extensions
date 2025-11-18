@@ -3,11 +3,15 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 514 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
+/**
+	Gives the ability to use an interator through unlimited sql records.
+
+*/
 abstract class Iterator extends Model implements \Iterator {
 
 	protected $range_size = 100;

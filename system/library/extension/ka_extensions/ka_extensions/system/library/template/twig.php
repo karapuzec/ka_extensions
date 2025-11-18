@@ -4,6 +4,9 @@ namespace extension\ka_extensions\template;
 use \extension\ka_extensions\KaGlobal;
 use \extension\ka_extensions\KamodManager;
 
+/**
+	@internal
+*/
 class Twig extends \Template\Twig {
 
 	protected function replaceLoader($loader) {

@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Adds some helpful functions and makes possible to suppress output of a parent controller.
+*/
 trait TraitController {
 
 	protected $data     = array();

@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 class ModelDesignTheme extends \ModelDesignTheme {
 
 	public function editTheme($store_id, $theme, $route, $code) {

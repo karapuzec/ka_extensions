@@ -11,6 +11,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Implements a standard interface for managing sql records
+
+	The class provides several functions for inserting, updating and getting data from the database. It is easier
+	for other modules to overwrite methods of that class to extend or restrict the module functionality.
+*/
 abstract class ModelRecordset extends Model {
 
 	// this variable has to be redefined in a child class
@@ -130,8 +136,8 @@ abstract class ModelRecordset extends Model {
 
 	
 	/*
-		This function is called from a page controller to fill in data of the record with values
-		not directly existing in the table. Like filling in product_name by product_id.
+		This function is called from a controller to fill in data of the record with heavy values
+		not directly existing in the table.
 	*/
 	public function fillRecord($record = []) {
 		
@@ -234,26 +240,22 @@ abstract class ModelRecordset extends Model {
 
 		if (!is_array($key_values)) {
 			$key_values = [$this->primary_fields[0] => $key_values];
-		}		
+		}
 
 		$tbl->delete($key_values);
 	}
+
 	
-	/*
-		DEPRECATED. Pass the same parameters to deleteRecord method.
-	*/
 	public function delete($where) {
-	
-		assert(!defined('KA_DEBUG_DEPRECATED'), "This functionality should not be used.");
-	
-		$tbl = new $this->table_class();		
-		$tbl->delete($where);
+		$records = $this->getRecords($where);
+		foreach ($records as $record) {
+			$this->deleteRecord($record);
+		}
 	}
-	
-	
+
 	public function getFields() {
 		
 		
 	}
-	
+
 }

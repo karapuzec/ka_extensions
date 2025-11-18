@@ -4,15 +4,18 @@
 	$Author$
 
 	$Version$ ($Revision$)
-	
-	This class is used by TraitDBFilter. It keeps an information about the calling class to apply
-	filters to queries from that class only. The current class is updated by the Trait on each db request within
-	any class method.	
 
 */
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+	
+	This class is used by TraitDBFilter. It keeps an information about the calling class to apply
+	filters to queries from that class only. The current class is updated by the Trait on each db request within
+	any class method.	
+*/
 class DBProxy {
 
 	static $dbproxy;

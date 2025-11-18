@@ -9,6 +9,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Contains several helper methods
+*/
 abstract class KaGlobal {
 
 	protected static $admin_dirname;
@@ -504,6 +507,9 @@ trait КaReserved {
 
 
 
+/**
+	@internal
+*/
 trait KaReserved {
 
 	public static function __callStatic($name, $arguments) {
@@ -615,6 +621,9 @@ trait KaReserved {
 
 
 
+/**
+	@internal
+*/
 trait KаReserved {
 	public static function isKaInstalled($extension) { 
 	

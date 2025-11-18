@@ -3,11 +3,17 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 566 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
+/**
+	Simplifies http requests. Optional.
+
+	Originally it was created for fetching images from external services but
+	later we extended it with features to make api calls with different.
+*/
 class Curl {
 
 	protected $lastError = '';

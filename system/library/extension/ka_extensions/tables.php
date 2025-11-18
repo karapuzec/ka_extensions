@@ -8,6 +8,10 @@
 	
 namespace extension\ka_extensions;
 
+/**
+	@internal
+	@deprecated
+*/
 class Tables {
 
 	protected static $tables = array();

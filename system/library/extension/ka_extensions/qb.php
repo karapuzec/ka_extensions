@@ -10,15 +10,14 @@ namespace extension\ka_extensions;
 
 /**
 
-This class is used for building SQL requests from parts and executing them later. At this moment it is mostly used 
-for requesting the data via 'SELECT' SQL command.
+This class is used for building complex SELECT queries from parts and executing them later.
 
-Here is how a simple request looks in Opencart:
+Here is how a simple SQRL query looks in Opencart:
 
 $query = $this->query("SELECT * FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product_id . "'");
 $product = $query->row;
 
-This is the same request rewritten with QB class:
+This is the same query rewritten with QB class:
 
 ```
 $qb = new \extension\ka_extensions\QB();

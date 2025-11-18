@@ -5,10 +5,12 @@
 
 	$Version$ ($Revision$)
 
-	This is a controller class for a basic module settings page.
 */
 namespace extension\ka_extensions;
 
+/**
+	A base class for a module settings page. It incapsulates all required fields and methods.
+*/
 abstract class ControllerSettings extends ControllerInstaller {
 
 	use TraitControllerForm;

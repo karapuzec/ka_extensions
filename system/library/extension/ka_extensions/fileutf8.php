@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 485 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
@@ -14,6 +14,9 @@ namespace extension\ka_extensions;
 // the speed of file processing for the import scripts where MacOS csv files are not used.
 //
 
+/**
+	@internal
+*/
 class macfix_filter extends \php_user_filter {
 	// this suppress a notice on php 8.1
 	#[\ReturnTypeWillChange]
@@ -31,6 +34,9 @@ class macfix_filter extends \php_user_filter {
 
 stream_filter_register("macfix", '\extension\ka_extensions\macfix_filter') or die("Failed to register filter");
 
+/**
+	Reads and writes files in UTF-8, UTF-16 modes.
+*/
 class FileUTF8 {
 
 	protected $lastError = '';

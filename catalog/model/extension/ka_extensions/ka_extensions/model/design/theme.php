@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class ModelDesignTheme extends \ModelDesignTheme {
 
 	/*

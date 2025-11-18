@@ -10,6 +10,9 @@ namespace extension\ka_extensions;
 
 include_once(__DIR__ . '/kamodbuilder.php');
 
+/**
+	@internal
+*/
 class KamodManager {
 
 	const ACTIVE_KAMOD_FILE = 'active.kamod';

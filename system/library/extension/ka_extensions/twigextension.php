@@ -9,6 +9,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class TwigExtension extends \Twig_Extension
 {
     public function getFunctions()

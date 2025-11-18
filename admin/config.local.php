@@ -1,25 +1,28 @@
 <?php
 // HTTP
-define('HTTP_SERVER', 'http://ka.local/ka_ext/oc3000a1/admin/');
-define('HTTP_CATALOG', 'http://ka.local/ka_ext/oc3000a1/');
+define('HTTP_SERVER', 'http://localhost/ka_ext/oc3000a1/admin/');
+define('HTTP_CATALOG', 'http://localhost/ka_ext/oc3000a1/');
 
 // HTTPS
-define('HTTPS_SERVER', 'http://ka.local/ka_ext/oc3000a1/admin/');
-define('HTTPS_CATALOG', 'http://ka.local/ka_ext/oc3000a1/');
+define('HTTPS_SERVER', 'http://localhost/ka_ext/oc3000a1/admin/');
+define('HTTPS_CATALOG', 'http://localhost/ka_ext/oc3000a1/');
 
 // DIR
-define('DIR_APPLICATION', 'T:/home/ka.local/www/ka_ext/oc3000a1/admin/');
-define('DIR_SYSTEM', 'T:/home/ka.local/www/ka_ext/oc3000a1/system/');
-define('DIR_IMAGE', 'T:/home/ka.local/www/ka_ext/oc3000a1/image/');
-define('DIR_CATALOG', 'T:/home/ka.local/www/ka_ext/oc3000a1/catalog/');
+define('STORE_ROOT_DIR', rtrim(dirname(dirname(__FILE__)), '/'));
+define('DIR_APPLICATION', STORE_ROOT_DIR . '/admin/');
+define('DIR_SYSTEM', STORE_ROOT_DIR . '/system/');
+define('DIR_IMAGE', STORE_ROOT_DIR . '/image/');
+define('DIR_STORAGE', DIR_SYSTEM . 'storage/');
+define('DIR_CATALOG', STORE_ROOT_DIR . '/catalog/');
 define('DIR_LANGUAGE', DIR_APPLICATION . 'language/');
 define('DIR_TEMPLATE', DIR_APPLICATION . 'view/template/');
 define('DIR_CONFIG', DIR_SYSTEM . 'config/');
-define('DIR_CACHE', DIR_SYSTEM . 'storage/cache/');
-define('DIR_DOWNLOAD', DIR_SYSTEM . 'storage/download/');
-define('DIR_LOGS', DIR_SYSTEM . 'storage/logs/');
-define('DIR_MODIFICATION', DIR_SYSTEM . 'storage/modification/');
-define('DIR_UPLOAD', DIR_SYSTEM . 'storage/upload/');
+define('DIR_CACHE', DIR_STORAGE . 'cache/');
+define('DIR_DOWNLOAD', DIR_STORAGE . 'download/');
+define('DIR_LOGS', DIR_STORAGE . 'logs/');
+define('DIR_MODIFICATION', DIR_STORAGE . 'modification/');
+define('DIR_SESSION', DIR_STORAGE . 'session/');
+define('DIR_UPLOAD', DIR_STORAGE . 'upload/');
 
 // DB
 define('DB_DRIVER', 'mysqli');

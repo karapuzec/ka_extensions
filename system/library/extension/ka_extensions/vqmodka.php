@@ -9,6 +9,9 @@
 
 */
 
+/**
+	@internal
+*/
 class VQModKa {
 	public static function modCheck($file) {
 		return $file;

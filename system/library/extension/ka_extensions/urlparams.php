@@ -8,7 +8,7 @@
 	
 namespace extension\ka_extensions;
 
-/*
+/**
 	This is a service class for storing url parameters and building URLs
 
 	// define available page parameters

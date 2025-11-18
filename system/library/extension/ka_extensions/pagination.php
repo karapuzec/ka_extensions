@@ -3,11 +3,14 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 523 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
+/**
+	Extended pagination class
+*/
 class Pagination {
 
 	protected $pagination;

@@ -4,16 +4,25 @@
 	$Author$
 
 	$Version$ ($Revision$)
-	
-	
+*/
+namespace extension\ka_extensions;
+
+/**	
+
+Provides declaration of tables and their structure for easy inserting/updating operations. 
+
+It was mostly made for easy form creation. The class introduces an additional abstraction level between 
+models and database functions to avoid writing sql queries directly. 
+
+It might look as overloaded feature so you might be more conformtable to write SQL queries directly in model files
+as native Opencart functions do.
+
 Basic rules:
 
 - all class properties are treated as table values. Methods 'update','save','insert', etc. submit all fields.
 - internal variables are started with '_'
 
 */
-namespace extension\ka_extensions;
-
 class ADBTable {
 
 	const TABLE_NAME = '';
@@ -35,7 +44,7 @@ class ADBTable {
 	}
 	
 	
-	/*
+	/**
 		The method inserts assigned values to the database.
 		
 		Parameters:
@@ -52,7 +61,7 @@ class ADBTable {
 		return $id;
 	}
 	
-	/*
+	/**
 		The method updates database with assigned values.
 
 		Parameters:
@@ -88,7 +97,7 @@ class ADBTable {
 		return $result;
 	}
 	
-	/*
+	/**
 		Returns a list of fields from the table.
 		
 		This is an optional method redeclared in child classes. A user may work with any fields by default, but 
@@ -99,7 +108,7 @@ class ADBTable {
 		return null;
 	}
 	
-	/*
+	/**
 		returns an array of primary key fields from the db declaration table.
 	*/
 	public function getPrimaryKeys() {
@@ -124,7 +133,7 @@ class ADBTable {
 	}
 
 	
-	/*
+	/**
 		Set a batch of values at once from an array. 
 		
 		Returns: none.
@@ -167,15 +176,15 @@ class ADBTable {
 	}
 
 	
-	/*
-		Unsets defined values.
+	/**
+		Unsets defined values (without updating the database) for starting a new record.
 	*/
 	public function empty() {
 		$this->_values = array();
 	}
 
 
-	/*
+	/**
 		Executes a deletion operation against the table with the specified condition.
 		When the condition is not passed, the condition is generated from fields assigned to the table class.
 	*/
@@ -183,11 +192,12 @@ class ADBTable {
 		if (is_null($where)) {
 			$where = $this->_values;
 		}
+
 		$this->_db->ka_delete(static::TABLE_NAME, $where);
 	}
 		
 	
-	/*
+	/**
 		Executes a selection query for the table. When any fields are set, they are used as a condition.
 	*/
 	public function query() {
@@ -211,7 +221,7 @@ class ADBTable {
 	}
 	
 	
-	/*
+	/**
 		Checks if the primary record already exists. The primary keys are taken from the fields declaration.
 	*/
 	public function hasPrimaryRecord() {
@@ -232,7 +242,9 @@ class ADBTable {
 		return (count($result) > 0);
 	}
 	
-	
+	/**
+		Returns an empty record (for a new form).
+	*/
 	public function getEmptyRecord() {
 	
 		$rec = [];
@@ -244,5 +256,12 @@ class ADBTable {
 		}
 		
 		return $rec;
-	}	
+	}
+
+	/**
+		Return already defined values
+	*/
+	public function getValues() {
+	 	return $this->_values;
+	}
 }

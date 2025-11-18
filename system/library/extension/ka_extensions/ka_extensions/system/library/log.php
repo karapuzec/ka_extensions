@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class Log extends \Log {
 
 	public function writeka($message, $type = null) {

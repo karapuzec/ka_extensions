@@ -5,10 +5,12 @@
 
 	$Version$ ($Revision$)
 
-	This is a controller class for a basic module settings page.
 */
 namespace extension\ka_extensions;
 
+/**
+	This is a basic class for any controller showing a page
+*/
 abstract class ControllerPage extends Controller {
 
 	protected $pagination;

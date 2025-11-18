@@ -5,10 +5,13 @@
 
 	$Version$ ($Revision$)
 
-	This is a controller class for a basic module settings page.
 */
 namespace extension\ka_extensions;
 
+/**
+	This class provides basic entity list functionality. It can be used for creating a new entity management
+	in a store back-end.
+*/
 abstract class ControllerList extends ControllerPage {
 
 	protected $enable_delete = false;
@@ -54,8 +57,12 @@ abstract class ControllerList extends ControllerPage {
 	}
 	
 	protected function validateDelete() {
-		$this->addTopMessage($this->language->get('error_permission'));
-		return false;
+		if (!$this->enable_delete) {
+    		$this->addTopMessage($this->language->get('error_permission'));
+			return false;
+		}
+			
+		return true;
 	}
 	
 	
@@ -87,7 +94,7 @@ abstract class ControllerList extends ControllerPage {
 		
 		$result = $this->recordset->fillRecord($record);
 
-		if (!empty(static::PAGE_ROUTE)) {
+		if (!empty(static::FORM_ROUTE)) {
 			$actions[] = array(
 				'type' => 'edit',
 				'text' => $this->language->get('button_edit'),
@@ -101,7 +108,7 @@ abstract class ControllerList extends ControllerPage {
 			$actions[] = array(
 				'type' => 'delete',
 				'text' => $this->language->get('button_delete'),
-				'href' => $this->url->link(static::PAGE_ROUTE . '/delete', 
+				'href' => $this->url->link(static::PAGE_ROUTE . '/deleteRecord', 
 					$this->url_params->getUrl([$primary_field => $record[$primary_field]])
 				)
 			);
@@ -114,6 +121,8 @@ abstract class ControllerList extends ControllerPage {
 	
 	
 	public function index() {
+
+  		$primary_field = $this->recordset->getPrimaryField();
 	
 		$params = $this->url_params->getParams();
 
@@ -126,6 +135,7 @@ abstract class ControllerList extends ControllerPage {
 			$records_total = $this->recordset->getRecordsTotal($params);
 			$records = $this->recordset->getRecords($params);
 	    	foreach ($records as $record) {
+	    		$record = $this->recordset->getRecord($record[$primary_field]);
 				$result = $this->fillRecord($record);
 				$this->data['records'][] = $result;
 			}
@@ -191,11 +201,12 @@ abstract class ControllerList extends ControllerPage {
 		}
 
 		$primary_field = $this->recordset->getPrimaryField();
-		
+
 		if (isset($this->request->get[$primary_field])) {
 			$record_id = $this->request->get[$primary_field];
+
 			$this->recordset->deleteRecord($record_id);
-			
+
 			$this->addTopMessage($this->language->get('txt_operation_successful'), 'S');
 		}
 		

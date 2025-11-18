@@ -17,6 +17,9 @@ if (class_exists('\VQMod')) {
 include_once(__DIR__ . '/directory.php');
 include_once(__DIR__ . '/kapatch.php');
 
+/**
+	@internal
+*/
 class KamodBuilder {
 
 	// format version for checking patches compatibility and other kamod-specific details

@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	A base class for form pages in admin back-end. Optional.
+*/
 class ControllerAdminForm extends ControllerForm {
 
   	protected function validateModify() {

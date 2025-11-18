@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 class ControllerMarketplaceExtension extends \ControllerMarketplaceExtension {
 
 	use \extension\ka_extensions\TraitController;

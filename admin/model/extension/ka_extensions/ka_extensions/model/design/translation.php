@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 class ModelDesignTranslation extends \ModelDesignTranslation {
 
 	public function addTranslation($data) {

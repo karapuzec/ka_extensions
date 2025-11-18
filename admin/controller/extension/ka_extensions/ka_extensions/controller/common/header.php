@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class ControllerCommonHeader extends \ControllerCommonHeader {
 
 	use TraitController;

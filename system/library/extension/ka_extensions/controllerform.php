@@ -4,11 +4,13 @@
 	$Author$
 
 	$Version$ ($Revision$)
-
-	This is a controller class for a basic form page.
 */
+
 namespace extension\ka_extensions;
 
+/**
+	A controller class for a basic form page.
+*/
 abstract class ControllerForm extends ControllerPage {
 
 	const PARENT_ROUTE  = ''; // example: 'extension/ka_extensions/ka_licenses/licenses';

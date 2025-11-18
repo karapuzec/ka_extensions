@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Impelemnts the ability to adjust SQL quries of standard Opencart classes.
+*/
 trait TraitDBFilter {
 
 	protected $ka_dbproxy;

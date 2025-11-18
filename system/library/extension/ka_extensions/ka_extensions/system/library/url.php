@@ -10,6 +10,9 @@ namespace extension\ka_extensions\library;
 
 use \extension\ka_extensions\KaGlobal;
 
+/**
+	@internal
+*/
 class Url extends \Url {
 
 	public function linka_js($route, $args = null, $secure = null) {

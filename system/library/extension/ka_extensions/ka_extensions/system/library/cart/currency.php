@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\library\Cart;
 
+/**
+	@internal
+*/
 class Currency extends Cart\Currency {
 
 	public function formatValue($number, $currency) {

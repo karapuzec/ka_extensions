@@ -8,6 +8,11 @@
 	
 namespace extension\ka_extensions;
 
+/**
+	Service class for getting User and UserType information regardless of the current area.
+
+	It might be helpful in shared functions.
+*/
 class User {
 
 	static public function getUserType() {

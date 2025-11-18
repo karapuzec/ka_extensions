@@ -36,6 +36,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class KaPatch {
 
 	protected $root_dir;

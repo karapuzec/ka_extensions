@@ -3,13 +3,16 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 548 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
 use extension\ka_extensions\Tables;
 
+/**
+	Base model class
+*/
 abstract class Model extends \Model {
 
 	use TraitSession;

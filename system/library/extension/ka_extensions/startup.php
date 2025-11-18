@@ -58,7 +58,13 @@ if (class_exists('KamodLockedException')) {
 	return;
 }
 
+/**
+	@internal
+*/
 class KamodLockedException extends \Exception {};
+/**
+	@internal
+*/
 class KamodFailedException extends \Exception {};
 
 // replace the original Opencart loader with our loader supporting kamod cache

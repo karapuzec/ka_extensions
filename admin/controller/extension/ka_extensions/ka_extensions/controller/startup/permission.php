@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class ControllerStartupPermission extends \ControllerStartupPermission {
 
 	public function index() {

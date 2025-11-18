@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Gives functions to generate unique session variables within a class
+*/
 trait TraitSession {
 
 	protected function setSession($key, $value) {

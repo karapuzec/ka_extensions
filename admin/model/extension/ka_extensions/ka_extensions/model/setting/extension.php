@@ -10,6 +10,9 @@ namespace extension\ka_extensions\ka_extensions;
 
 use \extension\ka_extensions\KamodManager;
 
+/**
+	@internal
+*/
 class ModelSettingExtension extends \ModelSettingExtension {	
 
 	public function install($type, $code) {

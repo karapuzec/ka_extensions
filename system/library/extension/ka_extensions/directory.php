@@ -2,6 +2,10 @@
 
 namespace extension\ka_extensions;
 
+/**
+	Services directory management functions.
+
+*/
 class Directory {
 
 
@@ -62,7 +66,7 @@ class Directory {
 	}		
 	
 	
-	/*
+	/**
 		Makes sure that the directory exists. If it does not exist, the function tries to create it.
 
 		on error - an exception will occur
@@ -75,5 +79,4 @@ class Directory {
 			throw new \Exception("Cannot create directory: " . $dir);
 		}
 	}
-
 }

@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\library;
 
+/**
+	@internal
+*/
 class Language extends \Language {
 
 	protected $kamod_manager;

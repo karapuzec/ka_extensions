@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\engine;
 
+/**
+	@internal
+*/
 class Action extends \Action {
 
 	public function execute($registry, array $args = array()) {

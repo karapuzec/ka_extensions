@@ -3,11 +3,14 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 547 $)
+	$Version: 4.1.1.0 $ ($Revision: 575 $)
 */
 	
 namespace extension\ka_extensions;
 
+/**
+	Replaces standard opencart Controller class with extended functionality
+*/
 abstract class Controller extends \Controller {
 
 	use TraitSession, TraitController;
@@ -32,8 +35,8 @@ abstract class Controller extends \Controller {
 	}
 
 	
-	/*
-		DEPRECATED. Use the native response->setOutput or $this->showPage()
+	/**
+		@deprecated Use the native response->setOutput or $this->showPage()
 	*/
 	protected function setOutput($param = null) {
 	
@@ -46,7 +49,10 @@ abstract class Controller extends \Controller {
 		}
 	}
 	
-	
+	/**
+		@deprecated 
+		@internal
+	*/
 	protected function getNamespace() {
 		
 		assert(!defined('KA_DEBUG_DEPRECATED'), "This functionality should not be used.");
@@ -59,7 +65,12 @@ abstract class Controller extends \Controller {
 		}
 		return $ns;	
 	}
-		
+
+	/**
+		@deprecated
+
+		The function loads a model within the module namespace
+	*/
 	protected function kamodel($model) {
 	
 		assert(!defined('KA_DEBUG_DEPRECATED'), "This functionality should not be used.");
@@ -69,8 +80,10 @@ abstract class Controller extends \Controller {
 	}
 	
 	
-	/*
-		Do not use these 'magic' prefixes. They do not work well. They are DEPRECATED.
+	/**
+		@internal
+
+		Do not use these 'magic' prefixes. Their behavior is not transparent in inherated classes
 			tbl_
 			kamodel_
 		

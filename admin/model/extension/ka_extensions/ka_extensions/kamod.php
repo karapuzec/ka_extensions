@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 class ModelKamod extends \extension\ka_extensions\Model {
 
 	protected $kamod_manager;

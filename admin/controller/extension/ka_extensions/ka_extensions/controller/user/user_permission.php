@@ -10,6 +10,9 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 class ControllerUserUserPermission extends \ControllerUserUserPermission {
 
 	use \extension\ka_extensions\TraitController;

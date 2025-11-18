@@ -8,6 +8,9 @@
 	
 namespace extension\ka_extensions;
 
+/**
+	Helpful functions for forms
+*/
 trait TraitControllerForm {
 
 	protected $fields;

@@ -2,6 +2,9 @@
 
 namespace extension\ka_extensions\library;
 
+/**
+	@internal
+*/
 class Mail extends \Mail {
 
 	protected $headers;
