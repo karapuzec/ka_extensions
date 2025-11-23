@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 575 $)
+	$Version: 4.1.1.0 $ ($Revision: 576 $)
 */
 	
 namespace extension\ka_extensions;
@@ -12,6 +12,7 @@ use extension\ka_extensions\Tables;
 
 /**
 	Base model class
+	
 */
 abstract class Model extends \Model {
 
@@ -25,18 +26,33 @@ abstract class Model extends \Model {
 		if (!defined('KA_DEBUG_DEPRECATED')) {
 			$this->kadb = new Db($this->db);
 		}
-
-		$this->onLoad();
 	}
 	
 	public function getLastError() {
 		return $this->lastError;
 	}
-	
+
+	/**
+		All required models can be loaded here
+	*/
 	protected function onLoad() {
 		return true;
 	}
 	
+	/**
+		@internal
+	
+		This is a service method. Used internally.
+	*/
+	public function onLoadExt() {
+		return $this->onLoad();
+	}
+	
+	/**
+		@deprecated
+		
+		Do not use magic prefixes like 'tbl_', 'kamodel_' and 'model_'. They do not work transparent in ancestors.
+	*/
 	public function __get($key) {
 	
 		// create a table
@@ -72,7 +88,9 @@ abstract class Model extends \Model {
 		return parent::__get($key);
 	}	
 	
-	
+	/**
+		@deprecated
+	*/	
 	protected function getNamespace() {
 		$class = get_class($this);
 		$pos   = strripos($class, '\\');
@@ -85,6 +103,9 @@ abstract class Model extends \Model {
 		return $ns;	
 	}
 		
+	/**
+		@deprecated
+	*/
 	protected function kamodel($model) {
 		$ns = $this->getNamespace();
 		$this->load->kamodel($ns . $model);

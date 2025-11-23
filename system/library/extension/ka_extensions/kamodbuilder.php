@@ -1336,8 +1336,6 @@ CNT;
 			'main_file'      => $main_file,
 		);
 
-//		var_dump($target_file); die;
-		
 		return $file_info;
 	}
 	

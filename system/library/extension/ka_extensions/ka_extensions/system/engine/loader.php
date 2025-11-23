@@ -8,9 +8,6 @@
 
 namespace extension\ka_extensions\engine;
 
-/**
-	@internal
-*/
 class Loader extends \Loader {
 
 	protected $static_model = [];
@@ -73,6 +70,9 @@ class Loader extends \Loader {
 			if (class_exists($class)) {
 				$proxy = new $class ($this->registry);
 				$this->registry->set($model_name, $proxy);
+				if (method_exists($class, 'onLoadExt')) {
+					$proxy->onLoadExt();
+				}
 			} else {
 				if (defined('KAMOD_DEBUG')) {
 					debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS); 
