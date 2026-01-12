@@ -1,6 +1,35 @@
+4.1.1.23
+- fixed a code warning at 'ka-extensions' page occuring on php 8.x
+- changed the copyright year from 2025 to 2026
+
 4.1.1.22
 - Fixes to the installer and setting pages for 3rd party vendor extensions.
 - A standard overridden model class might be ignored and a default model class was loaded. Fixed.
+- a delay can be specified for alert messages. Layout fix to the alert message
+- onLoad() in model classes can load any model safetly. No race condition between model loaders anymore because onLoad() call was taken out the constructor (for models only)
+- added comments to classes
+- added getValues() function to the adbtable
+- fixed minor issues in the controllerlist
+- changed logic of deleting records in modelrecordset
+- remove shared_template changes
+- last file was generated without '_kamod' prefix in cache directory. That might cause class name collision. Fixed.
+- xml patch and extension changes were not applied to the same twig file. Fixed in kamod builder
+- added custom headers support in emails
+- extended the log file with custom logs
+- copyByLanguage function did not work for fields without the pattern parameter. Fixed.
+- added request_method support and cookies support to the Curl class
+- kamod cache was not built properly in catalog mode when dynamic KAMOD_DEBUG was enabled. Fixed.
+- ka_common namespace was not passed to twig. Fixed
+- added a new macro 'button_redirect'. Added new language variables in back-end
+- added getEmptyRecord() to adbtable.php
+- minor changes to controllerlist.php
+- fixed multiple loading of model classes by the standard loader class. It is possible to use class variables in standard model classes.
+- added search by @ka_common namespace in custom themes
+- empty primary fields are ignored in recordset (?still under consideration)
+- fixed groupBy and orderBy methods by multiple values in qb
+- extended copyByLanguages() with a new 'name_pattern' parameter
+- ka_flag method in twig did not save the flag. Fixed.
+- added many comments to qb.php function
 
 4.1.1.21
 - added pages for 3rd party vendors to the 'extensions' list

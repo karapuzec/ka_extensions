@@ -1,4 +1,4 @@
-@SET VERSION=4.1.1.22
+@SET VERSION=4.1.1.23
 @SET SVNCOMMAND=svn propset svn:keywords ^"Revision Version=%VERSION% Project=Ka%%_Extensions Author=karapuz%%_team%%_^<support@ka-station.com^>^"
 @REM @echo %SVNCOMMAND%
 %SVNCOMMAND%       catalog\model\catalog\ka_price_match.php

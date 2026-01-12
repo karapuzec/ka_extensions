@@ -64,9 +64,11 @@ abstract class ControllerPage extends Controller {
 
 		$title = $this->document->getTitle();
 		if (empty($title)) {
-			$this->document->setTitle($this->language->get('heading_title'));
-			$this->addBreadcrumb($this->language->get('heading_title'));
+			$title = $this->language->get('heading_title');
 		}
+		
+		$this->document->setTitle($title);
+		$this->addBreadcrumb($title);
 	
 		if (!empty($this->pagination)) {
 			$this->data['pagination'] = $this->pagination->render();

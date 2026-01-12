@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.22 $ ($Revision: 575 $)
+	$Version: 4.1.1.23 $ ($Revision: 579 $)
 */
 
 use \extension\ka_extensions\Curl;
@@ -341,7 +341,7 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	}
 
 		
-	public function saveRegAll($data = array(), $vendor) {
+	public function saveRegAll($data = array(), $vendor = null) {
 
 		if ($data === null) {
 			return true;

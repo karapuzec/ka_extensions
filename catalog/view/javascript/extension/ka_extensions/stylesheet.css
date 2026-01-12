@@ -22,6 +22,7 @@
     flex-direction: row;
     position: relative;
     padding-right: 24px;
+    gap: 1rem;
 }
 
 #ka-alert .alert-dismissible .close {

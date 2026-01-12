@@ -9,7 +9,7 @@ notes feel free to contact us at support@ka-station.com. All messages are usuall
 
 Requirements
 ==============
-- Opencart 3.0.0.0 - 3.0.4.x
+- Opencart 3.0.0.0 - 3.0.5.x
 
 
 How to install
@@ -37,4 +37,4 @@ https://www.ka-station.com/tickets/scp/faq.php?id=65
 About
 ==============
  * @author karapuz team <support@ka-station.com>
- * @copyright (c) 2014-2025
+ * @copyright (c) 2014-2026

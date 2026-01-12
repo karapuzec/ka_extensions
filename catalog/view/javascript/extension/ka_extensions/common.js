@@ -21,7 +21,7 @@ var ka_extensions = new function () {
 	}
 	
 
-    this.showMessage =(text, type) => {
+    this.showMessage =(text, type, delay) => {
 	
     	var labels = this.labels;
     
@@ -59,7 +59,7 @@ var ka_extensions = new function () {
 		var str = `
 	    	<div class="alert alert-${style} alert-dismissible" role="alert">
 	    		<i class="fa ${icon}"></i>
-	    		${text}
+	    		<div class="l-alert-content">${text}</div>
 	    		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 	    			<span aria-hidden="true">&times;</span>
 	    		</button>
@@ -68,11 +68,12 @@ var ka_extensions = new function () {
 	    	
 		$('#ka-alert').prepend(str);
 
-	    window.setTimeout(function() {
-	        $('.alert-dismissible').fadeTo(1000, 0, function() {
-	            $(this).remove();
-	        });
-	    }, 5000);
-
+		if (delay) {
+			window.setTimeout(function() {
+				$('.alert-dismissible').fadeTo(1000, 0, function() {
+					$(this).remove();
+				});
+			}, delay);
+		}
 	}	
 }
