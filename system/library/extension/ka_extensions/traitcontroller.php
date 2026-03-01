@@ -140,11 +140,11 @@ trait TraitController {
 		if (empty($this->data['heading_title'])) {
 			$this->data['heading_title'] = $this->document->getTitle();
 		}	
-		
+
 		if (!empty($data)) {
 			$this->data = array_merge($this->data, $data);
 		}
-		
+
 		if (!empty($template)) {
 			$this->template = $template;
 		}

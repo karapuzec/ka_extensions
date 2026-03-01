@@ -9,7 +9,7 @@ notes feel free to contact us at support@ka-station.com. All messages are usuall
 
 Requirements
 ==============
-- Opencart 3.0.0.0 - 3.0.5.x
+- Opencart 3.0.0.0 - 3.0.4.x
 
 
 How to install

@@ -71,6 +71,8 @@ class QB {
 	var $limit     = array();
 	var $orderBy   = array();
 	var $groupBy   = array();
+	var $from_union = [];
+	var $from_union_alias = 't';
 	
 	protected $db = null;
 
@@ -91,6 +93,19 @@ class QB {
 		}
 	}
 
+	/**
+		PARAMS
+		$from     - table name
+		$from_key - table alias		
+	*/
+	public function fromUnionAll($from, $alias = null) {
+		$this->from_union[] = $from;
+
+		if (!empty($alias)) {
+			$this->from_union_alias = $alias;
+		}
+	}
+	
 	/*
 		$what     - fields to select. String type.
 		$from     - table name
@@ -161,7 +176,7 @@ class QB {
 		$where - string or array. The array means all condtions inside the array joined via OR
 	*/
 	public function where($where, $value = null) {
-	
+
 		if (!is_null($value)) {
 			$where = "$where = '" . $this->db->escape($value) . "'";
 		}
@@ -233,7 +248,15 @@ class QB {
 		
 		// from parameters
 		//
-		if (!empty($this->from)) {
+		if (!empty($this->from_union)) {
+		
+			$parts = [];
+			foreach ($this->from_union as $v) {
+				$parts[] = $v->getSql();
+			}
+			$sql .= " FROM (" . implode(' UNION ALL ', $parts) . ") AS " . $this->from_union_alias;
+
+		} else if (!empty($this->from)) {
 			$sql .= " FROM ";
 			foreach ($this->from as $k => $v) {			
 				$sql .= DB_PREFIX . $v;

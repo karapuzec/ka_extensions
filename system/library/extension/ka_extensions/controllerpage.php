@@ -14,6 +14,7 @@ namespace extension\ka_extensions;
 abstract class ControllerPage extends Controller {
 
 	protected $pagination;
+	protected $url_params;
 	
 	protected function onLoad() {
 
@@ -61,20 +62,24 @@ abstract class ControllerPage extends Controller {
 
 	
 	protected function showPage($page = '', $data = array()) {
-
-		$title = $this->document->getTitle();
-		if (empty($title)) {
-			$title = $this->language->get('heading_title');
-		}
-		
-		$this->document->setTitle($title);
-		$this->addBreadcrumb($title);
 	
-		if (!empty($this->pagination)) {
-			$this->data['pagination'] = $this->pagination->render();
-			$this->data['results']    = $this->pagination->getResults();
+		if (!$this->load->isRenderDisabled()) {
+
+			$title = $this->document->getTitle();
+			if (empty($title)) {
+				$title = $this->language->get('heading_title');
+				$this->document->setTitle($title);
+			}
+			$data = array_merge($this->data, $data);
+			$this->addBreadcrumb($title);
+			unset($data['breadcrumbs']);
+			
+			if (!empty($this->pagination)) {
+				$this->data['pagination'] = $this->pagination->render();
+				$this->data['results']    = $this->pagination->getResults();
+			}
 		}
-		
+
 		return parent::showPage($page, $data);
 	}
 }

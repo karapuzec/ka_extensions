@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.23 $ ($Revision: 579 $)
+	$Version: 4.1.1.23 $ ($Revision: 583 $)
 */
 	
 namespace extension\ka_extensions;
@@ -18,11 +18,11 @@ abstract class ControllerInstaller extends Controller {
 
 	// contstants
 	//
-	public static $ka_extensions_version = '4.1.1.23';
+	public static $ka_extensions_version = '4.1.1.24';
 	
 	protected $extension_version = '0.0.0';
 	protected $min_store_version = '3.0.0.0';
-	protected $max_store_version = '3.0.3.33';
+	protected $max_store_version = '3.0.4.99';
 	protected $min_ka_extensions_version = '4.1.0.0';
 	protected $max_ka_extensions_version = '4.1.1.50';
 	

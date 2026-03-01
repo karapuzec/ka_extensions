@@ -124,7 +124,11 @@ abstract class ControllerList extends ControllerPage {
 
   		$primary_field = $this->recordset->getPrimaryField();
 	
-		$params = $this->url_params->getParams();
+		$params = $this->url_params->getUrlParams();
+		
+		if (!isset($params['page'])) {
+			$params['page'] = 1;
+		}
 
 		$params['start'] = ($params['page'] - 1) * $this->config->get('config_limit_admin');
 		$params['limit'] = $this->config->get('config_limit_admin');
@@ -168,10 +172,9 @@ abstract class ControllerList extends ControllerPage {
 			}
 		}
 		
-		// breacrumbs and title
+		// set title
 		//
   		$this->document->setTitle($this->language->get('txt_list_page_title'));
-   		$this->addBreadcrumb($this->language->get('txt_list_page_title'));
 		
 		$this->showPage(static::PAGE_ROUTE . '_list');
 	}

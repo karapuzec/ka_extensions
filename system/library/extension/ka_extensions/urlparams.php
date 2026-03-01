@@ -96,7 +96,7 @@ class UrlParams {
 	protected function buildParams($params) {
   		$url_array = array();
   		foreach ($params as $k => $v) {
-			$url_array[$k] = $k . '=' . $params[$k];
+			$url_array[$k] = $k . '=' . $v;
 	  	}
 	  	
 		$url = implode('&', $url_array);

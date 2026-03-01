@@ -8,9 +8,6 @@
 
 namespace extension\ka_extensions\engine;
 
-/**
-	@internal
-*/
 class Action extends \Action {
 
 	public function execute($registry, array $args = array()) {
@@ -35,8 +32,9 @@ class Action extends \Action {
 				$namespace = substr($clear_route, 0, $last_slash_pos);
 				$class = '\\' . str_replace('/', '\\', $namespace) . '\\Controller' . str_replace('_', '', substr($clear_route, $last_slash_pos+1));
 
+				$is_class_found = false;				
 				if (!class_exists($class)) {
-				
+
 					// check the route with action function
 					//
 					$last_slash_pos = strrpos($namespace, '/');
@@ -44,8 +42,17 @@ class Action extends \Action {
 						$namespace = substr($namespace, 0, $last_slash_pos);
 						$class = '\\' . str_replace('/', '\\', $namespace) . '\\Controller\\' . str_replace('_', '', substr($clear_route, $last_slash_pos+1));
 
-						class_exists($class);
-					}
+						if (class_exists($class)) {
+							$is_class_found = true;
+						}
+					} 
+				} else {
+					$is_class_found = true;
+				}
+				
+				if ($is_class_found) {
+					$plain_class = 'Controller' . preg_replace('/[^a-zA-Z0-9]/', '', $this->route);
+					class_alias ( $class, $plain_class);
 				}
 			}
 			

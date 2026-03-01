@@ -63,7 +63,7 @@ abstract class ModelRecordset extends Model {
 		foreach ($this->primary_fields as $v) {
 			$qb->where(static::TABLE_ALIAS . '.' . $v, $data[$v]);
 		}
-		
+
 		return $qb;
 	}
 	
@@ -73,9 +73,9 @@ abstract class ModelRecordset extends Model {
 		if (!is_array($primary_fields)) {
 			$primary_fields = [$this->primary_fields[0] => $primary_fields];
 		}
-	
-		$qry = $this->getRecordQB($primary_fields)->query();
-		
+		$qb = $this->getRecordQB($primary_fields);
+		$qry = $qb->query();
+
 		if (count($qry->rows) > 1) {
 			throw new ExceptionData("Ambiguous data");
 		}
@@ -115,7 +115,7 @@ abstract class ModelRecordset extends Model {
 		if (isset($data['start']) && isset($data['limit'])) {
 			$qb->limit(max(0, $data['start']), max(1, $data['limit']));
 		}
-	
+		
 		$records = $qb->query()->rows;
 		
 		return $records;

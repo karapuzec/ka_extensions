@@ -109,13 +109,18 @@ abstract class ControllerForm extends ControllerPage {
 		} else {
 			$fields = $this->getFieldsWithData($this->fields, $record);
 		}
+		
 		$this->data['fields'] = $fields;
 		
 		$this->data['record'] = $record;
 		
 		// breacrumbs and title
 		//
-    	$this->document->setTitle($this->language->get('txt_form_page_title'));
+		if (!empty($record['record_title'])) {
+	   		$this->document->setTitle($record['record_title']);
+		} else {
+	    	$this->document->setTitle($this->language->get('txt_form_page_title'));
+	    }
 		
     	if (!empty(static::PARENT_ROUTE)) {
 	   		$this->addBreadcrumb($this->language->get('txt_list_page_title'),
@@ -124,7 +129,6 @@ abstract class ControllerForm extends ControllerPage {
 	   		);
 	   	}
 	   	
-   		$this->addBreadcrumb($record['record_title']);
    		
    		// define action links
    		//
