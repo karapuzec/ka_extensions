@@ -177,9 +177,14 @@ class QB {
 	*/
 	public function where($where, $value = null) {
 
-		if (!is_null($value)) {
-			$where = "$where = '" . $this->db->escape($value) . "'";
-		}
+		if (func_num_args() >= 2) {
+			if ($value === null) {
+				$where = "$where IS NULL";
+			} else {
+				$where = "$where = '" . $this->db->escape($value) . "'";
+			}
+		}	
+		
 		$this->where[] = $where;
 	}	
 	
@@ -330,7 +335,7 @@ class QB {
 				}
 			}
 		}
-		
+
 		return $sql;
 	}
 	

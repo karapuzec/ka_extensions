@@ -52,7 +52,13 @@
 
 </style>
             	<div draggable="true" class="image-container">
-	            	<a href="" id="thumb-{{ field.code }}" data-toggle="image" class="img-thumbnail">
+	            	<a href="" id="thumb-{{ field.code }}" data-toggle="image" class="img-thumbnail"
+									{% if field.attributes %}
+										{% for field_attr_key, field_attr_value in field.attributes %}
+											{{ field_attr_key }} = "{{ field_attr_value }}"
+										{% endfor %}
+									{% endif %}
+	            	>
 	            		<img src="{{ field.thumb }}" alt="" title="" data-placeholder="{{ image_placeholder }}" />
 	            	</a>
   	          	<input data-id="image" type="hidden" data-default_value="{{ field.default_value }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value }}" id="input-{{ field.code }}" />

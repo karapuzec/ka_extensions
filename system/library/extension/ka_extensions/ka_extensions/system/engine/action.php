@@ -8,12 +8,13 @@
 
 namespace extension\ka_extensions\engine;
 
+/**
+	@internal
+*/
 class Action extends \Action {
 
 	public function execute($registry, array $args = array()) {
 
-		// $this->route = 'extension/ka_extensions/ka_multivendor/vendor/product'
-		
 		if (!empty($this->route)) {
 		
 			$clear_route = preg_replace('/[^a-zA-Z0-9_\/]/', '', $this->route);

@@ -123,9 +123,12 @@ abstract class ControllerList extends ControllerPage {
 	public function index() {
 
   		$primary_field = $this->recordset->getPrimaryField();
-	
-		$params = $this->url_params->getUrlParams();
-		
+
+  		// we get all parameters here including default parameters (not passed in URL)
+  		// parameters with NULL value should be ignored
+  		//
+		$params = $this->url_params->getParams();
+
 		if (!isset($params['page'])) {
 			$params['page'] = 1;
 		}
