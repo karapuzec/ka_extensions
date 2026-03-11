@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.23 $ ($Revision: 583 $)
+	$Version: 4.1.1.24 $ ($Revision: 589 $)
 */
 	
 namespace extension\ka_extensions;

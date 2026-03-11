@@ -53,7 +53,9 @@ class Action extends \Action {
 				
 				if ($is_class_found) {
 					$plain_class = 'Controller' . preg_replace('/[^a-zA-Z0-9]/', '', $this->route);
-					class_alias ( $class, $plain_class);
+					if (!class_exists($plain_class)) {
+						class_alias ( $class, $plain_class);
+					}
 				}
 			}
 			

@@ -21,7 +21,7 @@ var ka_extensions = new function () {
 	}
 	
 
-    this.showMessage =(text, type, delay) => {
+    this.showMessage =(text, type = 'I', delay = 5000) => {
 	
     	var labels = this.labels;
     
