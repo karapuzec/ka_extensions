@@ -13,7 +13,7 @@ namespace extension\ka_extensions;
 */
 class Arrays {
 
-	/*
+	/**
 		Service function, helps to insert an array inside another array after a specific key
 		
 		Returns a new array
@@ -44,4 +44,27 @@ class Arrays {
 		}
 	}
 	
+	
+	/**
+		Searches for the specified value by the key in an array of arrays. 
+		
+		Returns true when the value is found or false when it is not found.
+	*/
+	static function inArray($value, $array, $key) {
+	
+		if (!is_array($array)) {
+			return false;
+		}
+		
+		foreach ($array as $av) {
+			if (!is_array($av) || !isset($av[$key])) {
+				continue;
+			}
+			if ($av[$key] === $value) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

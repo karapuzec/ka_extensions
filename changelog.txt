@@ -1,3 +1,17 @@
+4.1.1.24
+- added Arrays::inArray function
+- version updated to 4.1.1.24 in file properties
+- duplicated class registration for actions. Fixed.
+- added hiding a top message in Javascript after 5 seconds by default
+- added support for attributes to the htmlarea field
+- added support for attributes to the image field in catalog area
+- the ControllerList class did not use default page parameters. Fixed.
+- QB class now ignores the default NULL parameter for the value unless it is passed explicitly
+- added the storage file
+- added inserting attributes to htmlarea field
+- added union support to QB (query builder) class. Removed breadcrumbs insertion in ControllerList.
+- added automatic registration of class alias for classes with namespaces loaded through kamod engine
+
 4.1.1.23
 - fixed a code warning at 'ka-extensions' page occuring on php 8.x
 - changed the copyright year from 2025 to 2026

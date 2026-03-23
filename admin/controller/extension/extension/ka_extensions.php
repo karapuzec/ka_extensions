@@ -2,7 +2,7 @@
 /* 
  $Project: Ka Extensions $
  $Author: karapuz team <support@ka-station.com> $
- $Version: 4.1.1.24 $ ($Revision: 589 $) 
+ $Version: 4.1.1.23 $ ($Revision: 579 $) 
 */
 
 class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\ControllerPage {
