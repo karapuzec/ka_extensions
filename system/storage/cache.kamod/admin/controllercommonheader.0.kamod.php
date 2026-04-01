@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/controllercommonheader.1.kamod.php');
 
-class ControllerCommonHeader extends \ControllerCommonHeader_kamod  {
+class ControllerCommonHeader_kamod extends \ControllerCommonHeader_kamod  {
 
 	use TraitController;
 

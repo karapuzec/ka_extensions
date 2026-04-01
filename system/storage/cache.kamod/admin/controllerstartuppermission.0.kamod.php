@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/controllerstartuppermission.1.kamod.php');
 
-class ControllerStartupPermission extends \ControllerStartupPermission_kamod  {
+class ControllerStartupPermission_kamod extends \ControllerStartupPermission_kamod  {
 
 	public function index() {
 

@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/modeldesigntheme.1.kamod.php');
 
-class ModelDesignTheme extends \ModelDesignTheme_kamod  {
+class ModelDesignTheme_kamod extends \ModelDesignTheme_kamod  {
 
 	/*
 		we store theme modifications on a file system. No need to request them from db.

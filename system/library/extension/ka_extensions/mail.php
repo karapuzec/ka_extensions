@@ -3,13 +3,15 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 575 $)
+	$Version: 4.1.1.0 $ ($Revision: 592 $)
 */
 	
 namespace extension\ka_extensions;
 
 /**
 	Simplifies email submission
+	
+	@package Service
 */
 class Mail {
 	public $mail;

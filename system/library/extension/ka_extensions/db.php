@@ -3,16 +3,17 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 575 $)
+	$Version: 4.1.1.0 $ ($Revision: 593 $)
 
 */
 	
 namespace extension\ka_extensions;
 
 /**
-	@deprecated
-
 	The class is DEPRECATED. We moved our functions to the standard DB class by extending it.
+
+	@deprecated
+	@package DB
 */
 class Db {
 

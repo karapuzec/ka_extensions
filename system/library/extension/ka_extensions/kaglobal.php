@@ -11,6 +11,8 @@ namespace extension\ka_extensions;
 
 /**
 	Contains several helper methods
+	
+	@package Service
 */
 abstract class KaGlobal {
 
@@ -309,7 +311,9 @@ abstract class KaGlobal {
 
 
 
-
+/**
+	@internal
+*/
 trait КaReserved {
 
 	public static function isKaInstalled($extension) { 

@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/modelsettingextension.0.kamod.php');
-class ModelSettingExtension extends \extension\ka_extensions\ka_extensions\ModelSettingExtension {
+class ModelSettingExtension extends \extension\ka_extensions\ka_extensions\ModelSettingExtension_kamod {
 }

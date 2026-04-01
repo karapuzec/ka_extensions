@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllercommoncolumnleft.0.kamod.php');
-class ControllerCommonColumnLeft extends \extension\ka_extensions\mod1\ControllerCommonColumnLeft {
+class ControllerCommonColumnLeft extends \extension\ka_extensions\mod1\ControllerCommonColumnLeft_kamod {
 }

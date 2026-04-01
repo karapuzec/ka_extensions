@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/pagination.0.kamod.php');
-class Pagination extends \mod1\Pagination {
+class Pagination extends \mod1\Pagination_kamod {
 }

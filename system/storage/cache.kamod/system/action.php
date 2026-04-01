@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/action.0.kamod.php');
-class Action extends \extension\ka_extensions\engine\Action {
+class Action extends \extension\ka_extensions\engine\Action_kamod {
 }

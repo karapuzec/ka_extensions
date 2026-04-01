@@ -8,6 +8,9 @@
 
 namespace extension\ka_extensions\engine;
 
+/**
+	@internal
+*/
 class Loader extends \Loader {
 
 	protected $static_model = [];

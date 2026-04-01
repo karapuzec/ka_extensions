@@ -29,12 +29,18 @@ if (defined('DIR_CATALOG')) {
 		if (!empty($_['safe_mode_code']) && $_['safe_mode_code'] == $ka_safe_mode_code) {
 
 			if (!defined('IS_KAMOD_SAFE_MODE')) {
+				/**
+					@internal
+				*/
 				define('IS_KAMOD_SAFE_MODE', 1);
 			}
 		
 ;			include_once(DIR_SYSTEM . 'engine/action.php');
 ;			include_once(DIR_SYSTEM . 'engine/loader.php');
 
+			/**
+				@internal
+			*/
 			function safeLibrary($class) {
 				$file = DIR_SYSTEM . 'library/' . str_replace('\\', '/', strtolower($class)) . '.php';
 

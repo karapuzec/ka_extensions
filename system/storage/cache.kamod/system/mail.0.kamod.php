@@ -8,9 +8,14 @@
 
 namespace extension\ka_extensions\library;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/mail.1.kamod.php');
 
-class Mail extends \Mail_kamod  {
+class Mail_kamod extends \Mail_kamod  {
+
+	protected $headers;
 
 	public function addNamedAttachment($filename, $name) {
 		$this->attachments[$name] = $filename;
@@ -60,5 +65,10 @@ class Mail extends \Mail_kamod  {
 		if ($log_emails) {
 			$this->logEmail('success');
 		}
+	}
+	
+	
+	public function setHeaders($headers) {
+		$this->headers = $headers;
 	}
 }

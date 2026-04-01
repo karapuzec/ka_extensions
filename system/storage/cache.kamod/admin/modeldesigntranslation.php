@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/modeldesigntranslation.0.kamod.php');
-class ModelDesignTranslation extends \extension\ka_extensions\ka_extensions\ModelDesignTranslation {
+class ModelDesignTranslation extends \extension\ka_extensions\ka_extensions\ModelDesignTranslation_kamod {
 }

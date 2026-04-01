@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	A base class for a module settings page. It incapsulates all required fields and methods.
+	
+	@package Controller
 */
 abstract class ControllerSettings extends ControllerInstaller {
 

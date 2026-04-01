@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllerdesigntranslation.0.kamod.php');
-class ControllerDesignTranslation extends \extension\ka_extensions\ka_extensions\ControllerDesignTranslation {
+class ControllerDesignTranslation extends \extension\ka_extensions\ka_extensions\ControllerDesignTranslation_kamod {
 }

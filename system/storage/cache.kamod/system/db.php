@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/db.0.kamod.php');
-class DB extends \extension\ka_extensions\SystemLibraryDB {
+class DB extends \extension\ka_extensions\SystemLibraryDB_kamod {
 }

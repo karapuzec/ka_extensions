@@ -4,6 +4,8 @@
 	$Author$
 
 	$Version$ ($Revision$)
+	
+	@internal
 */
 
 namespace extension\ka_extensions;
@@ -50,6 +52,9 @@ class KamodManager {
 
 		// OC3000 did not have this constant in front-end
 		if (!defined('DIR_STORAGE')) {
+			/**
+				@internal
+			*/
 			define('DIR_STORAGE', DIR_SYSTEM . 'storage/');
 		}
 	

@@ -5,6 +5,7 @@ namespace extension\ka_extensions;
 /**
 	Services directory management functions.
 
+	@package Service
 */
 class Directory {
 

@@ -3,18 +3,27 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 575 $)
+	$Version: 4.1.1.0 $ ($Revision: 593 $)
 */
 	
 namespace extension\ka_extensions;
 
 /**
-	Replaces standard opencart Controller class with extended functionality
+	Replaces standard opencart Controller class with extended functionality. Recommended as a base
+	class for all controllers.
+	
+	@package Core
 */
 abstract class Controller extends \Controller {
 
 	use TraitSession, TraitController;
 
+	/**
+		Earlier it was used as alternative to the standard db class. Latest 'Ka Extensions' library intends to
+		move all extended DB functions to the standard DB class.
+		
+		@deprecated
+	*/
 	protected $kadb = null;
 	
 	function __construct($registry) {

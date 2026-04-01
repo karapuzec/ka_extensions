@@ -14,14 +14,15 @@
 
 namespace extension\ka_extensions\engine;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/action.1.kamod.php');
 
-class Action extends \Action_kamod  {
+class Action_kamod extends \extension\ka_extensions\ka_exam\Action_kamod  {
 
 	public function execute($registry, array $args = array()) {
 
-		// $this->route = 'extension/ka_extensions/ka_multivendor/vendor/product'
-		
 		if (!empty($this->route)) {
 		
 			$clear_route = preg_replace('/[^a-zA-Z0-9_\/]/', '', $this->route);
@@ -40,8 +41,9 @@ class Action extends \Action_kamod  {
 				$namespace = substr($clear_route, 0, $last_slash_pos);
 				$class = '\\' . str_replace('/', '\\', $namespace) . '\\Controller' . str_replace('_', '', substr($clear_route, $last_slash_pos+1));
 
+				$is_class_found = false;				
 				if (!class_exists($class)) {
-				
+
 					// check the route with action function
 					//
 					$last_slash_pos = strrpos($namespace, '/');
@@ -49,7 +51,18 @@ class Action extends \Action_kamod  {
 						$namespace = substr($namespace, 0, $last_slash_pos);
 						$class = '\\' . str_replace('/', '\\', $namespace) . '\\Controller\\' . str_replace('_', '', substr($clear_route, $last_slash_pos+1));
 
-						class_exists($class);
+						if (class_exists($class)) {
+							$is_class_found = true;
+						}
+					} 
+				} else {
+					$is_class_found = true;
+				}
+				
+				if ($is_class_found) {
+					$plain_class = 'Controller' . preg_replace('/[^a-zA-Z0-9]/', '', $this->route);
+					if (!class_exists($plain_class)) {
+						class_alias ( $class, $plain_class);
 					}
 				}
 			}

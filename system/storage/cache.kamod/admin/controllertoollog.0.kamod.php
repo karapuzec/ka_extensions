@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/controllertoollog.1.kamod.php');
 
-class ControllerToolLog extends \ControllerToolLog_kamod  {
+class ControllerToolLog_kamod extends \ControllerToolLog_kamod  {
 
 	use TraitController;
 

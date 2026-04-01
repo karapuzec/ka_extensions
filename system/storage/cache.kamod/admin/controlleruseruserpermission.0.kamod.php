@@ -16,9 +16,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/controlleruseruserpermission.1.kamod.php');
 
-class ControllerUserUserPermission extends \ControllerUserUserPermission_kamod  {
+class ControllerUserUserPermission_kamod extends \ControllerUserUserPermission_kamod  {
 
 	use \extension\ka_extensions\TraitController;
 

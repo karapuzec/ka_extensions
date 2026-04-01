@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	A controller class for a basic form page.
+
+	@package Controller
 */
 abstract class ControllerForm extends ControllerPage {
 

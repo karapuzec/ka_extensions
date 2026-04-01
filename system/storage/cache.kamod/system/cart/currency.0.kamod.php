@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions\library\Cart;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/currency.1.kamod.php');
 
-class Currency extends \Cart\Currency_kamod  {
+class Currency_kamod extends \Cart\Currency_kamod  {
 
 	public function formatValue($number, $currency) {
 

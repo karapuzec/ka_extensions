@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/modeldesigntranslation.1.kamod.php');
 
-class ModelDesignTranslation extends \ModelDesignTranslation_kamod  {
+class ModelDesignTranslation_kamod extends \ModelDesignTranslation_kamod  {
 
 	public function addTranslation($data) {
 

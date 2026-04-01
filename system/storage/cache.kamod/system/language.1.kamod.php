@@ -44,13 +44,13 @@ class Language_kamod  {
 			$file = DIR_LANGUAGE . $this->default . '/' . $filename . '.php';
 	
 			if (is_file($file)) {
-				require($file);
+				require(\VQMod::modCheck(modification($file), $file));
 			}
 	
 			$file = DIR_LANGUAGE . $this->directory . '/' . $filename . '.php';
 			
 			if (is_file($file)) {
-				require($file);
+				require(\VQMod::modCheck(modification($file), $file));
 			} 
 	
 			$this->data = array_merge($this->data, $_);

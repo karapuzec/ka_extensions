@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	Helpful functions for managing arrays
+
+	@package Service
 */
 class Arrays {
 

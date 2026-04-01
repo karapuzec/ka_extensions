@@ -8,9 +8,12 @@
 
 namespace extension\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/db.1.kamod.php');
 
-class SystemLibraryDB extends \DB_kamod  {
+class SystemLibraryDB_kamod extends \extension\ka_extensions\ka_exam\DB_kamod  {
 
 	public function ka_insert($tbl, $arr, $is_replace = false, $update_on_duplicate = false) {
 
@@ -71,19 +74,25 @@ class SystemLibraryDB extends \DB_kamod  {
 	*/
 	public function ka_delete($table, $cond) {
 	
-	    if (empty($table) || empty($cond)) {
-    	    throw new \Exception(__METHOD__ . ": wrong parameters");
+	    if (empty($table) || is_null($cond)) {
+    	    throw new ExceptionData(__METHOD__ . ": wrong parameters");
 	    }
 
 		$tbl = DB_PREFIX . $table;
 
-		if (is_string($cond)) {
-			$where = $cond;
-		} else {
-			$where = implode(' AND ', $this->ka_getPairs($cond, true));
+		$where = '';
+		if (!empty($cond)) {
+			if (is_string($cond)) {
+				$where = $cond;
+			} else {
+				$where = implode(' AND ', $this->ka_getPairs($cond, true));
+			}
 		}
 
-	    $query = 'DELETE FROM `' . $tbl . '` WHERE ' . $where;
+	    $query = 'DELETE FROM `' . $tbl . '`';
+	    if (!empty($where)) {
+	    	$query .= ' WHERE ' . $where;
+	    }	
 	    
     	return $this->adaptor->query($query);
 	}
@@ -114,5 +123,19 @@ class SystemLibraryDB extends \DB_kamod  {
     	}
 	
     	return $pairs;
+	}
+
+	
+	public function ka_safeQuery($query) {
+	
+		if (in_array('MijoShop', get_declared_classes())) {
+			$prefix = DB_PREFIX;
+			$prefix = MijoShop::get('db')->getDbo()->replacePrefix($prefix);
+			$query = str_replace(DB_PREFIX, $prefix, $query);
+		}
+		
+		$result = $this->query($query);
+		
+		return $result;
 	}
 }

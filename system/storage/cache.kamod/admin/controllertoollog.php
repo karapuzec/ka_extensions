@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllertoollog.0.kamod.php');
-class ControllerToolLog extends \extension\ka_extensions\ControllerToolLog {
+class ControllerToolLog extends \extension\ka_extensions\ControllerToolLog_kamod {
 }

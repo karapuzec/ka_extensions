@@ -6,5 +6,5 @@
 
 namespace Template;
 require_once(__DIR__ . '/twig.0.kamod.php');
-class Twig extends \extension\ka_extensions\library\template\Twig {
+class Twig extends \extension\ka_extensions\template\Twig_kamod {
 }

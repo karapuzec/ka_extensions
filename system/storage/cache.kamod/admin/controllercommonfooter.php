@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllercommonfooter.0.kamod.php');
-class ControllerCommonFooter extends \extension\ka_extensions\ControllerCommonFooter {
+class ControllerCommonFooter extends \extension\ka_extensions\ControllerCommonFooter_kamod {
 }

@@ -10,7 +10,7 @@ namespace mod1;
 
 require_once(__DIR__ . '/pagination.1.kamod.php');
 
-class Pagination extends \Pagination_kamod  {
+class Pagination_kamod extends \Pagination_kamod  {
 
 	public function render() {
 		return parent::render();

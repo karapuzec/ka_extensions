@@ -11,6 +11,8 @@ namespace extension\ka_extensions;
 /**
 	This class provides basic entity list functionality. It can be used for creating a new entity management
 	in a store back-end.
+	
+	@package Controller
 */
 abstract class ControllerList extends ControllerPage {
 

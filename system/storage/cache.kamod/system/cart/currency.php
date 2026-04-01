@@ -6,5 +6,5 @@
 
 namespace Cart;
 require_once(__DIR__ . '/currency.0.kamod.php');
-class Currency extends \extension\ka_extensions\library\Cart\Currency {
+class Currency extends \extension\ka_extensions\library\Cart\Currency_kamod {
 }

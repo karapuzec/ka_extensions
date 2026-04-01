@@ -31,7 +31,8 @@ namespace extension\ka_extensions;
   	'href' => $this->url->link('product/category', $url_params->getUrl(['path' => $path]))
   	...
   	$pagination->url = $this->url->link('product/category', $url_params->getUrl(['page' => '{page}']));
-	
+
+	@package Service
 */
 class UrlParams {
 	protected $request;

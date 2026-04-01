@@ -16,9 +16,12 @@ namespace extension\ka_extensions\library;
 
 use \extension\ka_extensions\KaGlobal;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/url.1.kamod.php');
 
-class Url extends \Url_kamod  {
+class Url_kamod extends \Url_kamod  {
 
 	public function linka_js($route, $args = null, $secure = null) {
 		return $this->linka($route, $args, $secure, true);

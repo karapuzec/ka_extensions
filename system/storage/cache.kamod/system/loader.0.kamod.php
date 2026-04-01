@@ -14,9 +14,14 @@
 
 namespace extension\ka_extensions\engine;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/loader.1.kamod.php');
 
-class Loader extends \Loader_kamod  {
+class Loader_kamod extends \Loader_kamod  {
+
+	protected $static_model = [];
 
 	protected $ka_render_depth = array(0);
 	protected $disable_render_templates = array(null);
@@ -59,30 +64,31 @@ class Loader extends \Loader_kamod  {
 			if ($class_pos) {
 				$class_file = substr($route, 0, $class_pos);
 				$class_path .= str_replace('/', '\\', substr($route, 0, $class_pos)) . '\\';
-			}			
-			$class_name =  $class_path . 'Model' . str_replace('_','', substr($route, $class_pos + 1));				
+			}
+			$class =  $class_path . 'Model' . str_replace('_','', substr($route, $class_pos + 1));				
 			
 			// first we try to load the class with namespaces
-			if (!class_exists($class_name)) {
-				
-				$file  = DIR_APPLICATION . 'model/' . $route . '.php';
-				$class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', $route);			
-			
-				if (is_file($file)) {
-					include_once(modification($file));
+			if (!class_exists($class)) {
+				$class = '\Model' . preg_replace('/[^a-zA-Z0-9]/', '', $route);
+				if (!class_exists($class)) {
+					$file  = DIR_APPLICATION . 'model/' . $route . '.php';
+					if (is_file($file)) {
+						include_once(modification($file));
+					}
 				}
-			} else {
-				$class = $class_name;
 			}
-			
+
 			if (class_exists($class)) {
 				$proxy = new $class ($this->registry);
 				$this->registry->set($model_name, $proxy);
+				if (method_exists($class, 'onLoadExt')) {
+					$proxy->onLoadExt();
+				}
 			} else {
 				if (defined('KAMOD_DEBUG')) {
-					var_dump($class_name, $class);
+					debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS); 
 				}
-				throw new \Exception('Error: Could not load model ' . $route . '!');
+				throw new \Exception('Error: Could not load model ' . $route . " with class: $class");
 			}
 		}
 		

@@ -13,9 +13,12 @@
 */
 namespace extension\ka_extensions\ka_extensions;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/controllerdesigntranslation.1.kamod.php');
 
-class ControllerDesignTranslation extends \ControllerDesignTranslation_kamod  {
+class ControllerDesignTranslation_kamod extends \ControllerDesignTranslation_kamod  {
 
 	use \extension\ka_extensions\TraitController;
 

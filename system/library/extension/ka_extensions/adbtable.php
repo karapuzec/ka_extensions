@@ -14,26 +14,73 @@ Provides declaration of tables and their structure for easy inserting/updating o
 It was mostly made for easy form creation. The class introduces an additional abstraction level between 
 models and database functions to avoid writing sql queries directly. 
 
-It might look as overloaded feature so you might be more conformtable to write SQL queries directly in model files
-as native Opencart functions do.
-
 Basic rules:
-
-- all class properties are treated as table values. Methods 'update','save','insert', etc. submit all fields.
+- all class properties (not starting with $_) are treated as table values. 
+  Methods 'update','save','insert', etc. submit all these fields.
 - internal variables are started with '_'
 
-*/
-class ADBTable {
+Here is a typical class declaration for a table. Only fields declared in the class will be affected by
+insert/update operations.
 
+```php
+namespace extension\ka_extensions\ka_multivendor\dbtable;
+use extension\ka_extensions\ADBTable as ADBTable;
+
+class Customer extends ADBTable {
+
+	const TABLE_NAME = 'customer';
+
+	public function getFields() {
+		
+		$fields = array(
+			'customer_id'  => [
+				'primary_key' => true,
+			],
+			'firstname'    => [],
+			'lastname'     => [],
+			'email'        => [],
+		);
+
+		return $fields;
+	}
+}
+```
+
+	@package DB
+*/
+abstract class ADBTable {
+
+	/**
+		This constant should be overwritten in inhertior. Contains a table name without DB_PREFIX like 'product'.
+	*/
 	const TABLE_NAME = '';
 	
+	/** 
+		@internal
+	*/
 	protected $_values = array();
 
+	/** 
+		@internal
+	*/
 	protected $_registry;
+	/** 
+		@internal true
+		@hidden true
+	*/
 	protected $_db;
+	/** 
+		@internal
+	*/
 	protected $_load;
 	
+	/** 
+		@internal
+	*/
 	protected $_fields = null;
+	/** 
+		@internal
+	*/
 	protected $_primary_keys = null;
 	
 	public function __construct() {
@@ -152,6 +199,9 @@ class ADBTable {
 	}
 	
 
+	/** 
+		@internal
+	*/
 	public function __set($name, $value) {
 	
 		$method_name = 'set_' . $name;
@@ -163,6 +213,9 @@ class ADBTable {
 	}
 
 	
+	/** 
+		@internal
+	*/
 	public function __get($name) {
 
 		$method_name = 'get_' . $name;

@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controlleruseruserpermission.0.kamod.php');
-class ControllerUserUserPermission extends \extension\ka_extensions\ControllerUserUserPermission {
+class ControllerUserUserPermission extends \extension\ka_extensions\ControllerUserUserPermission_kamod {
 }

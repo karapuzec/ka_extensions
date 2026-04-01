@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	A base class for form pages in admin back-end. Optional.
+
+	@package Controller
 */
 class ControllerAdminForm extends ControllerForm {
 

@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/loader.0.kamod.php');
-class Loader extends \extension\ka_extensions\engine\Loader {
+class Loader extends \extension\ka_extensions\engine\Loader_kamod {
 }

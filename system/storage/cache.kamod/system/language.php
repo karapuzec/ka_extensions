@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/language.0.kamod.php');
-class Language extends \extension\ka_extensions\library\Language {
+class Language extends \extension\ka_extensions\library\Language_kamod {
 }

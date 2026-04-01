@@ -13,6 +13,8 @@ namespace extension\ka_extensions;
 
 /**
 	Stores submitted files via POST request in a temporary location.
+	
+	@package Controller
 */
 class PostedFiles {
 

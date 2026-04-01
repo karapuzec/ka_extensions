@@ -16,9 +16,12 @@ namespace extension\ka_extensions\ka_extensions;
 
 use \extension\ka_extensions\KamodManager;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/modelsettingextension.1.kamod.php');
 
-class ModelSettingExtension extends \ModelSettingExtension_kamod  {	
+class ModelSettingExtension_kamod extends \ModelSettingExtension_kamod  {	
 
 	public function install($type, $code) {
 	

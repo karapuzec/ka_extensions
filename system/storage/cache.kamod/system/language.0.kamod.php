@@ -14,9 +14,12 @@
 
 namespace extension\ka_extensions\library;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/language.1.kamod.php');
 
-class Language extends \Language_kamod  {
+class Language_kamod extends \Language_kamod  {
 
 	protected $kamod_manager;
 	

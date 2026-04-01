@@ -9,7 +9,9 @@
 namespace extension\ka_extensions;
 
 /**
-	Gives functions to generate unique session variables within a class
+	Provides functions for controller/model to generate unique session variables within a class.
+	
+	@package Service
 */
 trait TraitSession {
 

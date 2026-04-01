@@ -5,14 +5,17 @@
 	
 	Original file: system/library/extension/ka_extensions/ka_extensions/system/library/template/twig.php
 */
-namespace extension\ka_extensions\library\template;
+namespace extension\ka_extensions\template;
 
 use \extension\ka_extensions\KaGlobal;
 use \extension\ka_extensions\KamodManager;
 
+/**
+	@internal
+*/
 require_once(__DIR__ . '/twig.1.kamod.php');
 
-class Twig extends \Template\Twig_kamod  {
+class Twig_kamod extends \extension\ka_extensions\ka_speedup\template\Twig_kamod  {
 
 	protected function replaceLoader($loader) {
 	
@@ -34,24 +37,27 @@ class Twig extends \Template\Twig_kamod  {
 			$admin_dirname = KaGlobal::getAdminDirName();
 
 			$fs_mod_after_loader->addPath(DIR_TEMPLATE);
-			
+
 			// include the main modification location
 			if (is_dir(DIR_MODIFICATION . 'admin/view/template')) {
 				$fs_mod_loader->prependPath(DIR_MODIFICATION . 'admin/view/template');
+				$this->prependPath($fs_mod_loader, DIR_MODIFICATION . 'admin/view/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
 			// include kamod general cache
 			if (is_dir($kamod_cache_dir . $admin_dirname)) {
 				$fs_mod_loader->prependPath($kamod_cache_dir . $admin_dirname . '/view/template');
+				$this->prependPath($fs_mod_loader, $kamod_cache_dir . $admin_dirname . '/view/template/extension/ka_extensions/common', 'ka_common');
 			}
 
 			// include 'store specific' cache (when the admin modified templates)
 			if (is_dir($store_cache_dir . $admin_dirname)) {
 				$fs_mod_loader->prependPath($store_cache_dir . $admin_dirname . '/view/template');
+				$this->prependPath($fs_mod_loader, $store_cache_dir . $admin_dirname . '/view/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
 			// add '@ka_common' shortcut
-			if (file_exists(DIR_TEMPLATE . 'extension/ka_extensions/common')) {
+			if (is_dir(DIR_TEMPLATE . 'extension/ka_extensions/common')) {
 				$fs_mod_loader->addPath(DIR_TEMPLATE . 'extension/ka_extensions/common', 'ka_common');
 			}
 			
@@ -66,6 +72,12 @@ class Twig extends \Template\Twig_kamod  {
 			// find a cache file modified by administrator
 			if (is_dir($theme_cache_dir . 'catalog/view/theme/')) {
 				$fs_mod_loader->prependPath($theme_cache_dir . 'catalog/view/theme');
+				
+				$this->prependPath($fs_mod_loader, $theme_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
+				
+				if ($theme_dir != 'default') {
+					$this->prependPath($fs_mod_loader, $theme_cache_dir . 'catalog/view/theme/'. $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
+				}
 			}
 			
 			// the main modification location
@@ -76,20 +88,29 @@ class Twig extends \Template\Twig_kamod  {
 			// include kamod general cache
 			if (is_dir($kamod_cache_dir . 'catalog/view/theme')) {
 				$fs_mod_loader->prependPath($kamod_cache_dir . 'catalog/view/theme');
-			}			
-
+				if ($theme_dir != 'default') {
+					$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
+				}
+				$this->prependPath($fs_mod_loader, 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
+			}
+			
 			// include 'store specific' cache (when the admin modified templates)
 			if (is_dir($store_cache_dir . 'catalog/view/theme')) {
 				$fs_mod_loader->prependPath($store_cache_dir . 'catalog/view/theme');
-			}			
+				if ($theme_dir != 'default') {
+					$this->prependPath($fs_mod_loader, $store_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
+				}
+				$this->prependPath($fs_mod_loader, $store_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
+			}
 			
 			// add '@ka_common' shortcut
-			if (file_exists(DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common')) {
+			if (is_dir(DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common')) {
 				$fs_mod_loader->addPath(DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
-			} else {
-				if (file_exists(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common')) {
-					$fs_mod_loader->addPath(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common', 'ka_common');
-				}			
+				if ($theme_dir != 'default') {
+					if (is_dir(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common')) {
+						$fs_mod_loader->addPath(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common', 'ka_common');
+					}
+				}
 			}
 		}
 		
@@ -114,4 +135,19 @@ class Twig extends \Template\Twig_kamod  {
 	
 		$twig->addExtension(new \extension\ka_extensions\TwigExtension());
 	}
+	
+	
+	protected function prependPath($loader, $path, $namespace = null) {
+	
+		if (!is_dir($path)) {
+			return;
+		}
+	
+		if (empty($namespace)) {
+			$loader->prependPath($path);
+		} else {
+			$loader->prependPath($path, $namespace);
+		}	
+	}
+	
 }

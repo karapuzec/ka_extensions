@@ -22,3 +22,66 @@
 2024-09-9 Sep:43:27: Target file was not found: F:/htdocs/ka_ext/oc3000a1/system/library/mail/smtp.php
 2024-09-9 Sep:43:27: Cache marked valid at 2024-09-29T12:43:27+02:00
 2024-09-9 Sep:43:27: Cache rebuild finished at 2024-09-29T12:43:27+02:00
+2026-04-4 Apr:43:32: Cache cleared at 2026-04-01T15:43:32+02:00
+2026-04-4 Apr:43:32: Kamod rebuild started at 2026-04-01T15:43:32+02:00
+2026-04-4 Apr:43:32: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:43:32: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:43:32: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/mail.php
+2026-04-4 Apr:43:32: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/smtp.php
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:32: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:43:33: Cache marked valid at 2026-04-01T15:43:33+02:00
+2026-04-4 Apr:43:33: Cache rebuild finished at 2026-04-01T15:43:33+02:00
+2026-04-4 Apr:45:17: Cache cleared at 2026-04-01T15:45:17+02:00
+2026-04-4 Apr:45:17: Kamod rebuild started at 2026-04-01T15:45:17+02:00
+2026-04-4 Apr:45:17: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:45:17: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:45:17: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/mail.php
+2026-04-4 Apr:45:17: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/smtp.php
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:17: Cache marked valid at 2026-04-01T15:45:17+02:00
+2026-04-4 Apr:45:17: Cache rebuild finished at 2026-04-01T15:45:17+02:00
+2026-04-4 Apr:45:33: Theme cache was emptied
+2026-04-4 Apr:45:33: Saved a theme cache file: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/storage/theme.kamod/0/catalog/view/theme/default/template/common/footer.twig
+2026-04-4 Apr:45:33: Saved a theme cache file: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/storage/theme.kamod/0/catalog/view/theme/default/template/product/product.twig
+2026-04-4 Apr:45:33: Saved a theme cache file: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/storage/theme.kamod/0/catalog/view/theme/default/template/extension/module/featured.twig
+2026-04-4 Apr:45:33: Cache marked valid at 2026-04-01T13:45:33+00:00
+2026-04-4 Apr:45:35: Cache cleared at 2026-04-01T15:45:35+02:00
+2026-04-4 Apr:45:35: Kamod rebuild started at 2026-04-01T15:45:35+02:00
+2026-04-4 Apr:45:35: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:45:35: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:45:35: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/mail.php
+2026-04-4 Apr:45:35: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/smtp.php
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:45:35: Cache marked valid at 2026-04-01T15:45:35+02:00
+2026-04-4 Apr:45:35: Cache rebuild finished at 2026-04-01T15:45:35+02:00
+2026-04-4 Apr:51:12: Cache marked valid at 2026-04-01T13:51:12+00:00
+2026-04-4 Apr:51:12: Cache marked valid at 2026-04-01T13:51:12+00:00
+2026-04-4 Apr:51:12: Cache cleared at 2026-04-01T15:51:12+02:00
+2026-04-4 Apr:51:12: Kamod rebuild started at 2026-04-01T15:51:12+02:00
+2026-04-4 Apr:51:12: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:51:12: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/template/template.php
+2026-04-4 Apr:51:12: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/mail.php
+2026-04-4 Apr:51:12: Target file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/system/library/mail/smtp.php
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:12: Manifest file was not found: C:\php\xampp74\htdocs\ka_ext\oc3000a1/admin/controller/extension/ka_extensions/ka_extensions/kamod.ini
+2026-04-4 Apr:51:13: Cache marked valid at 2026-04-01T15:51:13+02:00
+2026-04-4 Apr:51:13: Cache rebuild finished at 2026-04-01T15:51:13+02:00

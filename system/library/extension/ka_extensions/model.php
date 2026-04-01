@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 576 $)
+	$Version: 4.1.1.0 $ ($Revision: 592 $)
 */
 	
 namespace extension\ka_extensions;
@@ -12,7 +12,8 @@ use extension\ka_extensions\Tables;
 
 /**
 	Base model class
-	
+
+	@package Core
 */
 abstract class Model extends \Model {
 

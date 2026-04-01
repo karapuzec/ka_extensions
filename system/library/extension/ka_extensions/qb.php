@@ -10,16 +10,18 @@ namespace extension\ka_extensions;
 
 /**
 
-This class is used for building complex SELECT queries from parts and executing them later.
+This 'Query Builder' class is used for building SELECT queries from parts and executing them later.
 
-Here is how a simple SQRL query looks in Opencart:
+Here is how a simple SQL query looks in Opencart:
 
+```php
 $query = $this->query("SELECT * FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product_id . "'");
 $product = $query->row;
+```
 
 This is the same query rewritten with QB class:
 
-```
+```php
 $qb = new \extension\ka_extensions\QB();
 $qb->select("*", "product");
 $qb->where("product_id", $product_id);
@@ -29,7 +31,7 @@ $product = $qb->query();
 The main goal of this class is to separate building the request from executing it. That allows developers to build
 the request in a separate function like this:
 
-```
+```php
 
 class Product extends Model {
 
@@ -58,6 +60,7 @@ When QB is prepared in a separate function, it be can adjusted in a child class.
 developers to inherate existing classes in their modules. Also it makes simpler to position ocmod/vqmod patches
 to sql queries. So, it is better to build SQL queries with QB class than writing raw SQL in the code.
 
+	@package DB
 */
 
 class QB {
@@ -73,7 +76,10 @@ class QB {
 	var $groupBy   = array();
 	var $from_union = [];
 	var $from_union_alias = 't';
-	
+
+	/**
+		@internal
+	*/
 	protected $db = null;
 
 	public function __construct() {

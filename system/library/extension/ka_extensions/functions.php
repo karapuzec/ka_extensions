@@ -1,9 +1,11 @@
 <?php
-/*
+/**
 	$Project$
 	$Author$
 
 	$Version$ ($Revision$)
+	
+	@package Service
 */
 
 if (!function_exists('parse_ini_file') && !is_callable('parse_ini_file')) {

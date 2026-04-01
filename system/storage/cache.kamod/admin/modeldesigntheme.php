@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/modeldesigntheme.0.kamod.php');
-class ModelDesignTheme extends \extension\ka_extensions\ka_extensions\ModelDesignTheme {
+class ModelDesignTheme extends \extension\ka_extensions\ka_extensions\ModelDesignTheme_kamod {
 }

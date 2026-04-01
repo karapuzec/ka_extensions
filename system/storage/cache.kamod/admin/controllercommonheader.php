@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllercommonheader.0.kamod.php');
-class ControllerCommonHeader extends \extension\ka_extensions\ControllerCommonHeader {
+class ControllerCommonHeader extends \extension\ka_extensions\ControllerCommonHeader_kamod {
 }

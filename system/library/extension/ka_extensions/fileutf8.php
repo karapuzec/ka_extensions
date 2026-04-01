@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 575 $)
+	$Version: 4.1.1.0 $ ($Revision: 592 $)
 */
 	
 namespace extension\ka_extensions;
@@ -36,6 +36,8 @@ stream_filter_register("macfix", '\extension\ka_extensions\macfix_filter') or di
 
 /**
 	Reads and writes files in UTF-8, UTF-16 modes.
+	
+	@package Service
 */
 class FileUTF8 {
 

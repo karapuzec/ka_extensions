@@ -16,6 +16,8 @@ namespace extension\ka_extensions;
 
 	The class provides several functions for inserting, updating and getting data from the database. It is easier
 	for other modules to overwrite methods of that class to extend or restrict the module functionality.
+	
+	@package DB
 */
 abstract class ModelRecordset extends Model {
 

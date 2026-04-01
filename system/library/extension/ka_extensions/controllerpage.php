@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	This is a basic class for any controller showing a page
+	
+	@package Controller
 */
 abstract class ControllerPage extends Controller {
 

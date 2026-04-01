@@ -45,7 +45,11 @@ class ModelKamod extends \extension\ka_extensions\Model {
 	
 	
 	public function getLastErrorsTotal() {
-		$total = $this->kamod_manager->getLastErrorsTotal();
+		if (!empty($this->kamod_manager)) {
+			$total = $this->kamod_manager->getLastErrorsTotal();
+		} else {
+			$total = 0;
+		}
 		
 		return $total;
 	}

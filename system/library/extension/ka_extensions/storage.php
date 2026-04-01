@@ -11,6 +11,8 @@ namespace extension\ka_extensions;
 /**
 	The storage id is used to save files for non-existing entities like new products. It was created
 	for ka_multivendor module initially but it might be extended and used in other modules too.
+	
+	@package Service
 */
 class Storage {
 	protected const RANDOM_BYTES = 6;

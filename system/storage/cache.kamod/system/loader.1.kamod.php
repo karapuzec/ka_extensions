@@ -1,5 +1,17 @@
 <?php
 /*
+	This file was patched by kamod.
+	More information can be found at https://www.ka-station.com/kamod
+	
+	Original file:
+	system/engine/loader.php
+	
+	The following patches were applied:
+	system/library/extension/ka_extensions/ka_speedup/system/engine/loader.php.xml
+	system/library/extension/ka_extensions/ka_extensions/system/engine/loader.php.xml
+*/
+?><?php
+/*
 	This file was inherited by kamod.
 	More information can be found at https://www.ka-station.com/kamod
 	
@@ -60,7 +72,7 @@ class Loader_kamod  {
 //karapuz: before:include_once
 				if  ( ! empty ( $class )  &&  ! class_exists ( $class ) )
 ///karapuz
-				include_once($file);
+				include_once(\VQMod::modCheck(modification($file), $file));
 	
 				$proxy = new Proxy();
 				
@@ -90,7 +102,11 @@ class Loader_kamod  {
 		} else {
 			$template = new Template($this->registry->get('config')->get('template_engine'));
 				
-			foreach ($data as $key => $value) {
+			
+				if ('ka_speedup') {
+					$template->setData($data);
+				} else
+				foreach ($data as $key => $value) {
 				$template->set($key, $value);
 			}
 			
@@ -118,7 +134,7 @@ class Loader_kamod  {
 //karapuz: before:include_once
 			if  ( ! empty ( $class )  &&  ! class_exists ( $class ) )
 ///karapuz				
-			include_once($file);
+			include_once(\VQMod::modCheck(modification($file), $file));
 
 			$this->registry->set(basename($route), new $class($this->registry));
 		} else {
@@ -130,7 +146,7 @@ class Loader_kamod  {
 		$file = DIR_SYSTEM . 'helper/' . preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route) . '.php';
 
 		if (is_file($file)) {
-			include_once($file);
+			include_once(\VQMod::modCheck(modification($file), $file));
 		} else {
 			throw new \Exception('Error: Could not load helper ' . $route . '!');
 		}
@@ -179,13 +195,13 @@ class Loader_kamod  {
 				// Store the model object
 				$key = substr($route, 0, strrpos($route, '/'));
 				
-				if (!isset($model[$key])) {
-					$model[$key] = new $class($registry);
+				if (!isset($this->static_model[$key])) {
+					$this->static_model[$key] = new $class($registry);
 				}
 				
 				$method = substr($route, strrpos($route, '/') + 1);
 				
-				$callable = array($model[$key], $method);
+				$callable = array($this->static_model[$key], $method);
 	
 				if (is_callable($callable)) {
 					$output = call_user_func_array($callable, $args);

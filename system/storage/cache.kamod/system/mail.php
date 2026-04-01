@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/mail.0.kamod.php');
-class Mail extends \extension\ka_extensions\library\Mail {
+class Mail extends \extension\ka_extensions\library\Mail_kamod {
 }

@@ -1,0 +1,17 @@
+# file format for guides (.rst files)
+
+https://docutils.sourceforge.io/docs/ref/rst/directives.html#top 
+
+Some explanation of .rst files in phpDocumentor
+https://docs.phpdoc.org/guide/hand-written-docs/index.html#hand-written-documentation
+
+https://docs.phpdoc.org/components/guides/classes/phpDocumentor-Guides-RestructuredText-Directives-ToctreeDirective.html#:~:text=FinalYes,/guides/pull/21?
+
+RST syntax comparison with MD
+https://i.imgur.com/jGAJtEg.png
+
+#todo
+- write about kapatch
+- write about built-in constants
+- write about 'safe mode'
+- write about the mail function

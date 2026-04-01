@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/controllerstartuppermission.0.kamod.php');
-class ControllerStartupPermission extends \extension\ka_extensions\ControllerStartupPermission {
+class ControllerStartupPermission extends \extension\ka_extensions\ControllerStartupPermission_kamod {
 }

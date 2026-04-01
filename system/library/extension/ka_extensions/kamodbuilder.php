@@ -4,6 +4,8 @@
 	$Author$
 
 	$Version$ ($Revision$)
+	
+	@internal
 */
 
 namespace extension\ka_extensions;

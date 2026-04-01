@@ -5,5 +5,5 @@
 */
 
 require_once(__DIR__ . '/url.0.kamod.php');
-class Url extends \extension\ka_extensions\library\Url {
+class Url extends \extension\ka_extensions\library\Url_kamod {
 }

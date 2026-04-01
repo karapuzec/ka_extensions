@@ -10,6 +10,8 @@ namespace extension\ka_extensions;
 
 /**
 	Helpful functions for forms
+	
+	@package Controller
 */
 trait TraitControllerForm {
 
