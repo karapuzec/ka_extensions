@@ -8,6 +8,32 @@
 
 namespace extension\ka_extensions\engine;
 
+/* 
+	Set our custom exception handler 
+*/
+$ka_previous_exception_handler = null;
+
+$ka_previous_exception_handler = set_exception_handler(
+    function($e) use (&$ka_previous_exception_handler) {
+
+		$message = $e->getMessage();
+		$file = $e->getFile();
+		$line = $e->getLine();
+
+		$msg = ' Exception: ' . $message . ' in ' . $file . ' on line ' . $line;
+
+		echo "Unhandled exception occured. Check ka_errors.log for details. :" . $msg;
+		
+		$msg = "\n" . '[' . date("Y-m-d H:i:s") . '] ' . $msg . $e->getTraceAsString();
+
+		file_put_contents(DIR_LOGS . 'ka_errors.log', $msg . "\n\n", FILE_APPEND);
+		
+        if ($ka_previous_exception_handler) {
+            call_user_func($ka_previous_exception_handler, $e);
+        }
+    }
+);
+
 /**
 	@internal
 */

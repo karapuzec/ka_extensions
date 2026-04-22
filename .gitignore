@@ -9,7 +9,8 @@ admin\view\template\extension\ka_extensions\ka_pager
 config.php
 image\cache
 ./*.xml
-system\storage
+system/storage/cache.kamod
+system/storage/cache
 tmp_files.bat
 tmp_files.txt
 tmp_pack
@@ -23,3 +24,11 @@ _install
 !!.txt
 install.xml
 ./packed_files.txt
+vqmod
+pack_sample1.bat
+packed_files.txt
+system/storage/logs/ocmod.log
+system/storage/modification/
+system/storage/theme.kamod/
+system/storage/cache.kamod/valid.kamod
+system/storage/logs/kamod.log

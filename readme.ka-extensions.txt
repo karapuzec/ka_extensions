@@ -9,7 +9,7 @@ notes feel free to contact us at support@ka-station.com. All messages are usuall
 
 Requirements
 ==============
-- Opencart 3.0.0.0 - 3.0.4.x
+- Opencart 3.0.0.0 - 3.0.5.x
 
 
 How to install
@@ -32,7 +32,14 @@ Safe mode
 ======================
 
 This 'Ka Extensions' library includes a safe mode option. More about this option can be found at:
-https://www.ka-station.com/tickets/scp/faq.php?id=65
+https://www.ka-station.com/article?article_id=35
+
+
+Documentation for developers
+============================
+
+https://www.ka-station.com/docs/
+
 
 About
 ==============

@@ -56,17 +56,28 @@ trait TraitControllerForm {
 		} else {
 			$f['code'] = $k;
 		}
-
+		
 		if (is_array($new_data)) {
 			if (isset($new_data[$k])) {
 				$f['value'] = $new_data[$k];
-			} else {
-				$f['value'] = '';
-			}
+			} else {		
+				if (empty($f['type']) || $f['type'] != 'checkbox') {
+					if (isset($old_data[$k])) {
+						$f['value'] = $old_data[$k];
+					} else {
+						$f['value'] = '';
+					}
+				} else {
+					$f['value'] = '';
+				}
+			} 
+
 		} elseif (isset($old_data[$k])) {
 			$f['value'] = $old_data[$k];
+
 		} elseif (!empty($f['default_value'])) {
 			$f['value'] = $f['default_value'];
+
 		} else {
 			$f['value'] = '';
 		}
@@ -90,7 +101,10 @@ trait TraitControllerForm {
 				
 				$f['default_thumb'] = $this->model_tool_image->resize('no_image.png', 200, 200);
 				$f['default_value'] = 'no_image.png';
-			}				
+
+			} elseif ($f['type'] == 'date') {
+				$f['value'] = substr($f['value'], 0, 10);
+			}
 		}
 		
 		return $f;

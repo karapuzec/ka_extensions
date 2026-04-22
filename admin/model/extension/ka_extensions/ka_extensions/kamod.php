@@ -26,6 +26,7 @@ class ModelKamod extends \extension\ka_extensions\Model {
 	*/
 	public function rebuildThemeCache() {
 	
+		$this->kamod_manager = \extension\ka_extensions\KamodManager::getInstance();
 		$this->kamod_manager->emptyThemeCache();
 		
 		$this->load->model('design/theme');
@@ -45,11 +46,11 @@ class ModelKamod extends \extension\ka_extensions\Model {
 	
 	
 	public function getLastErrorsTotal() {
-		if (!empty($this->kamod_manager)) {
-			$total = $this->kamod_manager->getLastErrorsTotal();
-		} else {
-			$total = 0;
-		}
+		// we load kamod_manager here because we changed how onLoad works, and it does not work after uploading
+		// a new 'ka extensions' version (till the code is refreshed)
+		//
+		$this->kamod_manager = \extension\ka_extensions\KamodManager::getInstance();
+		$total = $this->kamod_manager->getLastErrorsTotal();
 		
 		return $total;
 	}

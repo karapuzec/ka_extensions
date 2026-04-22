@@ -26,6 +26,9 @@ abstract class KaGlobal {
 	}
 	
 	public static function t($text, $args = []) {
+		if (!method_exists('Language', 'getka')) {
+			return $text;
+		}
 		return static::$registry->get('language')->getka($text, $args);
 	}
 

@@ -3,15 +3,13 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 592 $)
+	$Version: 4.1.1.0 $ ($Revision: 600 $)
 */
 	
 namespace extension\ka_extensions;
 
 /**
 	Simplifies email submission
-	
-	@package Service
 */
 class Mail {
 	public $mail;
@@ -131,6 +129,10 @@ class Mail {
 		}
 		
 		$html = $text = '';
+		
+		$header_template  = $extra['header_template'] ?? 'extension/ka_extensions/common/mail/header';		
+		$footer_template  = $extra['footer_template'] ?? 'extension/ka_extensions/common/mail/footer';
+		$content_template = $extra['content_template'] ?? 'extension/ka_extensions/common/mail/content';
 
 		// load a text file
 		//
@@ -139,12 +141,12 @@ class Mail {
 			// the view substitutes the current template directory itself
 			$text = $this->loadViewForLanguage($template, $this->data);
 			if (!empty($text) && !empty($extra['send_content'])) {
-				$this->language->load('extension/ka_extensions/common/mail/common');
-				$this->language->load('extension/ka_extensions/common/mail/common_txt');
-				$this->data['header']  = $this->loadViewForLanguage('extension/ka_extensions/common/mail/header_txt', $this->data);
-				$this->data['footer']  = $this->loadViewForLanguage('extension/ka_extensions/common/mail/footer_txt', $this->data);
+				$this->language->load('extension/ka_extensions/ka_extensions/mail/common');
+				$this->language->load('extension/ka_extensions/ka_extensions/mail/common_txt');
+				$this->data['header']  = $this->loadViewForLanguage($header_template . '_txt', $this->data);
+				$this->data['footer']  = $this->loadViewForLanguage($footer_template . '_txt', $this->data);
 				$this->data['content'] = $text;
-				$text = $this->load->view('extension/ka_extensions/common/mail/content_txt', $this->data);
+				$text = $this->load->loadViewForLanguage($content_template . '_txt', $this->data);
 			}
 		} catch (\Exception $e) {
 		
@@ -168,12 +170,12 @@ class Mail {
 		try {
 			$html = $this->loadViewForLanguage($tpl, $this->data);
 			if (!empty($html) && !empty($extra['send_content'])) {
-				$this->language->load('extension/ka_extensions/common/mail/common');
+				$this->language->load('extension/ka_extensions/ka_extensions/mail/common');
 				
-				$this->data['header']  = $this->loadViewForLanguage('extension/ka_extensions/common/mail/header', $this->data);
-				$this->data['footer']  = $this->loadViewForLanguage('extension/ka_extensions/common/mail/footer', $this->data);
+				$this->data['header']  = $this->loadViewForLanguage($header_template, $this->data);
+				$this->data['footer']  = $this->loadViewForLanguage($footer_template, $this->data);
 				$this->data['content'] = $html;
-				$html = $this->loadViewForLanguage('extension/ka_extensions/common/mail/content', $this->data);
+				$html = $this->loadViewForLanguage($content_template, $this->data);
 			}
 		} catch (\Exception $e) {
 			if (empty($text)) {
