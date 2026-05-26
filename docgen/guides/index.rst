@@ -15,6 +15,7 @@ high-level usage that isn't captured in the API DocBlocks.
    Applying a Patch <apply_kapatch>
    Useful Constants <useful_constants>
    Code Design Guidlines <code_design_guidlines>
+   kamod.ini file format <kamod_ini>
    
 .. toctree::
    :maxdepth: 1

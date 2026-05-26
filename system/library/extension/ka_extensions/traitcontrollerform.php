@@ -75,9 +75,8 @@ trait TraitControllerForm {
 		} elseif (isset($old_data[$k])) {
 			$f['value'] = $old_data[$k];
 
-		} elseif (!empty($f['default_value'])) {
+		} elseif (isset($f['default_value'])) {
 			$f['value'] = $f['default_value'];
-
 		} else {
 			$f['value'] = '';
 		}
@@ -85,7 +84,6 @@ trait TraitControllerForm {
 		if (!empty($f['value']) && !empty($f['format'])) {
 			if ($f['format'] == 'price') {
 				$f['value'] = $this->currency->formatValue($f['value'], $this->config->get('config_currency'));
-				
 			}
 		}
 
@@ -141,9 +139,14 @@ trait TraitControllerForm {
 		$values = array();
 	
 		foreach ($fields as $k=>$f) {
+			if (!empty($f['type'])) {
+				if ($f['type'] == 'plaintext') {
+					continue;
+				}
+			}
 			$values[$f['code']] = $f['value'];
 		}
-		
+
 		return $values;
 	}
 	

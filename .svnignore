@@ -17,4 +17,4 @@ x.*
 *.diff
 system\config\kamod.php
 winscp.txt
-.\vqmod\*
+vqmod\vqcache

@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 592 $)
+	$Version: 4.1.1.0 $ ($Revision: 608 $)
 */
 	
 namespace extension\ka_extensions;
@@ -18,7 +18,13 @@ class Language {
 	public $language = array();
 	public $registry;
 	public $config;
+
 	static $cache = array();
+	
+	protected $db;
+	protected $language_code;
+	protected $language_filename;
+	protected $language_directory;
 
 	protected function __construct($language_id) {
 

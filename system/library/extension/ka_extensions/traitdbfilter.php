@@ -71,11 +71,12 @@ trait TraitDBFilter {
 		if ($key == 'db') {
 			if (empty($this->ka_dbproxy)) {
 				$db = $this->registry->get('db');
-				$this->ka_dbroxy = DBProxy::getInstance($db);
+				$this->ka_dbproxy = DBProxy::getInstance($db);
 			}
-			$this->ka_dbroxy->setCurrentClass(get_class());
-			return $this->ka_dbroxy;
+			$this->ka_dbproxy->setCurrentClass(get_class($this));
+			return $this->ka_dbproxy;
 		}
+		
 		return parent::__get($key);
-	}	
+	}
 }

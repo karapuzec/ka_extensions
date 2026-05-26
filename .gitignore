@@ -32,3 +32,4 @@ system/storage/modification/
 system/storage/theme.kamod/
 system/storage/cache.kamod/valid.kamod
 system/storage/logs/kamod.log
+docgen/.phpdoc/cache/
