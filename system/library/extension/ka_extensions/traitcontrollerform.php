@@ -154,19 +154,22 @@ trait TraitControllerForm {
 	protected function validateField($code, $field, $post) {
 	
 		if (!empty($field['required'])) {
-			if (empty($post[$code])) {
-				$name = $code;
 
-				if (!empty($field['title'])) {
-					$name = $field['title'];
-				} else {
-					$langvar = $this->language->get('txt_title_' . $code);
-					if (!empty($langvar)) {
-						$name = $langvar;
+			if (empty($post[$code])) {
+				if (!isset($post[$code]) || !strlen(trim($post[$code]))) {
+					$name = $code;
+
+					if (!empty($field['title'])) {
+						$name = $field['title'];
+					} else {
+						$langvar = $this->language->get('txt_title_' . $code);
+						if (!empty($langvar)) {
+							$name = $langvar;
+						}
 					}
+					$this->errors[$code] = sprintf($this->language->get('error_field_is_empty'), $name);
+					return false;
 				}
-				$this->errors[$code] = sprintf($this->language->get('error_field_is_empty'), $name);
-				return false;
 			}
 		}
 

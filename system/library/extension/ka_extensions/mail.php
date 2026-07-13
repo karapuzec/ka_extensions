@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 600 $)
+	$Version: 4.1.1.0 $ ($Revision: 617 $)
 */
 	
 namespace extension\ka_extensions;
@@ -22,6 +22,9 @@ class Mail {
 	public $log;
 	public $load;
 	public $language;
+	protected $db;
+	protected $request;
+	protected $session;
 
 	/*
 		$registry_or_language_id - it can be registry object, null, or language_id (number or string). The registry 

@@ -2,7 +2,7 @@
 /* 
  $Project: Ka Extensions $
  $Author: karapuz team <support@ka-station.com> $
- $Version: 4.1.1.24 $ ($Revision: 592 $) 
+ $Version: 4.1.1.24 $ ($Revision: 615 $) 
 */
 
 /**
@@ -121,7 +121,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		$loaded_extensions = $this->model_extension_ka_extensions->getLoadedExtensions($this->vendor);
 		
 		if (!empty($loaded_extensions)) {
-			foreach ($loaded_extensions as $extension_code) {
+			foreach ($loaded_extensions as $extension_code => $license_code) {
 				
 				$full_extension_code = $this->vendor . '/' . $extension_code;
 			
@@ -419,10 +419,11 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		$extensions = $this->kamodel_ka_extensions->getLoadedExtensions($this->vendor);
 		
 		$data = array(
-			'url'        => HTTP_CATALOG,
-			'version'    => 3,
-			'vendor'     => $this->vendor,
-			'extensions' => $extensions,
+			'url'              => HTTP_CATALOG,
+			'protocol_version' => 4,
+			'opencart_version' => VERSION ?? '3.0',
+			'vendor'           => $this->vendor,
+			'extensions'       => $extensions,
 		);
 		$result = $kacurl->request($request_url, $data);
 		

@@ -1,4 +1,4 @@
-Ka Extensions: Kapatch Mechanism
+KaPatch Mechanism
 ================================
 
 Overview
@@ -58,6 +58,18 @@ Details:
 
 Error Handling
 --------------
+
+When a patch operation is not mandatory, it can be marked as optional with **skip** word. Example:
+
+    <kapatch version="1.0">
+        <changes>
+            <operation type="replace" skip="true">
+                <search><![CDATA[optional search]]></search>
+                <text><![CDATA[optional replacement]]></text>
+            </operation>
+        </changes>
+    </kapatch>
+
 
 Any errors encountered during kapatch application:
 

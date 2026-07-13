@@ -47,6 +47,10 @@ The ``kamod.ini`` file supports the following configuration fields:
 
      install_after = "ka_extensions/extension1,ka_extensions/extension2"
 
+``licese_code``
+  Optional. This is a full code from the 'license code' at ka-station.com server. It may contain a suffix after '@' character.
+
+     
 Reserved Fields
 ===============
 

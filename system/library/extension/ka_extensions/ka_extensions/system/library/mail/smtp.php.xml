@@ -1,6 +1,11 @@
 <kapatch version="1.0">
 	<changes>
 		<operation type="replace">
+			<search><![CDATA[$header .= 'Message-ID:]]></search>
+			<text><![CDATA[if (empty($this->headers['Message-ID'])) 
+			$header .= 'Message-ID:]]></text>
+		</operation>
+		<operation type="replace">
 			<search><![CDATA[foreach ($this->attachments as $attachment) {]]></search>
 			<text><![CDATA[foreach ($this->attachments as $file_title => $attachment) {]]></text>
 		</operation>

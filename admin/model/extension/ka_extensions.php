@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.23 $ ($Revision: 579 $)
+	$Version: 4.1.1.24 $ ($Revision: 617 $)
 */
 
 use \extension\ka_extensions\Curl;
@@ -427,7 +427,7 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		if ($vendor == 'ka_extensions') {
 			$kareg_key = 'kareg';
 		} else {
-			$kareg_key .= 'kareg_' . $vendor;
+			$kareg_key = 'kareg_' . $vendor;
 		}
 		$ka_reg = $this->model_setting_setting->getSetting($kareg_key);
 	
@@ -468,7 +468,16 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		$files = glob(DIR_APPLICATION . 'controller/extension/' . $vendor . '/*.php');
 		
 		foreach ($files as $file) {
-			$extensions[] = basename($file, '.php');
+		
+			$ext_code = basename($file, '.php');
+			
+			$manifest = $this->getManifest($vendor, $ext_code);
+			if (!empty($manifest) && !empty($manifest['license_code'])) {
+				$license_code = $manifest['license_code'];
+			} else {
+				$license_code = $ext_code;
+			}
+			$extensions[$ext_code] = $license_code;
 		}
 
 		return $extensions;
@@ -512,15 +521,7 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	
 	public function getRequiredModules($module, $vendor) {
 	
-		$module = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$module);
-	
-		$file = DIR_APPLICATION . 'controller/extension/' . $vendor . '/' . $module . '/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE;
-		if (!file_exists($file)) {
-			return [];
-		}
-	
-		// parse ini settings
-		$ini = \parse_ini_file($file);
+		$ini = $this->getManifest($vendor, $module);
 		
 		if (empty($ini['depends_on'])) {
 			return [];
@@ -567,6 +568,22 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		}			
 		
 		return $dependent;
+	}
+	
+	
+	public function getManifest($vendor, $ext_code) {
+
+		$ext_code = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$ext_code);
+	
+		$file = DIR_APPLICATION . 'controller/extension/' . $vendor . '/' . $ext_code . '/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE;
+		if (!file_exists($file)) {
+			return [];
+		}
+
+		// parse ini settings
+		$ini = \parse_ini_file($file);
+		
+		return $ini;
 	}
 	
 }

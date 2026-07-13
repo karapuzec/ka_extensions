@@ -10,10 +10,9 @@
 	field.error - error
 #}
 {% block field_value %}
-
               <select name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" id="input-{{ field.code }}" class="form-control">
 							  {% if field.enable_undefined %}<option value="">{{ t('text_select') }}</option>{% endif %}
-								{% for k,v in field.options %} 
+								{% for k,v in field.options %}
 								  <option value="{{ k }}" {% if (field.value == k) %} selected="selected" {% endif %}>{{ v }}</option>
 								{% endfor %}
 							</select>
