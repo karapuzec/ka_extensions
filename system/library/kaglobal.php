@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.24 $ ($Revision: 589 $)
+	$Version: 4.1.1.25 $ ($Revision: 620 $)
 
 */
 

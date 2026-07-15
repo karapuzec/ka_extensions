@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.0 $ ($Revision: 592 $)
+	$Version: 4.1.1.0 $ ($Revision: 619 $)
 */
 	
 namespace extension\ka_extensions;
@@ -202,7 +202,6 @@ class Curl {
 					
 				break;					
 			}				
-			curl_close($curl);
 				
 			if ($response === false) {
 				break;
@@ -352,7 +351,6 @@ class Curl {
 					
 					break;					
 				}
-				curl_close($curl);
 				
 				if ($response === false) {
 					break;
@@ -523,7 +521,7 @@ A sample header received from nginx server which forced the partial download
 	}
 	
 	
-	function flattenFormFields(array $data, string $prefix = null) {
+	function flattenFormFields(array $data, ?string $prefix = null) {
     	$flat = [];
 	
     	foreach ($data as $key => $value) {

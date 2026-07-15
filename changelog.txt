@@ -1,3 +1,18 @@
+4.1.1.25
+- Added PHP 8.5 compatibility
+- Improved PHP 8.3 compatibility by fixing deprecated warnings and runtime warnings
+- Added Message-ID overwriting support for OpenCart 3.0.5.0.
+- Improved array field and price validation.
+- Added support for license codes in kamod.ini.
+- Added ExceptionRequest class.
+- Added backend modal template.
+- Added configuration file support.
+- Added the ability to disable redirects in the Response class.
+- Improved the Form trait and fixed a typo in traitDBFilter.
+- Removed translation form changes (moved to the OpenCart Improvements module)
+- Updated documentation
+- Various minor fixes and improvements
+
 4.1.1.24
 - added Arrays::inArray function
 - version updated to 4.1.1.24 in file properties

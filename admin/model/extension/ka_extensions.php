@@ -3,7 +3,7 @@
 	$Project: Ka Extensions $
 	$Author: karapuz team <support@ka-station.com> $
 
-	$Version: 4.1.1.24 $ ($Revision: 617 $)
+	$Version: 4.1.1.25 $ ($Revision: 620 $)
 */
 
 use \extension\ka_extensions\Curl;
