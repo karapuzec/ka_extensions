@@ -177,4 +177,16 @@ abstract class ControllerForm extends ControllerPage {
   	
   	  	return $record;
   	}  	
+  	
+  	
+  	protected function getPageUrlParams() {
+	
+		$primary_field = $this->recordset->getPrimaryField();
+		
+		$params = [
+			$primary_field => '',
+		];
+		
+		return $params;
+	}
 }

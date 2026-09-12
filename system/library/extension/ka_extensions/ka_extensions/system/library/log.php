@@ -13,7 +13,16 @@ namespace extension\ka_extensions;
 */
 class Log extends \Log {
 
+	/**
+		$message - string or array 
+		$type    - name of the log file without the extension. Usually it is the extension name.
+		           Messages without the type are recorded to the standard log file.
+	*/
 	public function writeka($message, $type = null) {
+	
+		if (is_array($message)) {
+			$message = var_export($message, true);
+		}
 	
 		if (empty($type)) {
 			$this->write($message);

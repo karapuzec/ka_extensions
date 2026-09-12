@@ -270,7 +270,7 @@ class QB {
 		} else if (!empty($this->from)) {
 			$sql .= " FROM ";
 			foreach ($this->from as $k => $v) {			
-				$sql .= DB_PREFIX . $v;
+				$sql .= '`' . DB_PREFIX . $v . '`';
 				if ($v != $k) {
 					$sql .= " " . $k;
 				}
@@ -281,7 +281,7 @@ class QB {
 		//
 		if (!empty($this->innerJoin)) {
 			foreach ($this->innerJoin as $k => $v) {
-				$sql .= " INNER JOIN " . DB_PREFIX . $v['table'] . ' ' . $k;
+				$sql .= " INNER JOIN `" . DB_PREFIX . $v['table'] . '` ' . $k;
 				
 				if (!empty($v['on'])) {
 					$sql .= " ON " . $v['on'] . " ";
@@ -293,7 +293,7 @@ class QB {
 		//
 		if (!empty($this->leftJoin)) {
 			foreach ($this->leftJoin as $k => $v) {
-				$sql .= " LEFT JOIN " . DB_PREFIX . $v['table'] . ' ' . $k;
+				$sql .= " LEFT JOIN `" . DB_PREFIX . $v['table'] . '` ' . $k;
 				
 				if (!empty($v['on'])) {
 					$sql .= " ON " . $v['on'] . " ";

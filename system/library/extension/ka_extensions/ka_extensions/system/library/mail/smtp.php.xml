@@ -1,6 +1,6 @@
 <kapatch version="1.0">
 	<changes>
-		<operation type="replace">
+		<operation skip="true" type="replace">
 			<search><![CDATA[$header .= 'Message-ID:]]></search>
 			<text><![CDATA[if (empty($this->headers['Message-ID'])) 
 			$header .= 'Message-ID:]]></text>
@@ -13,7 +13,7 @@
 			<search><![CDATA[basename($attachment)]]></search>
 			<text><![CDATA[(!is_numeric($file_title) ? $file_title : basename($attachment))]]></text>
 		</operation>
-		<operation type="replace">
+		<operation skip="true" type="replace">
 			<search><![CDATA[$header .= 'X-Mailer: PHP]]></search>
 			<text><![CDATA[
 			// add extra headers like 'Message-ID' and 'In-Reply-To'
