@@ -344,7 +344,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 			return false;
 		}
 
-		$dependent = $this->kamodel_ka_extensions->getDependentModules($this->request->get['extension']);
+		$dependent = $this->kamodel_ka_extensions->getDependentModules($this->request->get['extension'], $this->vendor);
 		if (!empty($dependent)) {
 			foreach ($dependent as $module) {
 				$codes = explode('/', $module['code']);

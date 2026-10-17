@@ -537,12 +537,32 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	}
 	
 	
-	public function getDependentModules($module) {
+	/*
+		Returns a full module code 'vendor/code'. A code without a vendor is
+		treated as a Karapuz module, i.e. 'ka_extensions/<code>'.
+	*/
+	protected function getFullModuleCode($code) {
+		$code = trim((string)$code);
+		if (strpos($code, '/') === false) {
+			$code = 'ka_extensions/' . $code;
+		}
+
+		return $code;
+	}
+
+
+	/*
+		$module - code of the module being uninstalled
+		$vendor - vendor of that module
+	*/
+	public function getDependentModules($module, $vendor = 'ka_extensions') {
 
 		$manifests = $this->getManifests();
 		if (empty($manifests)) {
 			return $manifests;
 		}
+
+		$full_module_code = $vendor . '/' . $module;
 		
 		$dependent = [];
 		
@@ -559,7 +579,8 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 				$ini['depends_on'] = [$ini['depends_on']];
 			}
 			
-			if (!in_array($module, $ini['depends_on'])) {
+			$depends_on = array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+			if (!in_array($full_module_code, $depends_on)) {
 				continue;
 			}
 			
