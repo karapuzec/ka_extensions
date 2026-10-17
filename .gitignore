@@ -32,4 +32,6 @@ system/storage/modification/
 system/storage/theme.kamod/
 system/storage/cache.kamod/valid.kamod
 system/storage/logs/kamod.log
-docgen/.phpdoc/cache
+/docgen/.phpdoc/cache/
+admin/controller/extension/ka_extensions/ka_extensions
+admin/view/javascript/extension/ka_extensions/ka_multivendor
