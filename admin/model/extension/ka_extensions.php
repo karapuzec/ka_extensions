@@ -512,10 +512,12 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	
 	
 	protected function getManifests() {
-		$mainfests = glob(DIR_APPLICATION . 'controller/extension/*/*/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE);
+		$manifests = glob(DIR_APPLICATION . 'controller/extension/*/*/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE);
 		if (empty($manifests)) {
 			return [];
 		}
+
+		return $manifests;
 	}
 
 	
@@ -531,16 +533,56 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 			$ini['depends_on'] = [$ini['depends_on']];
 		}
 		
-		return $ini['depends_on'];
+		return array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+	}
+
+
+	/*
+		Checks if a module is installed by its full code 'vendor/code'.
+
+		Karapuz modules are checked with \KaGlobal::isKaInstalled() (it also checks the registration).
+		Modules of other vendors are checked by their records in the 'extension' table (type = vendor).
+	*/
+	public function isModuleInstalled($full_code) {
+
+		list($vendor, $code) = explode('/', $this->getFullModuleCode($full_code), 2);
+
+		if ($vendor == 'ka_extensions') {
+			return \KaGlobal::isKaInstalled($code);
+		}
+
+		$installed = $this->getKaInstalled($vendor);
+
+		return isset($installed[$code]);
 	}
 	
 	
-	public function getDependentModules($module) {
+	/*
+		Returns a full module code 'vendor/code'. A code without a vendor is
+		treated as a Karapuz module, i.e. 'ka_extensions/<code>'.
+	*/
+	protected function getFullModuleCode($code) {
+		$code = trim((string)$code);
+		if (strpos($code, '/') === false) {
+			$code = 'ka_extensions/' . $code;
+		}
+
+		return $code;
+	}
+
+
+	/*
+		$module - code of the module being uninstalled
+		$vendor - vendor of that module
+	*/
+	public function getDependentModules($module, $vendor = 'ka_extensions') {
 
 		$manifests = $this->getManifests();
 		if (empty($manifests)) {
 			return $manifests;
 		}
+
+		$full_module_code = $vendor . '/' . $module;
 		
 		$dependent = [];
 		
@@ -557,13 +599,17 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 				$ini['depends_on'] = [$ini['depends_on']];
 			}
 			
-			if (!in_array($module, $ini['depends_on'])) {
+			$depends_on = array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+			if (!in_array($full_module_code, $depends_on)) {
 				continue;
 			}
 			
-			$dependences[] = [
-				'code' => $module,
-				'name' => $module
+			// the dependent module code is taken from the manifest path: <vendor>/<code>/kamod.ini
+			$dependent_code = basename(dirname(dirname($m))) . '/' . basename(dirname($m));
+
+			$dependent[] = [
+				'code' => $dependent_code,
+				'name' => !empty($ini['module']) ? $ini['module'] : $dependent_code
 			];
 		}			
 		
