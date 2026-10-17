@@ -353,7 +353,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 				}
 				
 				if (\KaGlobal::isKaInstalled($codes[0])) {
-					$this->error = str_replace(
+					$this->errors = str_replace(
 						'%module%',
 						$module['name'],
 						$this->language->get('error_module_dependence')

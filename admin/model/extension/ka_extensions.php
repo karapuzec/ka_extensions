@@ -512,10 +512,12 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	
 	
 	protected function getManifests() {
-		$mainfests = glob(DIR_APPLICATION . 'controller/extension/*/*/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE);
+		$manifests = glob(DIR_APPLICATION . 'controller/extension/*/*/' . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE);
 		if (empty($manifests)) {
 			return [];
 		}
+
+		return $manifests;
 	}
 
 	
@@ -561,9 +563,12 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 				continue;
 			}
 			
-			$dependences[] = [
-				'code' => $module,
-				'name' => $module
+			// the dependent module code is taken from the manifest path: <vendor>/<code>/kamod.ini
+			$dependent_code = basename(dirname(dirname($m))) . '/' . basename(dirname($m));
+
+			$dependent[] = [
+				'code' => $dependent_code,
+				'name' => !empty($ini['module']) ? $ini['module'] : $dependent_code
 			];
 		}			
 		
