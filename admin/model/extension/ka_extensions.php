@@ -533,7 +533,27 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 			$ini['depends_on'] = [$ini['depends_on']];
 		}
 		
-		return $ini['depends_on'];
+		return array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+	}
+
+
+	/*
+		Checks if a module is installed by its full code 'vendor/code'.
+
+		Karapuz modules are checked with \KaGlobal::isKaInstalled() (it also checks the registration).
+		Modules of other vendors are checked by their records in the 'extension' table (type = vendor).
+	*/
+	public function isModuleInstalled($full_code) {
+
+		list($vendor, $code) = explode('/', $this->getFullModuleCode($full_code), 2);
+
+		if ($vendor == 'ka_extensions') {
+			return \KaGlobal::isKaInstalled($code);
+		}
+
+		$installed = $this->getKaInstalled($vendor);
+
+		return isset($installed[$code]);
 	}
 	
 	

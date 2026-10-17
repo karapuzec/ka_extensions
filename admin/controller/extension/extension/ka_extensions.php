@@ -313,12 +313,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		
 		if (!empty($required)) {
 			foreach ($required as $module) {
-				$codes = explode('/', $module);
-				if (!empty($codes[1])) {
-					$codes[0] = $codes[1];
-				}
-
-				if (!\KaGlobal::isKaInstalled($codes[0])) {
+				if (!$this->kamodel_ka_extensions->isModuleInstalled($module)) {
 					$this->errors = str_replace(
 						'%module%',
 						$module,
@@ -347,12 +342,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		$dependent = $this->kamodel_ka_extensions->getDependentModules($this->request->get['extension'], $this->vendor);
 		if (!empty($dependent)) {
 			foreach ($dependent as $module) {
-				$codes = explode('/', $module['code']);
-				if (!empty($codes[1])) {
-					$codes[0] = $codes[1];
-				}
-				
-				if (\KaGlobal::isKaInstalled($codes[0])) {
+				if ($this->kamodel_ka_extensions->isModuleInstalled($module['code'])) {
 					$this->errors = str_replace(
 						'%module%',
 						$module['name'],
