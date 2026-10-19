@@ -199,8 +199,8 @@ class QB {
 	*/
 	public function limit($start, $limit) {
 		$this->limit = array(
-			'start' => $start,
-			'limit' => $limit
+			'start' => (int)$start,
+			'limit' => (int)$limit
 		);
 	}
 	
@@ -352,5 +352,25 @@ class QB {
 	*/
 	public function query() {
 		return $this->db->query($this->getSql());
-	}	
+	}
+	
+	
+ 	/*
+		Adds '$field IN (...)' condition. The values are escaped and quoted.
+		An empty array adds a condition matching nothing.		
+	*/
+	public function whereIn($field, array $values) {
+	
+		if (empty($values)) {
+			$this->where[] = '0';
+			return;
+		}
+		
+		$list = [];
+		foreach ($values as $v) {
+			$list[] = "'" . $this->db->escape($v) . "'";
+		}
+		
+		$this->where[] = "$field IN (" . implode(",", $list) . ")";
+	}
 }

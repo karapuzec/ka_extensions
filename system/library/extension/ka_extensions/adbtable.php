@@ -134,6 +134,12 @@ abstract class ADBTable {
 			}
 		}
 	
+		// an empty condition would update all records of the table
+		//
+		if (empty($where)) {
+			throw new ExceptionData("Empty update condition for the table " . static::TABLE_NAME);
+		}
+	
 		$record = $this->_values;
 
 		$result = null;
@@ -240,15 +246,28 @@ abstract class ADBTable {
 	/**
 		Executes a deletion operation against the table with the specified condition.
 		When the condition is not passed, the condition is generated from fields assigned to the table class.
+		An empty condition throws an exception, use deleteAll() to delete all records of the table.
 	*/
 	function delete($where = null) {
 		if (is_null($where)) {
 			$where = $this->_values;
 		}
 
+		if (empty($where)) {
+			throw new ExceptionData("Empty delete condition for the table " . static::TABLE_NAME);
+		}
+
 		$this->_db->ka_delete(static::TABLE_NAME, $where);
 	}
-		
+	
+	
+	/**
+		Deletes all records of the table.
+	*/
+	function deleteAll() {
+		$this->_db->ka_delete(static::TABLE_NAME, '');
+	}
+	
 	
 	/**
 		Executes a selection query for the table. When any fields are set, they are used as a condition.

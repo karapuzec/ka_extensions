@@ -89,10 +89,23 @@ abstract class ModelRecordset extends Model {
 	
 		$qb = $this->getRecordsQB($data);
 		
-		$qb->select = array();		
-		$qb->select('COUNT(*) AS total');
+		if (!empty($qb->groupBy)) {
+			// with GROUP BY, COUNT(*) returns one row per group and the first row is not the total.
+			// The grouped rows are counted in a subquery then.
+			//
+			$qb->select = array();
+			$qb->select('1');
+			$qb->orderBy = array();
+			$qb->limit = array();
+			
+			$result = $this->db->query("SELECT COUNT(*) AS total FROM (" . $qb->getSql() . ") AS grouped_records")->row;
+			
+		} else {
+			$qb->select = array();		
+			$qb->select('COUNT(*) AS total');
 		
-		$result = $qb->query()->row;
+			$result = $qb->query()->row;
+		}
       	
 		if (empty($result)) {
 			return 0;
@@ -106,16 +119,22 @@ abstract class ModelRecordset extends Model {
 
 		$qb = $this->getRecordsQB($data);
 	
-		if (!empty($data['sort'])) {
+		// sort and order values may come from the URL. Accept only plain column names
+		// like 'name' or 't.name' and ASC/DESC directions to prevent SQL injections
+		//
+		if (!empty($data['sort']) && preg_match('/^[\w.]+$/', $data['sort'])) {
 			$sql = $data['sort'];
 			if (!empty($data['order'])) {
-				$sql .= " " . $data['order'];
+				$order = strtoupper($data['order']);
+				if (in_array($order, ['ASC', 'DESC'])) {
+					$sql .= " " . $order;
+				}
 			}
 			$qb->orderBy($sql);
 		}
 		
 		if (isset($data['start']) && isset($data['limit'])) {
-			$qb->limit(max(0, $data['start']), max(1, $data['limit']));
+			$qb->limit($data['start'], $data['limit']);
 		}
 		
 		$records = $qb->query()->rows;

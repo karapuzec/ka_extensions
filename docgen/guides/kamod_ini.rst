@@ -21,6 +21,7 @@ The ``kamod.ini`` file supports the following configuration fields:
   Accepts either a string or an array. Each entry defines a required extension dependency.
   
   *Example:*
+  
   .. code-block:: ini
 
      depends_on[] = 'ka_extensions/ka_scheduler'
@@ -47,7 +48,7 @@ The ``kamod.ini`` file supports the following configuration fields:
 
      install_after = "ka_extensions/extension1,ka_extensions/extension2"
 
-``licese_code``
+``license_code``
   Optional. This is a full code from the 'license code' at ka-station.com server. It may contain a suffix after '@' character.
 
      
