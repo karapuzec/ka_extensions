@@ -343,7 +343,13 @@ CFGTXT;
 			$contents .= "\$_['" . $k . "'] = '" . $v . "';\n";
 		}
 	
-		file_put_contents(DIR_CONFIG . 'kamod.php', $contents);
+		file_put_contents($config_file, $contents);
+
+		// the file is read with include, drop its cached opcode or the old values are used
+		// until opcache revalidates the file (opcache.revalidate_freq)
+		if (function_exists('opcache_invalidate')) {
+			opcache_invalidate($config_file, true);
+		}
 	}
 	
 	
