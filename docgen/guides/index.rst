@@ -1,5 +1,5 @@
-Project Documentation
-=======================
+Ka Extensions for OpenCart 3
+============================
 
 Welcome to our project's hand-written guides. This section covers 
 high-level usage that isn't captured in the API DocBlocks.
