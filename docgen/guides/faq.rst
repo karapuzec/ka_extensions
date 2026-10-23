@@ -1,6 +1,12 @@
 FAQ
 ===
 
+Does Ka Extensions for OpenCart 3 work with OpenCart 4?
+-------------------------------------------------------
+
+No. Ka Extensions for OpenCart 4 is a separate product with its own version and API.
+This documentation applies to Ka Extensions for OpenCart 3.x only.
+
 Why are module settings controllers stored in ``controller/extension/ka_extensions/``?
 --------------------------------------------------------------------------------------
 
