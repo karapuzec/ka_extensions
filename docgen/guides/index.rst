@@ -12,10 +12,14 @@ high-level usage that isn't captured in the API DocBlocks.
    How To Install <how_to_install_ka_extensions>
    How To Make Module <how_to_make_module>
    Overriding Core Files <overriding_core_files>
+   Twig Templates <twig_templates>
+   Module Settings Page <settings_page>
+   Sending Emails <mail>
    Applying a Patch <apply_kapatch>
    Useful Constants <useful_constants>
    Code Design Guidlines <code_design_guidlines>
    kamod.ini file format <kamod_ini>
+   FAQ <faq>
    
 .. toctree::
    :maxdepth: 1
