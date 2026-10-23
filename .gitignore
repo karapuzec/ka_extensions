@@ -16,7 +16,7 @@ tmp_files.txt
 tmp_pack
 x.*
 *.diff
-system\config\kamod.php
+system/config/kamod.php
 winscp.txt
 pack_nitrofix.bat
 .svn
