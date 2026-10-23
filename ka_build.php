@@ -3,10 +3,36 @@
 	Module  : Extension Package Builder
 	Author  : Karapuz <karapuz@ka-station.com>
 
-	Version : 3.3.0.1
+	Version : 3.3.1.0
 
-	$Revision: 253 $
+	$Revision: 268 $
 	
+CHANGES 3.3.1.0:
+	- version control abstraction (ka_Vcs) with svn and git implementations;
+	- manifest 'vcs' option: "svn" (default) or "git";
+	- 'start_revision' is a revision number for svn and a commit/tag for git ("root" means the empty tree);
+	- when the git history starts with the whole store in one commit, existing manifest keys are used:
+	  'added_later_files[]' - store files patched by the module (processed as modified, not packed);
+	  'exclude_files[]'     - other store files matched by upload masks;
+	- manifest 'manifest_version': 1 (default) - masks work as in 3.3.0.2 ('*' matches '/' too);
+	  2 - in all lists '*' does not match '/', '**' matches anything including '/';
+	  '[...]*' is still a regexp quantifier (for example '[!/]*');
+	- KA_BUILD_GIT environment variable can override the git command (default: git).
+
+CHANGES 3.3.0.3:
+	- svn diff and ka_gen.php exit codes are checked, the build stops with a non-zero exit code on failure;
+	- all fatal errors (die) exit with code 1 now;
+	- KA_BUILD_SVN environment variable can override the svn command (default: svn);
+	- the archive is packed with ZipArchive when it is available, otherwise with external zip or 7z;
+	- winrar (upgrade archive) is called on Windows only, a warning is shown on other systems;
+	- ka_gen.php is called with the same PHP binary (PHP_BINARY) and an absolute manifest path;
+	- ka_gen.php is taken from the ka_build.php directory or, if it is absent there, from the current directory;
+	- the saved working directory is restored instead of chdir("..");
+	- files without an extension do not cause a warning;
+	- the first argument is not treated as a manifest file when it is an option (--...);
+	- optional --out=<dir> keeps temporary files and the result outside of the working copy.
+	  Without --out the behaviour is the same as before.
+
 TODO:
 	- detect working dir by getting a difference between working copy path and svn root;
 	  At the present moment we set it manually in the code;
@@ -14,6 +40,78 @@ TODO:
 */
 
 define('USE_COLOR_OUTPUT', 1);
+
+// customFnmatch flag: '*' does not match '/' (manifest_version 2)
+define('KA_FNM_SEGMENT', 1 << 16);
+
+/*
+	stops the script with an error message and a non-zero exit code
+*/
+function fail($msg = '') {
+	if (strlen($msg)) {
+		show($msg, 'E');
+	}
+	exit(1);
+}
+
+function isWindows() {
+	return (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN');
+}
+
+function customFnmatch(string $pattern, string $string, int $flags = 0): bool {
+	$regex = '';
+	$length = strlen($pattern);
+
+	$is_last_square_bracket = false;
+	
+	for ($i = 0; $i < $length; $i++) {
+		$char = $pattern[$i];
+
+		switch ($char) {
+			case '*':
+				if ($is_last_square_bracket) {
+					$regex .= '*';
+				} elseif (isset($pattern[$i + 1]) && $pattern[$i + 1] === '*') {
+					// '**' matches any characters including '/'
+					$regex .= '.*';
+					$i++;
+				} else {
+					// manifest_version 2: '*' does not match '/'; version 1: '*' matches anything
+					$regex .= ($flags & KA_FNM_SEGMENT) ? '[^/]*' : '.*';
+				}
+				$is_last_square_bracket = false;
+				break;
+
+			case '[':
+				$end = strpos($pattern, ']', $i);
+
+				if ($end === false) {
+					$regex .= '\[';
+					break;
+				}
+
+				$class = substr($pattern, $i + 1, $end - $i - 1);
+
+				// [!abc] -> [^abc]
+				if (isset($class[0]) && $class[0] === '!') {
+					$class = '^' . substr($class, 1);
+				}
+
+				$regex .= '[' . $class . ']';
+
+				$i = $end;
+				$is_last_square_bracket = true;
+				break;
+
+			default:
+				$regex .= preg_quote($char, '#');
+				$is_last_square_bracket = false;
+		}
+	}
+
+	return preg_match('#^' . $regex . '$#u', $string) === 1;
+}
+
 
 /*
 	$arg_options - array of options like 'release', 'build_dir'
@@ -47,8 +145,12 @@ function fnmatchEx($patterns, $string, $flags = 0) {
 		$patterns = array($patterns);
 	}
 
+	if (ka_App::$manifest_version >= 2) {
+		$flags |= KA_FNM_SEGMENT;
+	}
+
 	foreach ($patterns as $pattern) {
-		if (fnmatch($pattern, $string, $flags)) {
+		if (customFnmatch($pattern, $string, $flags)) {
 			return true;
 		}
 	}
@@ -103,7 +205,7 @@ function rmdir_ex($dir) {
       }
     }
     if (!rmdir($dir)) {
-    	die("rm dir failed at $dir");
+    	fail("rm dir failed at $dir");
     }
   }
 }
@@ -114,6 +216,76 @@ class ka_Object {
 
 	function init() {
 		return true;
+	}
+}
+
+
+/*
+	Version control system wrapper. It writes a list of changed files between
+	the start revision and the head to a file. Each line is "<status> <path>"
+	where status is A (added), M (modified) or D (deleted).
+*/
+abstract class ka_Vcs {
+	protected $cfg;
+
+	function __construct($cfg) {
+		$this->cfg = $cfg;
+	}
+
+	static function create($cfg) {
+		$type = empty($cfg['vcs']) ? 'svn' : strtolower(trim($cfg['vcs']));
+		if ($type == 'svn') {
+			return new ka_VcsSvn($cfg);
+		} elseif ($type == 'git') {
+			return new ka_VcsGit($cfg);
+		}
+		return null;
+	}
+
+	abstract function makeFilesList($tmp_file);
+
+	protected function execToFile($cmd, $tmp_file) {
+		$output = array();
+		$result = 0;
+		exec($cmd . " > \"$tmp_file\"", $output, $result);
+		if ($result != 0) {
+			show("diff failed with exit code " . $result . ". Command: " . $cmd, 'E');
+			return false;
+		}
+		return file_exists($tmp_file);
+	}
+}
+
+class ka_VcsSvn extends ka_Vcs {
+
+	function makeFilesList($tmp_file) {
+		$svn = getenv('KA_BUILD_SVN');
+		if (empty($svn)) {
+			$svn = 'svn';
+		}
+		$cmd = $svn . " diff -r " . $this->cfg['start_revision'] . ":head --summarize";
+		return $this->execToFile($cmd, $tmp_file);
+	}
+}
+
+class ka_VcsGit extends ka_Vcs {
+
+	// hash of the empty tree, used when start_revision is "root"
+	const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+
+	function makeFilesList($tmp_file) {
+		$git = getenv('KA_BUILD_GIT');
+		if (empty($git)) {
+			$git = 'git';
+		}
+		$start = trim((string)$this->cfg['start_revision']);
+		if ($start === '' || strtolower($start) == 'root') {
+			$start = self::EMPTY_TREE;
+		}
+		// committed changes only (like svn diff to head), paths relative to the current directory
+		$cmd = $git . " -c core.quotepath=off diff --name-status --no-renames --relative "
+			. escapeshellarg($start) . " HEAD";
+		return $this->execToFile($cmd, $tmp_file);
 	}
 }
 
@@ -162,6 +334,12 @@ class ka_App extends ka_Object {
 	
 	static $xml_files = array();
 
+	// optional directory for temporary files and the result (--out=<dir>), absolute path without the trailing slash
+	static $out_dir = '';
+
+	// manifest format version: 1 (default) - '*' in masks matches '/' too; 2 - '*' does not match '/', '**' does
+	static $manifest_version = 1;
+
 	function __construct($cfg) {
 	
 		$default = array(
@@ -185,7 +363,7 @@ class ka_App extends ka_Object {
 	function init() {
 		global $argv;
 	
-		if (!empty($argv[1])) {
+		if (!empty($argv[1]) && strpos($argv[1], '--') !== 0) {
 			$this->manifest_file = $argv[1];
 		}
 	
@@ -214,7 +392,7 @@ class ka_App extends ka_Object {
 			
 			$matches = array();
 			if (!preg_match("/[ \w]?([\w])[\s]*(.*)$/", $line, $matches)) {
-				die("Wrong file format");
+				fail("Wrong file format");
 			}
 
 			$filename = trim($matches[2]);			
@@ -236,7 +414,7 @@ class ka_App extends ka_Object {
 			}
 
 			$path_info = pathinfo($filename);
-			if (!in_array($path_info['extension'], array('php', 'tpl', 'twig'))) {
+			if (empty($path_info['extension']) || !in_array($path_info['extension'], array('php', 'tpl', 'twig'))) {
 				continue;
 			}
 			
@@ -251,7 +429,7 @@ class ka_App extends ka_Object {
 			}
 			$dest_file = trim($mod_dir . DIRECTORY_SEPARATOR . $filename);
 			if (!copy($filename, $dest_file)) {
-				die("Copy operation failed. from=$filename to $dest_file");
+				fail("Copy operation failed. from=$filename to $dest_file");
 			}
 			$found = true;
 		}
@@ -298,7 +476,7 @@ class ka_App extends ka_Object {
 			}
 			$matches = array();
 			if (!preg_match("/([\w]*)[\s]*(.*)$/", $line, $matches)) {
-				die("Wrong file format");
+				fail("Wrong file format");
 			}
 
 			$filename = trim(str_replace('\\', '/', $matches[2]));
@@ -364,11 +542,11 @@ class ka_App extends ka_Object {
 			if (is_dir($filename)) {
 				if (!file_exists($dest_file)) {
 					if (!mkdir($dest_file, 0777, true)) {
-						die("Mkdir operation failed for $dest_file");
+						fail("Mkdir operation failed for $dest_file");
 					}
 				}
 			} elseif (!copy($filename, $dest_file)) {
-				die("Copy operation failed. from=$filename to $dest_file");
+				fail("Copy operation failed. from=$filename to $dest_file");
 			}
 
 			if (!is_dir(__DIR__ . '/' . $filename)) {
@@ -376,7 +554,11 @@ class ka_App extends ka_Object {
 			}
 		}
 		
-		file_put_contents('packed_files.txt', $packed_files);
+		$packed_list_file = 'packed_files.txt';
+		if (!empty(self::$out_dir)) {
+			$packed_list_file = self::$out_dir . '/' . $packed_list_file;
+		}
+		file_put_contents($packed_list_file, $packed_files);
 
 		show("Number of packed files: " . count($packed_files));
 		
@@ -389,19 +571,19 @@ class ka_App extends ka_Object {
 	
 	}
 	
-	function makeSvnFilesList($tmp_file = '') {
+	function makeVcsFilesList($tmp_file = '') {
 
 		if (empty($tmp_file)) {
 			$tmp_file = self::$tmp_file;
 		}
 
-		$cmd = "svn diff -r " . $this->cfg['start_revision'] . ":head --summarize > $tmp_file";
-		exec($cmd);
-		if (!file_exists($tmp_file)) {
+		$vcs = ka_Vcs::create($this->cfg);
+		if (empty($vcs)) {
+			show("Unknown vcs in manifest: " . $this->cfg['vcs'], 'E');
 			return false;
 		}
-		
-		return true;
+
+		return $vcs->makeFilesList($tmp_file);
 	}
 
 	
@@ -414,14 +596,25 @@ class ka_App extends ka_Object {
 			//
 			@unlink($this->cfg['xml_file']);
 
-			if (!copy('ka_gen.php', $mod_dir.'/ka_gen.php')) {
-				die("Builder not copied.");
+			$ka_gen_file = __DIR__ . '/ka_gen.php';
+			if (!file_exists($ka_gen_file)) {
+				$ka_gen_file = 'ka_gen.php';
+			}
+			if (!copy($ka_gen_file, $mod_dir.'/ka_gen.php')) {
+				fail("Builder not copied.");
 			}
 			
 			if (!copy($this->manifest_file, $mod_dir . '/manifest.ini')) {
-				die("Manifest.ini cannot be copied:" . $this->manifest_file);
+				fail("Manifest.ini cannot be copied:" . $this->manifest_file);
 			}
 
+			$manifest_path = realpath($this->manifest_file);
+			$xml_dest = "./" . $this->cfg['xml_file'];
+			if (!empty(self::$out_dir)) {
+				$xml_dest = self::$out_dir . '/' . $this->cfg['xml_file'];
+			}
+
+			$cwd = getcwd();
 			chdir($mod_dir);
 			$args = [];
 			
@@ -429,16 +622,20 @@ class ka_App extends ka_Object {
 				$args[] = "--build_dir='" . self::$build_dir . "'";
 			}
 			
-			$args[] = '"--manifest=' . $this->manifest_file . '"';
+			$args[] = '"--manifest=' . $manifest_path . '"';
 			
-			passthru("php ka_gen.php " . implode(" ", $args));
-			chdir("..");
+			$result = 0;
+			passthru('"' . PHP_BINARY . '" ka_gen.php ' . implode(" ", $args), $result);
+			chdir($cwd);
+			if ($result != 0) {
+				fail("ka_gen.php failed with exit code " . $result);
+			}
 
-			if (!copy($mod_dir.'/' . $this->cfg['xml_file'], "./" . $this->cfg['xml_file'])) {
-				die("Builder did not generate xml file");
+			if (!copy($mod_dir.'/' . $this->cfg['xml_file'], $xml_dest)) {
+				fail("Builder did not generate xml file");
 			}
 			rmdir_ex($mod_dir);
-			self::$xml_files[] = $this->cfg['xml_file'];
+			self::$xml_files[] = $xml_dest;
 		}
 
 		return true;
@@ -450,7 +647,7 @@ class ka_App extends ka_Object {
 		if (!empty(self::$xml_files)) {
 			foreach (self::$xml_files as $file) {
 				if (!copy($file, $xml_dir."/" . basename($file))) {
-					die("xml file $file was not copied to dir $xml_dir");
+					fail("xml file $file was not copied to dir $xml_dir");
 				}
 			}
 		}
@@ -481,7 +678,7 @@ class ka_App extends ka_Object {
 
 	function readConfig() {
 	
-		$options = getoptEx(["build_dir", "release"]);
+		$options = getoptEx(["build_dir", "release", "out"]);
 
 		self::$store_root_dir = getcwd() . '/';
 		
@@ -493,12 +690,26 @@ class ka_App extends ka_Object {
 			self::$release = true;
 		}
 
+		if (!empty($options['out'])) {
+			$out_dir = normalizeFilename($options['out']);
+			if (!preg_match('#^(/|[a-zA-Z]:)#', $out_dir)) {
+				$out_dir = getcwd() . '/' . $out_dir;
+			}
+			if (!file_exists($out_dir) && !mkdir($out_dir, 0777, true)) {
+				fail("cannot create out dir: " . $out_dir);
+			}
+			self::$out_dir  = rtrim(normalizeFilename(realpath($out_dir)), '/');
+			self::$tmp_file = self::$out_dir . '/' . self::$tmp_file;
+			self::$mod_dir  = self::$out_dir . '/' . self::$mod_dir;
+			self::$pack_dir = self::$out_dir . '/' . self::$pack_dir;
+		}
+
 		if (empty($this->manifest_file)) {
 			$this->manifest_file = self::$build_dir . 'manifest.ini';
 		}
 		
 		if (!file_exists($this->manifest_file)) {
-			die("manifest.ini not found at: " . $this->manifest_file);
+			fail("manifest.ini not found at: " . $this->manifest_file);
 		}
 
 		$_cfg = parse_ini_file($this->manifest_file);
@@ -573,6 +784,14 @@ class ka_App extends ka_Object {
 			self::$xml_files = array_unique(array_merge(self::$xml_files, $this->cfg['include_xml_files']));
 		}
 		
+		if (!empty($this->cfg['manifest_version'])) {
+			self::$manifest_version = (int)$this->cfg['manifest_version'];
+		}
+
+		if (empty($this->cfg['vcs'])) {
+			$this->cfg['vcs'] = 'svn';
+		}
+
 		if (!empty($this->cfg['added_later_files'])) {
 			$this->cfg['added_later_files'] = array_map('trim', $this->cfg['added_later_files']);
 		}
@@ -630,8 +849,14 @@ class ka_App extends ka_Object {
             self::$zip_file = $this->cfg['file'] . $this->cfg['version'] . ".zip";
         }
         
+		$cwd = getcwd();
 		chdir($pack_dir);
-		exec("zip -r " . self::$zip_file . " *");
+		@unlink(self::$zip_file);
+		if (!$this->zipDir(self::$zip_file)) {
+			chdir($cwd);
+			show("cannot create the archive: " . self::$zip_file, 'E');
+			return false;
+		}
 
 		// http://acritum.com/software/manuals/winrar/
 		// $>winrar a -afzip -ptest test.zip rar.txt tmp_files.txt
@@ -640,12 +865,61 @@ class ka_App extends ka_Object {
 			$instructions_file = $this->cfg['upgrade_instructions_file'];
 			$upgrade_file      = "upgrade_to_" . self::$zip_file . ".zip ";
 			
-			exec("winrar a -afzip -z" . $comments_file . " -p" . $this->cfg['upgrade_key'] . ' ' . $upgrade_file . ' '  . self::$zip_file);
-			exec("winrar a -afzip -z" . $comments_file . ' ' . $upgrade_file . ' ' . $instructions_file);
+			if (isWindows()) {
+				exec("winrar a -afzip -z" . $comments_file . " -p" . $this->cfg['upgrade_key'] . ' ' . $upgrade_file . ' '  . self::$zip_file);
+				exec("winrar a -afzip -z" . $comments_file . ' ' . $upgrade_file . ' ' . $instructions_file);
+			} else {
+				show("upgrade archive was not created: winrar is available on Windows only", 'W');
+			}
 		}
-		chdir("..");
+		chdir($cwd);
 
 		return true;
+	}
+
+	/*
+		packs all files of the current directory into $zip_file.
+		ZipArchive is used when it is available, otherwise external zip or 7z.
+	*/
+	protected function zipDir($zip_file) {
+
+		if (class_exists('ZipArchive')) {
+			$zip = new ZipArchive();
+			if ($zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+				return false;
+			}
+
+			$iterator = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator('.', FilesystemIterator::SKIP_DOTS),
+				RecursiveIteratorIterator::SELF_FIRST
+			);
+			foreach ($iterator as $file) {
+				$name = normalizeFilename(substr($file->getPathname(), 2));
+				if ($name == $zip_file) {
+					continue;
+				}
+				if ($file->isDir()) {
+					$zip->addEmptyDir($name);
+				} else {
+					$zip->addFile($file->getPathname(), $name);
+				}
+			}
+
+			return $zip->close() && file_exists($zip_file);
+		}
+
+		$output = array();
+		$result = 0;
+		exec("zip -r \"" . $zip_file . "\" *", $output, $result);
+		if ($result == 0 && file_exists($zip_file)) {
+			return true;
+		}
+
+		$output = array();
+		$result = 0;
+		exec("7z a -tzip \"" . $zip_file . "\" *", $output, $result);
+
+		return ($result == 0 && file_exists($zip_file));
 	}
 
 	
@@ -678,7 +952,7 @@ class ka_App extends ka_Object {
 		//
 		$release_dir = $this->cfg['releases_dir'] . 'ver' . $this->cfg['version'] . 'b' . $counter;
 		if (!mkdir($release_dir, 0777, true)) {
-			show("release_dir cannot be created:" . $release_dir) && die;
+			show("release_dir cannot be created:" . $release_dir) && fail();
 		}
 		
 		return	$release_dir;
@@ -688,25 +962,25 @@ class ka_App extends ka_Object {
 	function copyRelease($zip_file) {
 		
 		if (empty($zip_file)) {
-			show('zip file not found') && die();
+			show('zip file not found') && fail();
 		}
 		
 		if (empty($this->cfg['releases_dir'])) {
-			show('releases_dir not found') && die();
+			show('releases_dir not found') && fail();
 		}
 
 		$release_dir = $this->getReleaseDir();
 		$dest_file = $release_dir . '/' . basename($zip_file);
 		
 		if (!copy($zip_file, $dest_file)) {
-			show('cannot copy zip file:' . $dest_file) && die;
+			show('cannot copy zip file:' . $dest_file) && fail();
 		}
 		
 		if (!empty($this->cfg['upgrade_key'])) {
 			$zip_file_upgrade = pathinfo($zip_file, PATHINFO_DIRNAME) . "/upgrade_to_" . basename($zip_file) . ".zip";
 			$dest_file = $release_dir . '/' . basename($zip_file_upgrade);
 			if (!copy($zip_file_upgrade, $dest_file)) {
-				show('cannot copy zip file:' . $dest_file) && die;
+				show('cannot copy zip file:' . $dest_file) && fail();
 			}
 		}
 		
@@ -767,7 +1041,7 @@ class ka_App extends ka_Object {
 		// init settings and read config from manifest.ini
 		//
 		if (!$this->readConfig()) {
-			die("configuration file not found");
+			fail("configuration file not found");
 		}
 
 		$this->cfg['exclude_files'] = array_map('normalizeFilename', $this->cfg['exclude_files']);
@@ -782,10 +1056,10 @@ class ka_App extends ka_Object {
 		
 		// generate a list with changed files from the repository
 		//
-		if (!$this->makeSvnFilesList()) {
-			die('svn diff failed');
+		if (!$this->makeVcsFilesList()) {
+			fail($this->cfg['vcs'] . ' diff failed');
 		}
-		show("- svn diff file generated");
+		show("- " . $this->cfg['vcs'] . " diff file generated");
 
 		if (filesize(self::$tmp_file) == 0) {
 			show('No files were modified');
@@ -808,7 +1082,7 @@ class ka_App extends ka_Object {
     		$xml_dir = self::$pack_dir . $this->cfg['xml_dir'];
     		if (!file_exists($xml_dir)) {
     			if (!mkdir($xml_dir, 0777, true)) {
-    				die('cannot create xml dir:' . $xml_dir);
+    				fail('cannot create xml dir:' . $xml_dir);
     			}
     		}
 
@@ -822,7 +1096,7 @@ class ka_App extends ka_Object {
 		// prepare a zip archive with the changes
 		//
 		if (!$this->packArchive(self::$pack_dir)) {
-			die("Cannot pack archive");
+			fail("Cannot pack archive");
 		}
 
 		// make winSCP script for backing up changed files
@@ -853,7 +1127,7 @@ class ka_App extends ka_Object {
 	function makeWinSCPScript($tmp_file) {
 
 		if (!($handle = fopen("$tmp_file", "r"))) {
-			die("Cannot open file: $tmp_file");
+			fail("Cannot open file: $tmp_file");
 		}
 
 		$script = array();
@@ -892,7 +1166,7 @@ class ka_App extends ka_Object {
 			
 			$matches = array();
 			if (!preg_match("/[ \w]?([\w])[\s]*(.*)$/", $line, $matches)) {
-				die("Wrong file format");
+				fail("Wrong file format");
 			}
 			
 			$filename = $win_filename = trim($matches[2]);			
@@ -917,7 +1191,11 @@ class ka_App extends ka_Object {
 		$script[] = "close";
 		$script[] = "exit";
 		
-		file_put_contents("winscp.txt", implode("\n", $script));
+		$winscp_file = "winscp.txt";
+		if (!empty(self::$out_dir)) {
+			$winscp_file = self::$out_dir . '/' . $winscp_file;
+		}
+		file_put_contents($winscp_file, implode("\n", $script));
 		
 		return true;
 	}
