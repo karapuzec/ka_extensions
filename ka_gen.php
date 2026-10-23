@@ -3,9 +3,13 @@
 	Module  : OCMOD and VQMOD XML Generator
 	Author  : Karapuz <karapuzec@aol.com>
 
-	Version : 3.3.3
+	Version : 3.3.4
 
 $Revision: 32 $
+
+CHANGES 3.3.4:
+- --manifest=<file> parameter is supported (ka_build.php passes it), ../manifest.ini is used by default as before;
+- all fatal errors (die) exit with code 1 now, so ka_build.php can detect them.
 
 DESCRIPTION:
 - it supports: after, before, replace tags.
@@ -26,6 +30,22 @@ Pattern format:
 $cfg = array();
 
 $cfg['manifest_file'] = "../manifest.ini";
+
+function fail($msg = '') {
+	echo $msg . "\n";
+	exit(1);
+}
+
+if (!empty($argv)) {
+	foreach ($argv as $arg) {
+		if (strpos($arg, '--manifest=') === 0) {
+			$manifest_file = trim(substr($arg, strlen('--manifest=')), "\"'");
+			if (!empty($manifest_file) && file_exists($manifest_file)) {
+				$cfg['manifest_file'] = $manifest_file;
+			}
+		}
+	}
+}
 $cfg['src_dir']  = '.';
 $cfg['marker']   = '//karapuz';
 $cfg['gen_type'] = 'ocmod';
@@ -33,7 +53,7 @@ $cfg['gen_type'] = 'ocmod';
 $params = parse_ini_file($cfg['manifest_file']);
 
 if (empty($params)) {
-	die("manifest file not found");
+	fail("manifest file not found");
 }
 
 if (!isset($params['id'])) {
@@ -127,7 +147,7 @@ class ka_App extends ka_Object {
 			$ocmod = new VQMODGen($this->cfg['params']);			
 			$ocmod->generateXML($this->cfg['src_dir'], $this->cfg['params']['xml_file']);
 		} else {
-			die('unknown gen type');
+			fail('unknown gen type');
 		}		
 	}
 }
@@ -191,7 +211,7 @@ class OCMODGen extends ka_Object {
 	public function generateXML($src_dir, $xml_file) {
 
 		if (!$this->file = fopen($xml_file, 'w')) {
-		  die("Cannot open file ($xml_file)");
+		  fail("Cannot open file ($xml_file)");
 	  }
 
 	  $this->writeXMLHeader();
@@ -314,7 +334,7 @@ class OCMODGen extends ka_Object {
 		}
 		
 		if (!empty($command) && empty($command['to'])) {
-			die('ERROR: Command pairs do not match');
+			fail('ERROR: Command pairs do not match');
 		}
 		
 		return $commands;
@@ -332,7 +352,7 @@ class OCMODGen extends ka_Object {
 
 		$lines = file($file);
 		if (empty($lines)) {
-			die('Cannot parse the file: $file');
+			fail('Cannot parse the file: $file');
 		}
 
 		$operations = array();
@@ -357,7 +377,7 @@ class OCMODGen extends ka_Object {
 			// test the end line
 			//
 			if (!preg_match("/(.*)\/" . preg_quote($marker,'/') . "(.*)/us", $line_to, $matches)) {			
-				die("ERROR: unknown command closure (" . $line_to . ")");
+				fail("ERROR: unknown command closure (" . $line_to . ")");
 			}
 			
 			$op['last_line_prefix']  = $matches[1];
@@ -366,7 +386,7 @@ class OCMODGen extends ka_Object {
 			// test the start line
 			//
 			if (!preg_match("/(.*)" . preg_quote($marker,'/') . ":(.*)/us", $line_from, $matches)) {
-				die('ERROR: incorrect from:' . $line_from . "\n\n");
+				fail('ERROR: incorrect from:' . $line_from . "\n\n");
 			}
 
 			$cmd = $this->parseCmd($line_from);
@@ -399,7 +419,7 @@ class OCMODGen extends ka_Object {
 			$data = $this->findPattern($lines, $command_pairs, $op);
 
 			if (empty($data)) {
-				die("ERROR: Pattern is not found. FILE: $file, PATTERN: $op[search]");
+				fail("ERROR: Pattern is not found. FILE: $file, PATTERN: $op[search]");
 			}
 
 			// add the data to the operation
@@ -458,7 +478,7 @@ class OCMODGen extends ka_Object {
 		$found = array();
 
 		if (empty($pattern)) {
-			die("WARNING: pattern parameter is empty");
+			fail("WARNING: pattern parameter is empty");
 			return false;
 		}
 
@@ -478,7 +498,7 @@ class OCMODGen extends ka_Object {
 		if (empty($found)) {
 			if ($direction != 'replace') {
 				echo "\n\n dir:" . $direction . "\n\n";
-				die('WARNING: pattern not found:' . $pattern);
+				fail('WARNING: pattern not found:' . $pattern);
 			}
 		}
 		
@@ -534,7 +554,7 @@ class OCMODGen extends ka_Object {
 			$index  = $index + 1;
 			
 		} else {
-			die("Unexpected direction parameter: $direction");
+			fail("Unexpected direction parameter: $direction");
 		}
 
 		$ret = array(
@@ -563,7 +583,7 @@ class OCMODGen extends ka_Object {
 		$cmd = array();
 	
 		if (!preg_match("/(.*)" . preg_quote($marker,'/') . ": (.*)/us", $line, $matches)) {
-			die("ERROR: unknown command (" . $line . ")");
+			fail("ERROR: unknown command (" . $line . ")");
 		}
 
 		// split the line to three parts
@@ -612,7 +632,7 @@ class OCMODGen extends ka_Object {
 			
 			$exploded = explode(':', $part);
 			if (!in_array($exploded[0], self::$commands)) {
-				die("Command not found: $exploded[0]");
+				fail("Command not found: $exploded[0]");
 				continue;
 			}
 			
@@ -679,7 +699,7 @@ class VQMODGen extends ka_Object {
 	public function generateXML($src_dir, $dest_file) {
 
 		if (!$this->file = fopen($dest_file, 'w')) {
-		  die("Cannot open file ($dest_file)");
+		  fail("Cannot open file ($dest_file)");
 	  }
 
 	  $this->writeXMLHeader();
@@ -749,7 +769,7 @@ class VQMODGen extends ka_Object {
 
 		$lines = file($file);
 		if (empty($lines)) {
-			die('Cannot parse the file: $file');
+			fail('Cannot parse the file: $file');
 		}
 
 		$ops = array();
@@ -823,7 +843,7 @@ class VQMODGen extends ka_Object {
 					};
 				} else {
 					if (empty($data)) {
-						die("Pattern is not found. File: $file, line ($lk): $line");
+						fail("Pattern is not found. File: $file, line ($lk): $line");
 					}
 				}			
 
@@ -839,7 +859,7 @@ class VQMODGen extends ka_Object {
 		}
 
 		if ($is_op_open) {
-			die('Error: pattern was not closed. File:' . $file);
+			fail('Error: pattern was not closed. File:' . $file);
 		}
 
 		return $ops;
@@ -929,7 +949,7 @@ class VQMODGen extends ka_Object {
 			$offset = 0;
 
 		} else {
-			die("Unexpected direction parameter: $direction");
+			fail("Unexpected direction parameter: $direction");
 		}
 
 		$ret = array(
