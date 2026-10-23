@@ -73,6 +73,13 @@ class KamodLockedException extends \Exception {};
 */
 class KamodFailedException extends \Exception {};
 
+// the kamod config file is created on the first admin request after the installation.
+// Until then the storefront works without kamod.
+//
+if (!defined('DIR_CATALOG') && !is_file(DIR_CONFIG . 'kamod.php')) {
+	return;
+}
+
 // replace the original Opencart loader with our loader supporting kamod cache
 //
 try {
