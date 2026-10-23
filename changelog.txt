@@ -1,3 +1,12 @@
+4.1.1.26
+- ModelRecordset: sort values are validated (plain column names like 'name' or 't.name' only) and order is limited to ASC/DESC to prevent SQL injections.
+- ModelRecordset: getRecordsTotal() now returns the correct total for queries with GROUP BY (counted via a subquery).
+- QB: limit() casts start and limit values to int.
+- QB: added whereIn($field, $values). Values are escaped; an empty array matches nothing.
+- ADBTable: update() and delete() throw ExceptionData on an empty condition instead of affecting all records.
+- ADBTable: added deleteAll() to delete all records of the table explicitly.
+- clearPostedFiles() function did not work correctly. Fixed.
+
 4.1.1.25
 - Added PHP 8.5 compatibility
 - Improved PHP 8.3 compatibility by fixing deprecated warnings and runtime warnings

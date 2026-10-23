@@ -8,6 +8,9 @@ namespace extension\ka_extensions\library;
 class Mail extends \Mail {
 
 	protected $headers;
+	
+	// when true, exceptions of the send() method are logged and suppressed
+	protected $suppress_exceptions = true;
 
 	public function addNamedAttachment($filename, $name) {
 		$this->attachments[$name] = $filename;
@@ -51,6 +54,10 @@ class Mail extends \Mail {
 		
 			$log = \KaGlobal::getRegistry()->get('log');
 			$log->write($error);
+			
+			if (!$this->suppress_exceptions) {
+				throw $e;
+			}
 			return;
 		}	
 
@@ -62,5 +69,17 @@ class Mail extends \Mail {
 	
 	public function setHeaders($headers) {
 		$this->headers = $headers;
+	}
+	
+	
+	/*
+		Defines if exceptions of the send() method are suppressed (default) or passed to the caller
+		after logging. Returns the previous value.
+	*/
+	public function setSuppressExceptions($suppress) {
+		$previous = $this->suppress_exceptions;
+		$this->suppress_exceptions = (bool)$suppress;
+		
+		return $previous;
 	}
 }

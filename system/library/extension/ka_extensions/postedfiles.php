@@ -47,7 +47,7 @@ class PostedFiles {
 		}
 		
 		foreach ($this->session->data['ka_ext_posted_files'] as $fk => $fv) {
-			if (strpos($fk, $field_name) !== NULL) {
+			if (fnmatch($field_name, $fk)) {
 				unset($this->session->data['ka_ext_posted_files'][$fk]);
 			}
 		}
