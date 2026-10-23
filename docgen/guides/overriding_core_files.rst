@@ -124,3 +124,5 @@ the parent template by calling:
 .. code-block:: twig
 
     {{ parent() }}
+
+See :doc:`twig_templates` for the inheritance rules and the ``parent_template`` block.

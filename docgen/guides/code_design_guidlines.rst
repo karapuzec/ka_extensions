@@ -80,3 +80,12 @@ For Twig templates, prefer using ``include`` directives to reference your custom
 instead of modifying existing templates directly.
 
 These practices help minimize conflicts with other modules and improve maintainability.
+
+
+7. Use ``t()`` Only in Your Own Templates
+-----------------------------------------
+
+The ``t()`` twig function is defined by Ka Extensions. A standard template that calls it fails when
+Ka Extensions is not installed. Put such code into a template of your module and include it into the
+standard template under a condition (see :doc:`twig_templates`).
+

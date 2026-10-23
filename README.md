@@ -48,3 +48,6 @@ Cache Location: storage/cache.kamod/
 
 ## License
 This framework is free to use in your own projects. If you are making changes to karapuz team extensions, using KaMod is the recommended way to ensure compatibility.
+
+## Development
+How to deploy a dev store from this repository and build the package: see [DEVELOPMENT.md](DEVELOPMENT.md).
