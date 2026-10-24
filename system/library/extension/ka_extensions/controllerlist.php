@@ -131,9 +131,9 @@ abstract class ControllerList extends ControllerPage {
   		//
 		$params = $this->url_params->getParams();
 
-		if (!isset($params['page'])) {
-			$params['page'] = 1;
-		}
+		// the page comes from the URL, a negative or non-numeric value would give a negative start
+		//
+		$params['page'] = isset($params['page']) ? max(1, (int)$params['page']) : 1;
 
 		$params['start'] = ($params['page'] - 1) * $this->config->get('config_limit_admin');
 		$params['limit'] = $this->config->get('config_limit_admin');

@@ -1,3 +1,8 @@
+4.1.1.27 (not released)
+- UrlParams: an array in the URL (e.g. 'filter_name[]=x') gave a fatal error on PHP 8. Fixed: arrays are accepted only for parameters with an array default value, otherwise the default value is used.
+- ControllerList: a negative or non-numeric 'page' value gave a negative LIMIT and an SQL error. Fixed: the page is at least 1, ModelRecordset::getRecords() never uses a negative start.
+- ModelRecordset: added the optional getSortWhitelist() method ('sort code' => 'SQL column or expression'). When a child class defines it, only the listed sort values are accepted, sorting by expressions is possible; by default (null) the sorting works as before.
+
 4.1.1.26
 - ModelRecordset: sort values are validated (plain column names like 'name' or 't.name' only) and order is limited to ASC/DESC to prevent SQL injections.
 - ModelRecordset: getRecordsTotal() now returns the correct total for queries with GROUP BY (counted via a subquery).

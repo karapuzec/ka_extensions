@@ -119,11 +119,14 @@ abstract class ModelRecordset extends Model {
 
 		$qb = $this->getRecordsQB($data);
 	
-		// sort and order values may come from the URL. Accept only plain column names
-		// like 'name' or 't.name' and ASC/DESC directions to prevent SQL injections
+		// sort and order values may come from the URL. Accept only values allowed by getSortSql()
+		// and ASC/DESC directions to prevent SQL injections
 		//
-		if (!empty($data['sort']) && preg_match('/^[\w.]+$/', $data['sort'])) {
-			$sql = $data['sort'];
+		$sql = '';
+		if (!empty($data['sort'])) {
+			$sql = $this->getSortSql($data['sort']);
+		}
+		if (!empty($sql)) {
 			if (!empty($data['order'])) {
 				$order = strtoupper($data['order']);
 				if (in_array($order, ['ASC', 'DESC'])) {
@@ -134,7 +137,7 @@ abstract class ModelRecordset extends Model {
 		}
 		
 		if (isset($data['start']) && isset($data['limit'])) {
-			$qb->limit($data['start'], $data['limit']);
+			$qb->limit(max(0, (int)$data['start']), $data['limit']);
 		}
 		
 		$records = $qb->query()->rows;
@@ -143,6 +146,59 @@ abstract class ModelRecordset extends Model {
 	}
 	
 	
+	/*
+		Returns allowed sort values of getRecords() or null.
+
+		null (default) - any plain column name like 'name' or 't.name' is accepted.
+		array          - only the listed values are accepted: 'sort code' => 'SQL column or expression'.
+		                 The sort value can be a code or one of the SQL values (ControllerList::getSortFields()
+		                 puts the column into sort links). Other values are ignored and the records are sorted
+		                 as getRecordsQB() defines.
+
+		Example:
+			protected function getSortWhitelist() {
+				return array(
+					'date'  => 't.date_added',
+					'email' => 'COALESCE(t.recipient_email, c.email)',
+				);
+			}
+	*/
+	protected function getSortWhitelist() {
+		return null;
+	}
+
+
+	/*
+		Returns the SQL of the ORDER BY clause for the sort value (without the direction) or an empty string
+		when the value is not allowed.
+	*/
+	protected function getSortSql($sort) {
+
+		if (!is_string($sort) || $sort === '') {
+			return '';
+		}
+
+		$whitelist = $this->getSortWhitelist();
+
+		if (is_null($whitelist)) {
+			if (preg_match('/^[\w.]+$/', $sort)) {
+				return $sort;
+			}
+			return '';
+		}
+
+		if (isset($whitelist[$sort])) {
+			return $whitelist[$sort];
+		}
+
+		if (in_array($sort, $whitelist, true)) {
+			return $sort;
+		}
+
+		return '';
+	}
+
+
 	/*
 		Any filter fields should be defined in a child class
 	*/

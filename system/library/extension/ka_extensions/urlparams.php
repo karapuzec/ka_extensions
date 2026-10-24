@@ -54,12 +54,44 @@ class UrlParams {
 				if ($keep_original) {
 					$params[$k] = $this->request->get[$k];
 				} else {
-					$params[$k] = trim($this->request->get[$k]);
+					$value = $this->cleanValue($this->request->get[$k], $v);
+					if (!is_null($value)) {
+						$params[$k] = $value;
+					}
 				}
 	  		}
 	  	}
 	  	
 	  	$this->params = $params;
+	}
+
+
+	/*
+		Trims a value from the URL. An array (e.g. 'filter_name[]=x') is accepted only for a parameter with
+		an array default value, its values are trimmed then. For other parameters the array is ignored and
+		the default value is used (trim() of an array is a fatal error in PHP 8).
+
+		Returns null when the value is ignored.
+	*/
+	protected function cleanValue($value, $default_value) {
+
+		if (!is_array($value)) {
+			return trim((string)$value);
+		}
+
+		if (!is_array($default_value)) {
+			return null;
+		}
+
+		$result = array();
+		foreach ($value as $k => $v) {
+			$v = $this->cleanValue($v, array());
+			if (!is_null($v)) {
+				$result[$k] = $v;
+			}
+		}
+
+		return $result;
 	}
 	
 	public function getParams() {
