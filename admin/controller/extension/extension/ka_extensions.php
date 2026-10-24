@@ -283,6 +283,12 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		} else {
 			$this->addTopMessage($this->errors, 'E');
 		}
+
+		// OpenCart 3.0.3.9+ ignores the uninstall response and reloads the list with a new request,
+		// so the messages are kept in the session to be shown there
+		if (version_compare(VERSION, '3.0.3.9', '>=')) {
+			return;
+		}
 		
 		$this->children = array();
 		$this->getList();			
