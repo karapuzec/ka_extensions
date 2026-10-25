@@ -14,8 +14,12 @@ namespace extension\ka_extensions;
 */
 class TwigExtension extends \Twig_Extension
 {
-	// keys of js/css files printed by include_jska() and include_csska() during the current request
+	// keys of js/css files printed by include_jska() and include_csska() for the current response
 	protected static $included_files = [];
+	
+	// the response object of $included_files. The list is started again for another response object
+	// (several requests in one process, e.g. in tests)
+	protected static $included_response = null;
 
     public function getFunctions()
     {
@@ -94,10 +98,17 @@ class TwigExtension extends \Twig_Extension
     	$paths - file paths without the extension, relative to the javascript (stylesheet) directory.
     	         Arrays of paths are accepted too.
     	
-    	A file printed once during the request is not printed again. A missing file is
+    	A file printed once for the page (response) is not printed again. A missing file is
     	written to the log and an html comment is returned instead of the tag.
     */
     public function includeFiles($type, $paths) {
+    
+    	$registry = \KaGlobal::getRegistry();
+    	$response = (!empty($registry) && $registry->has('response')) ? $registry->get('response') : null;
+    	if ($response !== static::$included_response) {
+    		static::$included_response = $response;
+    		static::$included_files    = [];
+    	}
     
     	$html = '';
     	foreach ($this->flattenPaths($paths) as $path) {
