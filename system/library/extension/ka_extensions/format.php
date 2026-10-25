@@ -15,6 +15,33 @@ namespace extension\ka_extensions;
 */
 class Format {
 
+	/**
+		Default labels of byte size units. They are used when the language file does not
+		define the text_unit_* keys and by the static formatBytes() method.
+	*/
+	const DEFAULT_SIZE_UNITS = [
+		'bytes' => 'bytes',
+		'kb'    => 'Kb',
+		'mb'    => 'Mb',
+		'gb'    => 'Gb',
+	];
+
+	/**
+		Default labels of time units. They are used when the language file does not
+		define the text_days, text_hours, text_minutes, text_seconds keys.
+	*/
+	const DEFAULT_TIME_UNITS = [
+		'days'    => 'days',
+		'hours'   => 'hours',
+		'minutes' => 'minutes',
+		'seconds' => 'seconds',
+	];
+
+	/**
+		The language file of the class (admin and catalog areas)
+	*/
+	const LANGUAGE_FILE = 'extension/ka_extensions/ka_extensions/ka_format';
+
 	protected $registry;
 	protected $db;
 	protected $config;
@@ -24,49 +51,171 @@ class Format {
 	protected $language;     // language object
 	protected $language_id;
 
+	/**
+		@internal
+		Languages found during the current request, by the area ('admin' or 'catalog')
+	*/
+	protected static $languages_cache = [];
+
+	/**
+		$language_id - language identifier. When it is empty, the current language of the area is used
+		(config_language).
+		
+		When the language is not found, the class works with the default (English) labels
+		instead of stopping with a fatal error.
+	*/
 	public function __construct($language_id = null) {
 
 		$this->registry = \KaGlobal::getRegistry();
-		$this->db       = $this->registry->get('db');
-		$this->config   = $this->registry->get('config');
-
-		setlocale(LC_NUMERIC, 'C');
-		
-		$this->registry->get('load')->model('localisation/language');
-		$this->model_localisation_language = $this->registry->get('model_localisation_language');
-
-		$language = false;
-		if (empty($language_id)) {
-		
-			$language_code = $this->config->get('config_language');
-			
-			$languages = $this->model_localisation_language->getLanguages();
-			if (!empty($languages)) {
-				foreach ($languages as $lng) {
-					if ($lng['code'] == $language_code) {
-						$language = $lng;
-						break;
-					}
-				}
-			}
-
-		} else {
-			$language = $this->model_localisation_language->getLanguage($language_id);
+		if (!empty($this->registry)) {
+			$this->db     = $this->registry->get('db');
+			$this->config = $this->registry->get('config');
 		}
 
+		setlocale(LC_NUMERIC, 'C');
+
+		$language = $this->findLanguage($language_id);
+
 		if (empty($language)) {
-			trigger_error("KaFormat::__construct: language not found", E_USER_ERROR);
-			return false;
+			$this->writeLog("Format::__construct: language not found (language_id: " . var_export($language_id, true) . "), default labels are used");
+			
+			$language = [
+				'language_id' => (int)(!empty($language_id) ? $language_id : $this->getConfig('config_language_id')),
+				'code'        => $this->getConfig('config_language'),
+			];
+			if (empty($language['code'])) {
+				$language['code'] = 'en-gb';
+			}
 		}
 		
 		$this->language_id = $language['language_id'];
 		if (empty($language['directory'])) {
 			$language['directory'] = $language['code'];
 		}
+		
 		$this->language = new \Language($language['directory']);
+		
+		// the old file location is loaded first for compatibility with existing overrides
 		$this->language->load('ka_format');
+		$this->language->load(static::LANGUAGE_FILE);
+	}
 
-		return true;
+	
+	/**
+		Returns the language record (language_id, code, directory) or false if it is not found.
+		The list of languages is read once per request and area.
+	*/
+	protected function findLanguage($language_id = null) {
+	
+		try {
+			$area = (defined('DIR_CATALOG') ? 'admin' : 'catalog');
+			
+			if (!isset(static::$languages_cache[$area])) {
+				$this->registry->get('load')->model('localisation/language');
+				$this->model_localisation_language = $this->registry->get('model_localisation_language');
+				
+				$languages = $this->model_localisation_language->getLanguages();
+				static::$languages_cache[$area] = (!empty($languages) ? $languages : []);
+			}
+			$languages = static::$languages_cache[$area];
+
+			if (empty($language_id)) {
+				$language_code = $this->getConfig('config_language');
+				foreach ($languages as $lng) {
+					if ($lng['code'] == $language_code) {
+						return $lng;
+					}
+				}
+				return false;
+			}
+
+			foreach ($languages as $lng) {
+				if ($lng['language_id'] == $language_id) {
+					return $lng;
+				}
+			}
+
+			// the language may be missing in the list (for example, a disabled language in the catalog)
+			//
+			if (empty($this->model_localisation_language)) {
+				$this->registry->get('load')->model('localisation/language');
+				$this->model_localisation_language = $this->registry->get('model_localisation_language');
+			}
+			$language = $this->model_localisation_language->getLanguage($language_id);
+			if (!empty($language)) {
+				return $language;
+			}
+
+		} catch (\Throwable $e) {
+			$this->writeLog("Format::findLanguage: " . $e->getMessage());
+		}
+		
+		return false;
+	}
+
+
+	/**
+		@internal
+	*/
+	protected function getConfig($key) {
+		if (empty($this->config)) {
+			return null;
+		}
+		return $this->config->get($key);
+	}
+	
+	
+	/**
+		@internal
+	*/
+	protected function writeLog($msg) {
+		if (empty($this->registry)) {
+			return;
+		}
+		$log = $this->registry->get('log');
+		if (!empty($log)) {
+			$log->write($msg);
+		}
+	}
+	
+	
+	/**
+		Returns a language text or the default value when the language does not have the key.
+	*/
+	protected function getText($key, $default) {
+	
+		if (empty($this->language)) {
+			return $default;
+		}
+
+		if (method_exists($this->language, 'has')) {
+			if ($this->language->has($key)) {
+				return $this->language->get($key);
+			}
+			return $default;
+		}
+
+		$text = $this->language->get($key);
+		if ($text === $key) {
+			return $default;
+		}
+		
+		return $text;
+	}
+	
+	
+	/**
+		Returns labels of byte size units ('bytes', 'kb', 'mb', 'gb') from the language file
+		with the English defaults.
+	*/
+	public function getSizeUnits() {
+	
+		$units = [];
+		foreach (static::DEFAULT_SIZE_UNITS as $k => $v) {
+			$units[$k] = $this->getText('text_unit_' . $k, $v);
+		}
+		
+		return $units;
 	}
 	
 	/*
@@ -169,10 +318,10 @@ class Format {
 	public function formatPassedTime($diff) {
 
  		$periods = array( //suffixes
-	    	'd' => array(86400, $this->language->get('text_days')),
-	   		'h' => array(3600, $this->language->get('text_hours')),
-      		'm' => array(60, $this->language->get('text_minutes')),
-			's' => array(1, $this->language->get('text_seconds'))
+	    	'd' => array(86400, $this->getText('text_days', static::DEFAULT_TIME_UNITS['days'])),
+	   		'h' => array(3600, $this->getText('text_hours', static::DEFAULT_TIME_UNITS['hours'])),
+      		'm' => array(60, $this->getText('text_minutes', static::DEFAULT_TIME_UNITS['minutes'])),
+			's' => array(1, $this->getText('text_seconds', static::DEFAULT_TIME_UNITS['seconds']))
   		);
 
 		$ret = '';
@@ -190,41 +339,95 @@ class Format {
 	
   	/*
   		function converts values like 10M to bytes
+  		
+  		See parseBytes() for supported formats.
 	*/
 	public function convertToByte($file_size) {
-		$val = trim($file_size);
-		$numeric_value = (int)strtolower(substr($val, 0, -1));
-		switch (strtolower(substr($val, -1))) {
-			case 'g':
-				$numeric_value *= 1024;
-			case 'm':
-				$numeric_value *= 1024;
-			case 'k':
-				$numeric_value *= 1024;
-		}
-		return $numeric_value;
+		return static::parseBytes($file_size);
 	}
 
 
 	/*
 		Function converts value to human readable format like 10.1 Mb 
+		
+		Unit labels are taken from the language file (text_unit_bytes, text_unit_kb, text_unit_mb, text_unit_gb),
+		the English labels are used by default.
 	*/
 	public function convertToMegabyte($val) {
+		return static::formatBytes($val, 1, $this->getSizeUnits());
+	}
+
+
+	/**
+		Converts a size value to bytes. It does not need a language and can be called statically.
+		
+		Supported values: 512, '512', '1.5G', '1,5G', '2M', '128K', '128k', '10 Mb', '10 KB', '100 bytes', '-1'.
+		Suffixes K, M, G, T (case-insensitive) are multiples of 1024, an optional 'b' or 'bytes' after them is allowed.
+		Values like PHP ini '-1' are returned as -1.
+		
+		Unrecognized values are converted with (int) as is.
+		
+		Returns: integer number of bytes
+	*/
+	public static function parseBytes($value) {
 	
-		if (!is_numeric($val)) {
-			$val = $this->convertToByte($val);
+		if (is_int($value)) {
+			return $value;
 		}
+		
+		if (is_float($value)) {
+			return (int)round($value);
+		}
+	
+		$val = strtolower(trim((string)$value));
+		
+		if (!preg_match("/^([+-]?(?:\d+(?:[\.,]\d*)?|[\.,]\d+))\s*([kmgt]?)(?:b|bytes?)?$/", $val, $matches)) {
+			return (int)$val;
+		}
+		
+		$number = (float)str_replace(',', '.', $matches[1]);
+		
+		$multipliers = [
+			''  => 1,
+			'k' => 1024,
+			'm' => 1048576,
+			'g' => 1073741824,
+			't' => 1099511627776,
+		];
+		
+		return (int)round($number * $multipliers[$matches[2]]);
+	}
+	
+	
+	/**
+		Converts a number of bytes to a human readable string like '10.1 Mb'. It does not need a language
+		and can be called statically.
+		
+		Parameters:
+			$bytes     - number of bytes or a size string supported by parseBytes() like '10M'
+			$precision - number of decimal digits
+			$units     - optional labels of units: ['bytes' => .., 'kb' => .., 'mb' => .., 'gb' => ..].
+			             Missing labels are taken from DEFAULT_SIZE_UNITS.
+	*/
+	public static function formatBytes($bytes, $precision = 1, $units = []) {
+
+		$val = $bytes;
+		if (!is_numeric($val)) {
+			$val = static::parseBytes($val);
+		}
+		
+		$units = array_merge(static::DEFAULT_SIZE_UNITS, (array)$units);
 
 		if ($val >= 1073741824) {
-			$val = round($val/1073741824, 1) . " Gb";
+			$val = round($val/1073741824, $precision) . " " . $units['gb'];
 
 		} elseif ($val >= 1048576) {
-			$val = round($val/1048576, 1) . " Mb";
+			$val = round($val/1048576, $precision) . " " . $units['mb'];
 
 		} elseif ($val >= 1024) {
-			$val = round($val/1024, 1) . " Kb";
+			$val = round($val/1024, $precision) . " " . $units['kb'];
 		} else {
-			$val = $val . " bytes";
+			$val = $val . " " . $units['bytes'];
 		}
 
 		return $val;
