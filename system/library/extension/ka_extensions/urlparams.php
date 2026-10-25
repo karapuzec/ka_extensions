@@ -54,12 +54,44 @@ class UrlParams {
 				if ($keep_original) {
 					$params[$k] = $this->request->get[$k];
 				} else {
-					$params[$k] = trim($this->request->get[$k]);
+					$value = $this->cleanValue($this->request->get[$k], $v);
+					if (!is_null($value)) {
+						$params[$k] = $value;
+					}
 				}
 	  		}
 	  	}
 	  	
 	  	$this->params = $params;
+	}
+
+
+	/*
+		Trims a value from the URL. An array (e.g. 'filter_name[]=x') is accepted only for a parameter with
+		an array default value, its values are trimmed then. For other parameters the array is ignored and
+		the default value is used (trim() of an array is a fatal error in PHP 8).
+
+		Returns null when the value is ignored.
+	*/
+	protected function cleanValue($value, $default_value) {
+
+		if (!is_array($value)) {
+			return trim((string)$value);
+		}
+
+		if (!is_array($default_value)) {
+			return null;
+		}
+
+		$result = array();
+		foreach ($value as $k => $v) {
+			$v = $this->cleanValue($v, array());
+			if (!is_null($v)) {
+				$result[$k] = $v;
+			}
+		}
+
+		return $result;
 	}
 	
 	public function getParams() {
@@ -94,10 +126,23 @@ class UrlParams {
 	}
 
 	
+	/*
+		Builds the query string. The values are URL-encoded (e.g. 'a+b@x.com' stays 'a+b@x.com' after
+		decoding), array values become 'name[key]=value' pairs. A placeholder like '{page}' is kept as is
+		for the pagination.
+	*/
 	protected function buildParams($params) {
   		$url_array = array();
   		foreach ($params as $k => $v) {
-			$url_array[$k] = $k . '=' . $v;
+			if (is_array($v)) {
+				// an empty array gives an empty string, it is skipped
+				$query = http_build_query(array($k => $v), '', '&', PHP_QUERY_RFC3986);
+				if ($query !== '') {
+					$url_array[$k] = $query;
+				}
+			} else {
+				$url_array[$k] = $k . '=' . $this->encodeValue($v);
+			}
 	  	}
 	  	
 		$url = implode('&', $url_array);
@@ -106,6 +151,20 @@ class UrlParams {
 	}
 	
 	
+	/*
+		URL-encodes a parameter value, a placeholder like '{page}' is returned as is.
+	*/
+	protected function encodeValue($value) {
+
+		$value = (string)$value;
+		if (preg_match('/^\{[a-z_]+\}$/i', $value)) {
+			return $value;
+		}
+
+		return rawurlencode($value);
+	}
+
+
 	function getUrlSortParams($field) {
 
 		$params = $this->params;

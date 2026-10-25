@@ -18,6 +18,13 @@ abstract class ControllerList extends ControllerPage {
 
 	protected $enable_delete = false;
 	protected $recordset;
+
+	// true (default) - every record returned by getRecords() is completed with getRecord() before fillRecord(),
+	//                  one more query per row (short records of the page first, then the full record of each row)
+	// false          - the records of getRecords() are used as they are, without extra queries. A child class can
+	//                  set it when getRecordsQB() already selects all fields used by fillRecord() and the template
+	//
+	protected $complete_records = true;
 	const PAGE_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
 	const FORM_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
 	
@@ -131,9 +138,9 @@ abstract class ControllerList extends ControllerPage {
   		//
 		$params = $this->url_params->getParams();
 
-		if (!isset($params['page'])) {
-			$params['page'] = 1;
-		}
+		// the page comes from the URL, a negative or non-numeric value would give a negative start
+		//
+		$params['page'] = isset($params['page']) ? max(1, (int)$params['page']) : 1;
 
 		$params['start'] = ($params['page'] - 1) * $this->config->get('config_limit_admin');
 		$params['limit'] = $this->config->get('config_limit_admin');
@@ -144,7 +151,9 @@ abstract class ControllerList extends ControllerPage {
 			$records_total = $this->recordset->getRecordsTotal($params);
 			$records = $this->recordset->getRecords($params);
 	    	foreach ($records as $record) {
-	    		$record = $this->recordset->getRecord($record[$primary_field]);
+				if ($this->complete_records) {
+					$record = $this->recordset->getRecord($record[$primary_field]);
+				}
 				$result = $this->fillRecord($record);
 				$this->data['records'][] = $result;
 			}

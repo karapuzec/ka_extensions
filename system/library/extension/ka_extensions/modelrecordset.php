@@ -119,11 +119,24 @@ abstract class ModelRecordset extends Model {
 
 		$qb = $this->getRecordsQB($data);
 	
-		// sort and order values may come from the URL. Accept only plain column names
-		// like 'name' or 't.name' and ASC/DESC directions to prevent SQL injections
+		// sort and order values may come from the URL. Without a sort whitelist accept only plain column names
+		// like 'name' or 't.name' (as before), with a whitelist only the listed values. ASC/DESC directions only
+		// to prevent SQL injections
 		//
-		if (!empty($data['sort']) && preg_match('/^[\w.]+$/', $data['sort'])) {
-			$sql = $data['sort'];
+		$sql = '';
+		$sort_whitelist = $this->getSortWhitelist();
+		if (empty($sort_whitelist)) {
+			if (!empty($data['sort']) && preg_match('/^[\w.]+$/', $data['sort'])) {
+				$sql = $data['sort'];
+			}
+		} elseif (!empty($data['sort']) && is_string($data['sort'])) {
+			if (isset($sort_whitelist[$data['sort']])) {
+				$sql = $sort_whitelist[$data['sort']];
+			} elseif (in_array($data['sort'], $sort_whitelist, true)) {
+				$sql = $data['sort'];
+			}
+		}
+		if (!empty($sql)) {
 			if (!empty($data['order'])) {
 				$order = strtoupper($data['order']);
 				if (in_array($order, ['ASC', 'DESC'])) {
@@ -134,7 +147,7 @@ abstract class ModelRecordset extends Model {
 		}
 		
 		if (isset($data['start']) && isset($data['limit'])) {
-			$qb->limit($data['start'], $data['limit']);
+			$qb->limit(max(0, (int)$data['start']), $data['limit']);
 		}
 		
 		$records = $qb->query()->rows;
@@ -143,6 +156,28 @@ abstract class ModelRecordset extends Model {
 	}
 	
 	
+	/*
+		Returns allowed sort values of getRecords() or null.
+
+		null or empty (default) - any plain column name like 'name' or 't.name' is accepted.
+		array                   - only the listed values are accepted: 'sort code' => 'SQL column or expression'.
+		                          The sort value can be a code or one of the SQL values (ControllerList::getSortFields()
+		                          puts the column into sort links). Other values are ignored and the records are sorted
+		                          as getRecordsQB() defines.
+
+		Example:
+			protected function getSortWhitelist() {
+				return array(
+					'date'  => 't.date_added',
+					'email' => 'COALESCE(t.recipient_email, c.email)',
+				);
+			}
+	*/
+	protected function getSortWhitelist() {
+		return null;
+	}
+
+
 	/*
 		Any filter fields should be defined in a child class
 	*/

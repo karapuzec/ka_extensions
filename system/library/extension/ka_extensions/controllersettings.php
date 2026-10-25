@@ -17,6 +17,11 @@ abstract class ControllerSettings extends ControllerInstaller {
 
 	use TraitControllerForm;
 
+	/*
+		Template of the settings page. A module can set its own template here.
+	*/
+	protected $settings_template = 'extension/ka_extensions/common/pages/settings';
+
 	protected function onLoad() {
 		parent::onLoad();
 
@@ -48,12 +53,16 @@ abstract class ControllerSettings extends ControllerInstaller {
 			} else {
 				$this->model_setting_setting->editSetting($this->vendor . '_' . $this->ext_code, $values);
 			}
+			$this->addSettingsMessage($this->language->get('Settings have been stored sucessfully.'), 'S');
 			$params = [
 				'type' => $this-> vendor,
 			];
 			$this->response->redirect($this->url->linka('marketplace/extension', $params));
 			
 		} elseif ($this->request->server['REQUEST_METHOD'] == 'POST') {
+			if (!empty($this->errors)) {
+				$this->addSettingsMessage($this->language->get('error_warning'), 'E');
+			}
 			$fields = $this->getFieldsWithData($fields, $old_data, $this->request->post, $this->errors);
 		} else {
 			$fields = $this->getFieldsWithData($fields, $old_data);
@@ -64,6 +73,8 @@ abstract class ControllerSettings extends ControllerInstaller {
 		$this->data['heading_title']   = $heading_title;
 
 		$this->data['extension_version'] = $this->extension_version;
+		// the template shows the version and author line for vendor 'ka_extensions'
+		$this->data['vendor'] = $this->vendor;
 		
 		$this->data['breadcrumbs'] = array();
    		$this->data['breadcrumbs'][] = array(
@@ -88,7 +99,25 @@ abstract class ControllerSettings extends ControllerInstaller {
 		$this->data['action_save'] = $this->url->linka('extension/' . $this->vendor . '/' . $this->ext_code);
 		$this->data['action_cancel'] = $this->url->linka('marketplace/extension', $params);
 
-		$this->showPage('extension/ka_extensions/common/pages/settings');
+		$this->showPage($this->settings_template);
+	}
+
+
+	/*
+		Adds a top message unless the same message has been added already (modules adding the messages
+		themselves do not get them twice).
+	*/
+	protected function addSettingsMessage($text, $type) {
+
+		if (!empty($this->session->data['ka_top_messages'])) {
+			foreach ($this->session->data['ka_top_messages'] as $message) {
+				if (isset($message['content']) && $message['content'] == $text) {
+					return;
+				}
+			}
+		}
+
+		$this->addTopMessage($text, $type);
 	}
 
 		
