@@ -119,12 +119,22 @@ abstract class ModelRecordset extends Model {
 
 		$qb = $this->getRecordsQB($data);
 	
-		// sort and order values may come from the URL. Accept only values allowed by getSortSql()
-		// and ASC/DESC directions to prevent SQL injections
+		// sort and order values may come from the URL. Without a sort whitelist accept only plain column names
+		// like 'name' or 't.name' (as before), with a whitelist only the listed values. ASC/DESC directions only
+		// to prevent SQL injections
 		//
 		$sql = '';
-		if (!empty($data['sort'])) {
-			$sql = $this->getSortSql($data['sort']);
+		$sort_whitelist = $this->getSortWhitelist();
+		if (empty($sort_whitelist)) {
+			if (!empty($data['sort']) && preg_match('/^[\w.]+$/', $data['sort'])) {
+				$sql = $data['sort'];
+			}
+		} elseif (!empty($data['sort']) && is_string($data['sort'])) {
+			if (isset($sort_whitelist[$data['sort']])) {
+				$sql = $sort_whitelist[$data['sort']];
+			} elseif (in_array($data['sort'], $sort_whitelist, true)) {
+				$sql = $data['sort'];
+			}
 		}
 		if (!empty($sql)) {
 			if (!empty($data['order'])) {
@@ -149,11 +159,11 @@ abstract class ModelRecordset extends Model {
 	/*
 		Returns allowed sort values of getRecords() or null.
 
-		null (default) - any plain column name like 'name' or 't.name' is accepted.
-		array          - only the listed values are accepted: 'sort code' => 'SQL column or expression'.
-		                 The sort value can be a code or one of the SQL values (ControllerList::getSortFields()
-		                 puts the column into sort links). Other values are ignored and the records are sorted
-		                 as getRecordsQB() defines.
+		null or empty (default) - any plain column name like 'name' or 't.name' is accepted.
+		array                   - only the listed values are accepted: 'sort code' => 'SQL column or expression'.
+		                          The sort value can be a code or one of the SQL values (ControllerList::getSortFields()
+		                          puts the column into sort links). Other values are ignored and the records are sorted
+		                          as getRecordsQB() defines.
 
 		Example:
 			protected function getSortWhitelist() {
@@ -165,37 +175,6 @@ abstract class ModelRecordset extends Model {
 	*/
 	protected function getSortWhitelist() {
 		return null;
-	}
-
-
-	/*
-		Returns the SQL of the ORDER BY clause for the sort value (without the direction) or an empty string
-		when the value is not allowed.
-	*/
-	protected function getSortSql($sort) {
-
-		if (!is_string($sort) || $sort === '') {
-			return '';
-		}
-
-		$whitelist = $this->getSortWhitelist();
-
-		if (is_null($whitelist)) {
-			if (preg_match('/^[\w.]+$/', $sort)) {
-				return $sort;
-			}
-			return '';
-		}
-
-		if (isset($whitelist[$sort])) {
-			return $whitelist[$sort];
-		}
-
-		if (in_array($sort, $whitelist, true)) {
-			return $sort;
-		}
-
-		return '';
 	}
 
 
