@@ -1,5 +1,9 @@
-4.1.1.28 (not released)
+4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.
+- Format: convertToByte() parses fractions ('1.5G', '1,5G'), values without a suffix ('512' gave 51), '-1' (unlimited) and suffixes like '10 Mb', '10 KB', '100 bytes', 'T'.
+- Format: size unit labels are taken from the language file (ka_format, en-gb and ru-ru for admin and catalog); formatPassedTime() in the catalog printed 'text_hours' etc. Fixed.
+- Format: no fatal error when the language is not found (a line is written to the log), the language list is read once per request. Added static parseBytes() and formatBytes() helpers.
+- Top messages of the Ka Extensions pages are shown with the right type: success messages green ('S'), errors red ('E').
 
 4.1.1.27
 - UrlParams: an array in the URL (e.g. 'filter_name[]=x') gave a fatal error on PHP 8. Fixed: arrays are accepted only for parameters with an array default value, otherwise the default value is used.
