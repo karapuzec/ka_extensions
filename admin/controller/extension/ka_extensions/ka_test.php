@@ -45,7 +45,7 @@ class ControllerKaTest extends \KaInstaller {
 				$this->model_setting_setting->editSetting('ka_test', $this->request->post);
 			}
 			
-			$this->addTopMessage($this->language->get('Settings have been stored sucessfully.'));
+			$this->addTopMessage($this->language->get('Settings have been stored sucessfully.'), 'S');
 			
 			$this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=ka_extensions', true));
 			

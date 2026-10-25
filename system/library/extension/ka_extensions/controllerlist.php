@@ -67,7 +67,7 @@ abstract class ControllerList extends ControllerPage {
 	
 	protected function validateDelete() {
 		if (!$this->enable_delete) {
-    		$this->addTopMessage($this->language->get('error_permission'));
+    		$this->addTopMessage($this->language->get('error_permission'), 'E');
 			return false;
 		}
 			

@@ -254,7 +254,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
 				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
 				
-				$this->addTopMessage($this->language->get('installation_successful'));
+				$this->addTopMessage($this->language->get('installation_successful'), 'S');
 			} else {
 				$this->addTopMessage($this->language->get("installation_failed"), 'E');
 			}
@@ -276,7 +276,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 			
 			$success = $this->load->controller('extension/' . $this->vendor . '/' . $this->request->get['extension'] . '/uninstall');
 			if ($success) {
-				$this->addTopMessage($this->language->get('uninstallation_successful'));
+				$this->addTopMessage($this->language->get('uninstallation_successful'), 'S');
 			} else {
 				$this->addTopMessage($this->language->get('uninstallation_failed'), 'E');
 			}
@@ -296,7 +296,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 
 	protected function validate() {
 		if (!$this->user->hasPermission('modify', 'extension/extension/ka_extensions')) {
-			$this->addTopMessage($this->language->get('error_permission'));
+			$this->addTopMessage($this->language->get('error_permission'), 'E');
 			return false;
 		}
 		
@@ -387,7 +387,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		
 		if ($this->model_extension_ka_extensions->registerKey($key, $extension)) {
 			$json['redirect'] = $this->url->link('marketplace/extension', '', true) . '&type=ka_extensions&user_token=' . $this->session->data['user_token'];
-			$this->addTopMessage('The license key was validated successfully.');
+			$this->addTopMessage('The license key was validated successfully.', 'S');
 			$this->response->addHeader('Content-Type: application/json');	
 			$this->response->setOutput(json_encode($json));
 			return;
@@ -557,10 +557,10 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 				unset($this->request->post['safe_mode_code']);
 			
 				$this->model_setting_setting->editSetting('ka_extensions', $this->request->post);
-				$this->addTopMessage($this->language->get("txt_operation_successful"));
+				$this->addTopMessage($this->language->get("txt_operation_successful"), 'S');
 				$this->response->redirect($this->url->linka('extension/extension/ka_extensions/settings', 'user_token=' . $this->session->data['user_token'] . '&type=ka_extensions', true));
 			} else {
-				$this->addTopMessage($this->language->get("txt_operation_failed"));
+				$this->addTopMessage($this->language->get("txt_operation_failed"), 'E');
 			}
 			
 			$fields = $this->getFieldsWithData($fields, $values, $this->request->post, $this->errors);
