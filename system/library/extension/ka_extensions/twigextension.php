@@ -18,6 +18,8 @@ class TwigExtension extends \Twig_Extension
     {
     	static $flags = [];
     
+    	$extension = $this;
+    
         return array(
             new \Twig_SimpleFunction('ka_config_get', function($name) {
             	return \KaGlobal::getRegistry()->get('config')->get($name);
@@ -52,6 +54,16 @@ class TwigExtension extends \Twig_Extension
             	$link = $registry->get('url')->linka($route, $params, true, $is_js);
         		return $link;
             }),
+            // {{ include_jska('view/javascript/extension/ka_extensions/module/file.js') }}
+            //
+            new \Twig_SimpleFunction('include_jska', function() use ($extension) {
+            	return $extension->includeJska(func_get_args());
+            }, array('is_safe' => array('html'))),
+            // {{ include_csska('view/stylesheet/extension/ka_extensions/module/file.css') }}
+            //
+            new \Twig_SimpleFunction('include_csska', function() use ($extension) {
+            	return $extension->includeCsska(func_get_args());
+            }, array('is_safe' => array('html'))),
             new \Twig_SimpleFunction('ka_flag', function($key, $value = null) use (&$flags) {
             	
             	if (is_null($value)) {
@@ -68,6 +80,38 @@ class TwigExtension extends \Twig_Extension
             }),
         );
     }
+    
+    /**
+    	Returns <script> tags of js files. $paths are urls as in the src attribute
+    	(relative to the page base url).
+    */
+    protected function includeJska($paths) {
+    	$html = '';
+    	foreach ($paths as $path) {
+    		$html .= '<script type="text/javascript" src="' . $this->getFileUrl($path) . '"></script>' . "\n";
+    	}
+    	return $html;
+    }
+    
+    
+    /**
+    	Returns <link> tags of css files. $paths are urls as in the href attribute.
+    */
+    protected function includeCsska($paths) {
+    	$html = '';
+    	foreach ($paths as $path) {
+    		$html .= '<link rel="stylesheet" type="text/css" href="' . $this->getFileUrl($path) . '" />' . "\n";
+    	}
+    	return $html;
+    }
+    
+    
+    // adds ?v=<file time> when the file is found
+    protected function getFileUrl($path) {
+    	$file = (\KaGlobal::isAdminArea() ? DIR_APPLICATION : dirname(DIR_APPLICATION) . '/') . $path;
+    	return $path . (is_file($file) ? '?v=' . filemtime($file) : '');
+    }
+    
     
     public function getName()
     {
