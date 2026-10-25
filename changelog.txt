@@ -1,3 +1,6 @@
+4.1.1.28 (not released)
+- Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.
+
 4.1.1.27
 - UrlParams: an array in the URL (e.g. 'filter_name[]=x') gave a fatal error on PHP 8. Fixed: arrays are accepted only for parameters with an array default value, otherwise the default value is used.
 - ControllerList: a negative or non-numeric 'page' value gave a negative LIMIT and an SQL error. Fixed: the page is at least 1, ModelRecordset::getRecords() never uses a negative start.
