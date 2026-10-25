@@ -57,7 +57,19 @@ trait TraitControllerForm {
 			$f['code'] = $k;
 		}
 		
-		if (is_array($new_data)) {
+		// a plain text field is not posted and usually is not a setting: it shows the stored value, otherwise
+		// the default value or the value of the field definition (also after a validation error)
+		//
+		if (!empty($f['type']) && $f['type'] == 'plaintext') {
+			if (isset($old_data[$k])) {
+				$f['value'] = $old_data[$k];
+			} elseif (isset($f['default_value'])) {
+				$f['value'] = $f['default_value'];
+			} elseif (!isset($f['value'])) {
+				$f['value'] = '';
+			}
+
+		} elseif (is_array($new_data)) {
 			if (isset($new_data[$k])) {
 				$f['value'] = $new_data[$k];
 			} else {		

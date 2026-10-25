@@ -2,6 +2,11 @@
 - UrlParams: an array in the URL (e.g. 'filter_name[]=x') gave a fatal error on PHP 8. Fixed: arrays are accepted only for parameters with an array default value, otherwise the default value is used.
 - ControllerList: a negative or non-numeric 'page' value gave a negative LIMIT and an SQL error. Fixed: the page is at least 1, ModelRecordset::getRecords() never uses a negative start.
 - ModelRecordset: added the optional getSortWhitelist() method ('sort code' => 'SQL column or expression'). When a child class defines it, only the listed sort values are accepted, sorting by expressions is possible; by default (null) the sorting works as before.
+- UrlParams: parameter values in the built URLs were not encoded, e.g. a filter 'a+b@x.com' became 'a b@x.com' on the next page of a list. Fixed: values are URL-encoded (rawurlencode), array values become 'name[key]=value' pairs, placeholders like '{page}' are kept.
+- ControllerSettings: the template name is in the $settings_template property, a module can set its own template.
+- ControllerSettings: the settings page shows the module version and author line for the 'ka_extensions' vendor (the vendor was not passed to the template).
+- ControllerSettings: a successful save shows 'Settings have been stored sucessfully.' on the extensions page, a validation error shows a general warning above the form. A message the module has already added is not shown twice.
+- Forms: a 'plaintext' field lost its value: without a stored setting the value of the field definition became empty, after a validation error the default value was lost too. Fixed: the stored value is shown when it exists, otherwise the default value or the value of the field definition.
 
 4.1.1.26
 - ModelRecordset: sort values are validated (plain column names like 'name' or 't.name' only) and order is limited to ASC/DESC to prevent SQL injections.
