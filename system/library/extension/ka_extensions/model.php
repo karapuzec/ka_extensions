@@ -97,7 +97,7 @@ abstract class Model extends \Model {
 		$pos   = strripos($class, '\\');
 		$ns    = '';
 		if ($pos == 0) {
-			$ns = $model;
+			$ns = '';
 		} else {
 			$ns = str_replace('\\', '/', substr($class, 0, $pos)) . '/';
 		}
