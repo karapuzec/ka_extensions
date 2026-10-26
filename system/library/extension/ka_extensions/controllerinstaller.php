@@ -164,7 +164,7 @@ abstract class ControllerInstaller extends Controller {
 	*/
 	public function getInstalledVersion() {
 
-		if (!method_exists($this->model_setting_setting, 'getConfigHidden')) {
+		if (!$this->hasHiddenSettings()) {
 			return '0.0.0.0';
 		}
 
@@ -182,13 +182,23 @@ abstract class ControllerInstaller extends Controller {
 	*/
 	public function saveInstalledVersion($version) {
 
-		if (!method_exists($this->model_setting_setting, 'setConfigHidden')) {
+		if (!$this->hasHiddenSettings()) {
 			return false;
 		}
 
 		$this->model_setting_setting->setConfigHidden($this->getSettingCode(), 'version', $version);
 
 		return true;
+	}
+
+
+	/*
+		Checks that the setting model has getConfigHidden() / setConfigHidden() (the kamod cache of this
+		library version is built). OpenCart wraps a model into a Proxy with the methods as properties.
+	*/
+	protected function hasHiddenSettings() {
+		$model = $this->model_setting_setting;
+		return method_exists($model, 'getConfigHidden') || isset($model->getConfigHidden);
 	}
 
 
