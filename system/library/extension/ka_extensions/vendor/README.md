@@ -7,3 +7,6 @@ composer.json and the license of each package):
 
 They are loaded by \extension\ka_extensions\KaURLify (kaurlify.php), there is no composer autoloader.
 PHP 7.2 or newer.
+
+Local change: the non-technical (political) comment at the top of the ASCII class
+(voku/portable-ascii/src/voku/helper/ASCII.php) was removed, the code and the licenses are unchanged.
