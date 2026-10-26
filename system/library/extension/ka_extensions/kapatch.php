@@ -109,12 +109,12 @@ class KaPatch {
 		
 		if (empty($version)) {
 			$this->log("kamod version is not specified in the file" . $xml_file . ". The patch is skipped", 'E');
-			return;
+			return $contents;
 		}
 		
 		if (version_compare($version, KamodBuilder::KAMOD_VERSION, ">")) {
 			$this->log("The patch '$xml_file' requires version '" . $version . "'. The installed kamod version '" . KamodBuilder::KAMOD_VERSION . "'. The patch is skipped", 'E');
-			return;
+			return $contents;
 		}
 
 		$major_version       = explode(".", $version);
@@ -122,7 +122,7 @@ class KaPatch {
 		
 		if ($major_version[0] != $major_kamod_version[0]) {
 			$this->log("The patch '$xml_file' requires version '" . $version . "'. The installed kamod version '" . KamodBuilder::KAMOD_VERSION . "'. The patch is skipped", 'E');
-			return;
+			return $contents;
 		}
 		
 		// apply operations from the patch

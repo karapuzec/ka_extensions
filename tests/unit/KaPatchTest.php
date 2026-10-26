@@ -101,19 +101,14 @@ class KaPatchTest extends UnitTestCase {
 	}
 
 	/**
-	 * A patch for a newer kamod version is skipped, but applyXml() returns null instead of the contents:
-	 * findAndApply() then writes an empty file.
-	 *
-	 * @group known-bug
+	 * A patch for a newer kamod version is skipped and the contents are kept (applyXml() returned null,
+	 * findAndApply() then wrote an empty file).
 	 */
 	public function testPatchOfANewerKamodVersionKeepsContents() {
 		$patch = $this->patch('a.xml', '<operation type="replace"><search>c</search><text>x</text></operation>', '1.5');
 		$this->assertSame('contents', $this->apply('contents', $patch));
 	}
 
-	/**
-	 * @group known-bug
-	 */
 	public function testPatchOfAnotherMajorKamodVersionKeepsContents() {
 		$patch = $this->patch('a.xml', '<operation type="replace"><search>c</search><text>x</text></operation>', '0.9');
 		$this->assertSame('contents', $this->apply('contents', $patch));
