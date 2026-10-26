@@ -35,7 +35,7 @@
         <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ t('Extension Settings') }}</h3>
       </div>
       <div class="panel-body">
-				<form class="form-horizontal" action="{{ action }}" method="post" enctype="multipart/form-data" id="frm-settings">
+				<form class="form-horizontal" action="{% if action %}{{ action }}{% else %}{{ action_save }}{% endif %}" method="post" enctype="multipart/form-data" id="frm-settings">
 					<input type="hidden" name="mode" value="" id="mode" />
 					{% set label_width_class = 'col-sm-4' %}
 					{% set value_width_class = 'col-sm-8' %}					

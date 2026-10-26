@@ -74,6 +74,11 @@ class SettingsTest extends LibraryTestCase {
 		$this->assertStringContainsString('value="A &quot;b&quot; &amp; &lt;c&gt; &amp;amp;"', $output);
 	}
 
+	public function testFormPostsToTheSettingsPage() {
+		$output = $this->oc->request(static::MODULE_ROUTE)['output'];
+		$this->assertMatchesRegularExpression('/<form[^>]+action="[^"]*route=extension\/ka_extensions\/ka_lib_test[^"]*"[^>]+id="frm-settings"/', $output);
+	}
+
 	public function testSave() {
 		$result = $this->post(array(
 			'ka_lib_test_title'   => "New 'title'",
