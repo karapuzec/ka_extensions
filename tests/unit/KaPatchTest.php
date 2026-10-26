@@ -115,9 +115,7 @@ class KaPatchTest extends UnitTestCase {
 	}
 
 	/**
-	 * KamodBuilder::log() writes the time with 'M' (month name) instead of 'H' (hour).
-	 *
-	 * @group known-bug
+	 * KamodBuilder::log() writes the hour (it wrote 'M', the month name, instead of 'H').
 	 */
 	public function testKamodLogTime() {
 		$file = DIR_LOGS . 'kamod.log';

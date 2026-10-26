@@ -62,7 +62,7 @@ class KamodBuilder {
 	
 	public static function log($msg, $type = 'I') {
 
-		$msg = date("Y-m-d M:i:s: ") .  $msg . "\n";
+		$msg = date("Y-m-d H:i:s: ") .  $msg . "\n";
 		
 		if ($type == 'E') {
 			file_put_contents(DIR_LOGS . static::LOG_ERRORS_FILENAME, $msg, FILE_APPEND);	
