@@ -281,6 +281,28 @@ class ControllersTest extends UnitTestCase {
 		$this->assertSame('extension/ka_extensions/ka_test/items?page=2', $url);
 	}
 
+	// records are deleted by POST only (#15): a GET request (a link) deletes nothing
+
+	public function testDeleteByGetIsRefused() {
+		$this->request(array('selected' => array('1')));
+		$controller = new TestListController($this->registry);
+		$controller->enable_delete = true;
+		try {
+			$controller->delete();
+			$this->fail('No redirect');
+		} catch (\TestRedirectException $e) {
+			$this->assertSame('extension/ka_extensions/ka_test/items', $e->url);
+		}
+		$this->assertSame(array(), $this->rs->deleted);
+		$this->assertSame(array(array('type' => 'E', 'content' => 'error_permission')), $this->topMessages());
+	}
+
+	public function testDeleteRecordByGetIsRefused() {
+		$this->runDelete('deleteRecord', array('item_id' => '3'), null, true);
+		$this->assertSame(array(), $this->rs->deleted);
+		$this->assertSame(array(array('type' => 'E', 'content' => 'error_permission')), $this->topMessages());
+	}
+
 	// --- form page
 
 	protected function runForm($get, $post = null) {

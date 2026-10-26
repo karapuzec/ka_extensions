@@ -118,6 +118,13 @@ class PagesTest extends LibraryTestCase {
 		$this->assertNotEmpty($this->getItem($ids[0]));
 	}
 
+	public function testDeleteRecordByGetIsRefused() {
+		$ids = $this->addItems(1);
+		$this->oc->request(static::ITEMS_ROUTE . '/deleteRecord', array('item_id' => $ids[0]));
+		$this->assertNotEmpty($this->getItem($ids[0]));
+		$this->assertSame(array('E'), array_column($this->topMessages(), 'type'));
+	}
+
 	// --- form
 
 	public function testFormOfANewItem() {
