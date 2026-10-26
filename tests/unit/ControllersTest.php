@@ -338,7 +338,7 @@ class ControllersTest extends UnitTestCase {
 
 	public function testSaveRedirectsToTheList() {
 		$result = $this->runForm(array('item_id' => '4'), array('name' => 'B', 'status' => '1'));
-		$this->assertSame(array(array('name' => 'B', 'status' => '1', 'item_id' => '4')), $this->rs->saved);
+		$this->assertSame(array(array('name' => 'B', 'status' => '1', 'groups' => array(), 'item_id' => '4')), $this->rs->saved);
 		$this->assertSame('extension/ka_extensions/ka_test/items?item_id=4', $result['redirect']);
 		$this->assertSame(array(array('type' => 'S', 'content' => 'txt_operation_successful')), $this->topMessages());
 	}
@@ -370,15 +370,30 @@ class ControllersTest extends UnitTestCase {
 	}
 
 	/**
-	 * ControllerForm saves the raw POST: an unchecked checkbox and a 'checkboxes' field with all boxes
-	 * unchecked are not in the saved data, so the old values stay in the record (the fix 5e83bff covers
-	 * settings pages and the shown form only).
-	 *
-	 * @group known-bug
+	 * ControllerForm saves an unchecked checkbox as '0' and a 'checkboxes' field with all boxes unchecked
+	 * as an empty list (the raw POST was saved and the old values stayed in the record).
 	 */
 	public function testUncheckedBoxesAreSaved() {
 		$this->runForm(array('item_id' => '4'), array('name' => 'B'));
-		$this->assertSame('', $this->rs->saved[0]['status'] ?? null);
+		$this->assertSame('0', $this->rs->saved[0]['status'] ?? null);
 		$this->assertSame(array(), $this->rs->saved[0]['groups'] ?? null);
+	}
+
+	public function testCheckedBoxesAreSaved() {
+		$this->runForm(array('item_id' => '4'), array('name' => 'B', 'status' => '1', 'groups' => array('2')));
+		$this->assertSame('1', $this->rs->saved[0]['status']);
+		$this->assertSame(array('2'), $this->rs->saved[0]['groups']);
+	}
+
+	/**
+	 * The primary key comes from the url only: a posted key is ignored.
+	 */
+	public function testPostedPrimaryKeyIsIgnored() {
+		$this->runForm(array(), array('name' => 'B', 'item_id' => '7'));
+		$this->assertArrayNotHasKey('item_id', $this->rs->saved[0]);
+
+		$this->rs->saved = array();
+		$this->runForm(array('item_id' => '4'), array('name' => 'B', 'item_id' => '7'));
+		$this->assertSame('4', $this->rs->saved[0]['item_id']);
 	}
 }

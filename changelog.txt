@@ -8,6 +8,7 @@
 - Pagination: without the 'limit' parameter the OpenCart 3 setting 'Default Items Per Page (Admin)' (config_limit_admin) was ignored and 20 was used. Fixed.
 - Model: the deprecated getNamespace() used an undefined variable for a class without a namespace (a warning). Fixed: an empty namespace is returned.
 - Forms: validation of fields. A required field of spaces passed; a required 'checkboxes' field posted as an empty list gave a TypeError; a non-numeric value of a 'number' field with min_value/max_value passed the limits (now 'The value must be a number'); initFields() of no fields returned null instead of an empty array. Fixed.
+- Forms (ControllerForm): the raw POST was saved. An unchecked checkbox kept its old value, a 'checkboxes' field with all boxes unchecked kept the old list. A posted primary key was trusted when the url had none: a new record form updated the posted record. Fixed in the new protected getPostedRecord(): unchecked boxes are saved as '0' / an empty list, the primary key is taken from the url only.
 
 4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.

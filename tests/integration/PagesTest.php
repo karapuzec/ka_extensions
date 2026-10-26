@@ -151,10 +151,8 @@ class PagesTest extends LibraryTestCase {
 	}
 
 	/**
-	 * A new record form takes the primary key from POST when the URL has none: a posted item_id
-	 * updates that record (or nothing) instead of creating a new one, and success is reported.
-	 *
-	 * @group known-bug
+	 * A new record form ignores a posted primary key and adds a record (the posted item_id updated
+	 * that record).
 	 */
 	public function testPostedPrimaryKeyIsIgnored() {
 		$other_id = $this->addItem('Other');
@@ -181,9 +179,7 @@ class PagesTest extends LibraryTestCase {
 	}
 
 	/**
-	 * ControllerForm saves the raw POST: an unchecked checkbox is not posted and the old value stays.
-	 *
-	 * @group known-bug
+	 * An unchecked checkbox (not posted) is saved as unchecked (the old value stayed).
 	 */
 	public function testUncheckedCheckboxIsSaved() {
 		$item_id = $this->addItem('Old', 1);

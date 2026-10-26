@@ -71,10 +71,7 @@ abstract class ControllerForm extends ControllerPage {
   		//
 		if ($this->request->server['REQUEST_METHOD'] == 'POST') {
 		 	if ($this->validate()) {
-		 		$data = $this->request->post;
-		 		if (isset($this->request->get[$primary_field])) {
-		 			$data[$primary_field] = $this->request->get[$primary_field];
-		 		}
+		 		$data = $this->getPostedRecord($primary_field);
 
 		 		$record_id = null;
 		 		try {
@@ -149,6 +146,41 @@ abstract class ControllerForm extends ControllerPage {
 		} else {
 			$this->showPage('extension/ka_extensions/common/pages/form');
 		}
+  	}
+  	
+  	
+  	/*
+  		Returns the record data to save from the POST request.
+  		
+  		- unchecked boxes are not posted: a 'checkbox' field gets '0', a 'checkboxes' field an empty list
+  		  (the old values were kept);
+  		- the primary key is taken from the url only. A posted key is ignored, a form of a new record
+  		  (no key in the url) adds a record and never updates another one.
+  	*/
+  	protected function getPostedRecord($primary_field) {
+  	
+ 		$data = $this->request->post;
+ 		
+ 		if (!empty($this->fields)) {
+	 		foreach ($this->fields as $k => $f) {
+	 			$code = (!empty($f['code']) ? $f['code'] : $k);
+	 			if (empty($f['type']) || isset($data[$code])) {
+	 				continue;
+	 			}
+	 			if ($f['type'] == 'checkbox') {
+	 				$data[$code] = '0';
+	 			} elseif ($f['type'] == 'checkboxes') {
+	 				$data[$code] = array();
+	 			}
+	 		}
+	 	}
+ 		
+ 		unset($data[$primary_field]);
+ 		if (isset($this->request->get[$primary_field])) {
+ 			$data[$primary_field] = $this->request->get[$primary_field];
+ 		}
+ 		
+ 		return $data;
   	}
   	
   	
