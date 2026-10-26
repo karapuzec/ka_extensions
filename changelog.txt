@@ -1,3 +1,6 @@
+4.1.1.29 (not released)
+- ControllerList: delete() and deleteRecord() work by POST requests only, a GET request (e.g. a link) deletes nothing and shows the permission error. A delete link in a list template has to be replaced with a button posting to the same url.
+
 4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.
 - Format: convertToByte() parses fractions ('1.5G', '1,5G'), values without a suffix ('512' gave 51), '-1' (unlimited) and suffixes like '10 Mb', '10 KB', '100 bytes', 'T'.
