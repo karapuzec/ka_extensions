@@ -21,8 +21,8 @@
 {% block field_value %}
 	<input {% if field.required %} required {% endif %} type="text" 
 		name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}"
-		value="{{ field.value }}" 
-		{% if field.pattern %} pattern="{{ field.pattern }}" {% endif %}
-		{% if field.placeholder %} placeholder="{{ field.placeholder }}" {% endif %}
+		value="{{ field.value|ka_escape }}" 
+		{% if field.pattern %} pattern="{{ field.pattern|ka_escape }}" {% endif %}
+		{% if field.placeholder %} placeholder="{{ field.placeholder|ka_escape }}" {% endif %}
 		id="input-{{ field.code }}{{ language_id }}" class="form-control" />
 {% endblock %}

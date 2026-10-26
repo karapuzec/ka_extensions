@@ -12,6 +12,6 @@
 #}
 <input type="hidden" 
 		name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
-		value="{{ field.value }}" 
+		value="{{ field.value|ka_escape }}" 
 		id="input-{{ field.code }}{{ language_id }}" class="form-control" 
 />

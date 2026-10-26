@@ -21,7 +21,7 @@
       	name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" 
       	value="1" 
       	{% if field.value %} checked="checked" {% endif %} 
-      	placeholder="{{ field.placeholder }}" 
+      	placeholder="{{ field.placeholder|ka_escape }}" 
       	id="input-{{ field.code }}" 
       />
     </label>

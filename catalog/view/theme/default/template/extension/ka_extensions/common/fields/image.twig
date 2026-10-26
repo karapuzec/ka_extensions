@@ -55,13 +55,13 @@
 	            	<a href="" id="thumb-{{ field.code }}" data-toggle="image" class="img-thumbnail"
 									{% if field.attributes %}
 										{% for field_attr_key, field_attr_value in field.attributes %}
-											{{ field_attr_key }} = "{{ field_attr_value }}"
+											{{ field_attr_key }} = "{{ field_attr_value|ka_escape }}"
 										{% endfor %}
 									{% endif %}
 	            	>
 	            		<img src="{{ field.thumb }}" alt="" title="" data-placeholder="{{ image_placeholder }}" />
 	            	</a>
-  	          	<input data-id="image" type="hidden" data-default_value="{{ field.default_value }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value }}" id="input-{{ field.code }}" />
+  	          	<input data-id="image" type="hidden" data-default_value="{{ field.default_value|ka_escape }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value|ka_escape }}" id="input-{{ field.code }}" />
 					      <div data-id="add" {% if field.value %} style="display:none;" {% endif %} onclick="javascript: $('#thumb-{{ field.code }}').trigger('click');" class="image-content"><i class="fa fa-plus"></i></div>
 					      <div data-id="delete" {% if not field.value %} style="display:none;" {% endif %} onclick="javascript: Images_restoreDefault('{{ field.code }}');" class="image-content"><i class="fa fa-trash"></i></div>
 					    </div>

@@ -18,11 +18,11 @@
 
               <textarea rows="5" name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
               	data-toggle="summernote"
-              	placeholder="{{ field.placeholder }}" id="input-{{ field.code }}{{ language_id }}" class="form-control"
+              	placeholder="{{ field.placeholder|ka_escape }}" id="input-{{ field.code }}{{ language_id }}" class="form-control"
               	{% if field.attributes %}
               		{% for field_attr_key, field_attr_value in field.attributes %}
-              			{{ field_attr_key }} = "{{ field_attr_value }}"
+              			{{ field_attr_key }} = "{{ field_attr_value|ka_escape }}"
               		{% endfor %}
               	{% endif %}
-              >{{ field.value }}</textarea>
+              >{{ field.value|ka_escape }}</textarea>
 {% endblock %}

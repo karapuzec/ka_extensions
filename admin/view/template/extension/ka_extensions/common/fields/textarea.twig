@@ -16,6 +16,6 @@
 
 {% block field_value %}
               <textarea rows="{% if field.rows %}{{ field.rows }}{% else %}5{% endif %}" name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
-              	placeholder="{{ field.placeholder }}" id="input-{{ field.code }}{{ language_id }}" class="form-control"
-              >{{ field.value }}</textarea>
+              	placeholder="{{ field.placeholder|ka_escape }}" id="input-{{ field.code }}{{ language_id }}" class="form-control"
+              >{{ field.value|ka_escape }}</textarea>
 {% endblock %}

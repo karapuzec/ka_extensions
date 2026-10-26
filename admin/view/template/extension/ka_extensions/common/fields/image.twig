@@ -20,6 +20,6 @@
 	            	<a href="" id="thumb-{{ field.code }}" data-toggle="image" class="img-thumbnail">
 	            		<img src="{{ field.thumb }}" alt="" title="" data-placeholder="{{ image_placeholder }}" />
 	            	</a>
-  	          	<input type="hidden" data-default_value="{{ field.default_value }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value }}" id="input-{{ field.code }}" />
+  	          	<input type="hidden" data-default_value="{{ field.default_value|ka_escape }}" name="{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}" value="{{ field.value|ka_escape }}" id="input-{{ field.code }}" />
 					    </div>
 {% endblock %}

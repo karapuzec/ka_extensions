@@ -11,5 +11,5 @@
 	array       - field is in that array
 #}
 {% block field_value %}
-	<input {% if field.required %} required {% endif %} type="text" name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" value="{{ field.value }}" placeholder="{{ field.placeholder }}" id="input-{{ field.code }}{{ language_id }}" class="form-control" {% if field.maxlength %} maxlength="{{ field.maxlength }}" {% endif %} />
+	<input {% if field.required %} required {% endif %} type="text" name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" value="{{ field.value|ka_escape }}" placeholder="{{ field.placeholder|ka_escape }}" id="input-{{ field.code }}{{ language_id }}" class="form-control" {% if field.maxlength %} maxlength="{{ field.maxlength }}" {% endif %} />
 {% endblock %}

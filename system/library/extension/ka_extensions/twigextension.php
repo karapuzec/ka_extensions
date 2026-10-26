@@ -81,6 +81,35 @@ class TwigExtension extends \Twig_Extension
         );
     }
     
+    public function getFilters()
+    {
+    	$extension = $this;
+    	
+    	// Twig 1 and 2 have Twig_SimpleFilter, Twig 3 has \Twig\TwigFilter only
+    	$filter_class = (class_exists('\Twig_SimpleFilter') ? '\Twig_SimpleFilter' : '\Twig\TwigFilter');
+    	
+        return array(
+            // {{ field.value|ka_escape }} escapes a value for html (an attribute or a textarea). OpenCart 3 keeps
+            // posted values html-escaped, the existing entities are not encoded again
+            //
+            new $filter_class('ka_escape', function($value) use ($extension) {
+            	return $extension->escapeValue($value);
+            }),
+        );
+    }
+    
+    
+    protected function escapeValue($value) {
+    	if (is_null($value)) {
+    		return '';
+    	}
+    	if (!is_scalar($value)) {
+    		return $value;
+    	}
+    	return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8', false);
+    }
+    
+    
     /**
     	Returns <script> tags of js files. $paths are urls as in the src attribute
     	(relative to the page base url).

@@ -24,8 +24,8 @@
 			{% if field.required %} required {% endif %} 
 			type="number" 
 			name="{% if array %}{{ array }}[{% endif %}{% if field.name %}{{ field.name }}{% else %}{{ field.code }}{% endif %}{% if array %}]{% endif %}" 
-			value="{{ field.value }}" 
-			placeholder="{{ field.placeholder }}" 
+			value="{{ field.value|ka_escape }}" 
+			placeholder="{{ field.placeholder|ka_escape }}" 
 			id="input-{{ field.code }}{{ language_id }}" 
 			{% if field.min is defined %} min="{{ field.min }}" {% endif %}
 			{% if field.max is defined %} max="{{ field.max }}" {% endif %}

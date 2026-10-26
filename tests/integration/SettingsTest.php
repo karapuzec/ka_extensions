@@ -47,16 +47,31 @@ class SettingsTest extends LibraryTestCase {
 	}
 
 	/**
-	 * Field templates print values without escaping (OpenCart 3 Twig has autoescape off): a value with
-	 * a quote breaks the input and HTML in a value is output as is (common/fields/text.twig, textarea.twig...).
-	 *
-	 * @group known-bug
+	 * Field templates escape values (OpenCart 3 Twig has autoescape off, a quote broke the input and HTML
+	 * in a value was output as is).
 	 */
 	public function testFieldValuesAreEscaped() {
 		$this->fixtures()->setSetting('ka_lib_test', 'ka_lib_test_title', 'Stored "title" <script>alert(1)</script>');
 		$output = $this->oc->request(static::MODULE_ROUTE)['output'];
 		$this->assertStringNotContainsString('<script>alert(1)</script>', $output);
 		$this->assertStringContainsString('value="Stored &quot;title&quot; &lt;script&gt;alert(1)&lt;/script&gt;"', $output);
+	}
+
+	/**
+	 * Posted values are html-escaped by OpenCart 3 (Request::clean()) and stored so: the entities are not
+	 * encoded again, a saved value is shown as it was typed.
+	 */
+	public function testSavedValuesAreNotEscapedTwice() {
+		$this->post(array(
+			'ka_lib_test_title' => 'A "b" & <c> &amp;',
+			'ka_lib_test_mode'  => 'b',
+		));
+		$stored = $this->getSettings('ka_lib_test')['ka_lib_test_title'];
+		$this->assertSame('A &quot;b&quot; &amp; &lt;c&gt; &amp;amp;', $stored);
+		// the config of this process is loaded before the save
+		$this->oc->get('config')->set('ka_lib_test_title', $stored);
+		$output = $this->oc->request(static::MODULE_ROUTE)['output'];
+		$this->assertStringContainsString('value="A &quot;b&quot; &amp; &lt;c&gt; &amp;amp;"', $output);
 	}
 
 	public function testSave() {
