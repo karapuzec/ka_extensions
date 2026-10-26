@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Unit tests of the library classes: OpenCart stubs, no store and no database. See tests/README.md.
+-->
+<phpunit bootstrap="bootstrap.php" colors="true">
+	<groups>
+		<!-- tests reproducing reported bugs; run them explicitly with the "group known-bug" option -->
+		<exclude>
+			<group>known-bug</group>
+		</exclude>
+	</groups>
+	<testsuites>
+		<testsuite name="unit">
+			<directory>.</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

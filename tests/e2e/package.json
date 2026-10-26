@@ -1,0 +1,11 @@
+{
+	"name": "ka-extensions-e2e",
+	"private": true,
+	"description": "Playwright for installing packages on the Ka Extensions test store",
+	"scripts": {
+		"test": "playwright test"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.48.0"
+	}
+}
