@@ -17,3 +17,5 @@ $_['txt_operation_successful']  = 'Operation has completed successfully.';
 $_['txt_operation_failed']      = 'Operation failed';
 
 $_['error_field_is_empty'] = 'Field is empty';
+
+$_['error_permission'] = 'Warning: You do not have permission to perform this action!';

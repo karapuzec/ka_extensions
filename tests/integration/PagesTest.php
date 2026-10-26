@@ -123,6 +123,15 @@ class PagesTest extends LibraryTestCase {
 		$this->oc->request(static::ITEMS_ROUTE . '/deleteRecord', array('item_id' => $ids[0]));
 		$this->assertNotEmpty($this->getItem($ids[0]));
 		$this->assertSame(array('E'), array_column($this->topMessages(), 'type'));
+		// the test module has no error_permission, the library common language file gives it (not the raw key)
+		$this->assertSame(array('Warning: You do not have permission to perform this action!'), array_column($this->topMessages(), 'content'));
+	}
+
+	public function testPermissionErrorIsTranslatedToRussian() {
+		$language = new \Language('ru-ru');
+		$language->load('extension/ka_extensions/common');
+		$this->assertSame('Внимание: у вас нет прав на выполнение этого действия!', $language->get('error_permission'));
+		$this->assertSame('Operation has completed successfully.', $language->get('txt_operation_successful'));
 	}
 
 	// --- form
