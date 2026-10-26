@@ -37,8 +37,8 @@ tests/run.sh integration --group=known-bug    # one step per call: a failing ste
 
 | Group | Unit | Integration |
 | --- | --- | --- |
-| `forms` | `TraitControllerForm`: values with and without POST, checkbox, checkboxes (all unchecked, 5e83bff), select, defaults, date, price, image; validation messages; language fields; `ControllerForm` saving and redirects | settings page (`ControllerSettings`): defaults, stored values, saving, all boxes unchecked, required fields, modify permission; form page |
-| `lists` | `ControllerList`: page from the URL, start/limit, sort links, actions, delete / deleteRecord; `ModelRecordset` sorting whitelist and paging | list page: pages, sorting, wrong pages, injections in parameters, actions, deleting |
+| `forms` | `TraitControllerForm`: values with and without POST, checkbox, checkboxes (all unchecked, 5e83bff), select, defaults, date, price, image; validation messages; language fields; `ControllerForm` saving and redirects | settings page (`ControllerSettings`): defaults, stored values, escaping of values (`ka_escape`), saving, all boxes unchecked, required fields, modify permission; form page |
+| `lists` | `ControllerList`: page from the URL, start/limit, sort links, actions, delete / deleteRecord by POST only; `ModelRecordset` sorting whitelist and paging | list page: pages, sorting, wrong pages, injections in parameters, actions, deleting |
 | `urlparams` | `UrlParams`: declared parameters, trimming, arrays, encoding, placeholders, sort links | |
 | `orm` | `QB` SQL and escaping, `ADBTable`, `ModelRecordset`, `ka_insert` / `ka_update` / `ka_delete` | the same on MySQL with quotes, backslashes and Cyrillic values, injection attempts |
 | `installer` | | `addPermission` once (802ae61), install / reinstall / uninstall from Extensions > Ka Extensions, DB patching of a new and an old table, incompatible library version |
@@ -46,4 +46,4 @@ tests/run.sh integration --group=known-bug    # one step per call: a failing ste
 | `kamod` | `KaPatch` replace / regexp / errors | kamod cache rebuild, child class of an OpenCart controller, PHP and Twig kapatches |
 | `helpers` | top messages (`addTopMessage` types), `Arrays`, `Pagination` | |
 | `smoke` | | the store runs this library and the test module |
-| `known-bug` | reproduces a found bug; excluded by default | |
+| `known-bug` | reproduces a found bug that is not fixed yet; excluded by default (no such tests at the moment: the bugs found by the first version of the tests are fixed in 4.1.1.29 and their tests are normal tests now) | |
