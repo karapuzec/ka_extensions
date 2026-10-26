@@ -11,7 +11,7 @@ namespace extension\ka_extensions;
 /**
 	Url keywords and file names from any text: "Как выбрать ноутбук" -> "kak-vybrat-noutbuk".
 
-	A thin wrapper of jbroadway/urlify (vendor/, with voku/portable-ascii and voku/stop-words)
+	A thin wrapper of jbroadway/urlify (vendor/, with voku/portable-ascii)
 	with the API of the KaURLify class of CSV Product Import and of the OpenCart 4 library.
 
 	$language is a language code: 'ru', 'ru-ru', 'en-gb' (only the part before '-' is used).
@@ -32,6 +32,10 @@ class KaURLify {
 	);
 
 	protected static $is_loader_registered = false;
+
+	// words added by remove_words(): language => words
+	//
+	protected static $remove_words = array();
 
 
 	/**
@@ -91,8 +95,17 @@ class KaURLify {
 		Adds words removed by filter() of the language.
 	*/
 	public static function remove_words($words, $language = 'en') {
+
 		static::registerLoader();
-		\URLify::remove_words($words, static::getLanguageCode($language));
+
+		$language = static::getLanguageCode($language);
+		$words    = is_array($words) ? $words : array($words);
+
+		static::$remove_words[$language] = array_merge(static::$remove_words[$language] ?? array(), $words);
+
+		// without merging: the stop words of urlify (voku/stop-words) are not bundled
+		//
+		\URLify::remove_words(static::$remove_words[$language], $language, false);
 	}
 
 
@@ -147,7 +160,6 @@ class KaURLify {
 				$path  = str_replace('\\', '/', $class) . '.php';
 				$files = array(
 					$dir . 'voku/portable-ascii/src/' . $path,
-					$dir . 'voku/stop-words/src/' . $path,
 				);
 			} else {
 				return;

@@ -21,7 +21,18 @@ class KaURLifyTest extends UnitTestCase {
 		$this->assertSame('schuka-tsaplya-yozhik-yogurt', KaURLify::filter('Щука, Цапля, Ёжик, йогурт', 90, 'ru-ru'));
 		$this->assertSame('groesse-aepfel', KaURLify::filter('Größe Äpfel', 90, 'de'));
 		$this->assertSame('grosse-and-co', KaURLify::filter('Größe & Co', 90, ''));
-		$this->assertSame('zhong-wen-biao-ti', KaURLify::filter('中文标题', 90, 'zh'));
+		$this->assertSame('shlvm', KaURLify::filter('שלום', 90, 'he'));
+	}
+
+	/**
+	 * The CJK and Hangul tables of portable-ascii are not bundled (vendor/README.md): Chinese,
+	 * Japanese and Korean characters are dropped, a title of them only gives an empty string
+	 * (the caller adds a fallback such as 'article-N').
+	 */
+	public function testCjkIsDropped() {
+		$this->assertSame('', KaURLify::filter('中文标题', 90, 'zh'));
+		$this->assertSame('', KaURLify::filter('한국어', 90, 'ko'));
+		$this->assertSame('news-2026', KaURLify::filter('News 中文 2026', 90, 'en'));
 	}
 
 	/**
@@ -38,6 +49,17 @@ class KaURLifyTest extends UnitTestCase {
 		$this->assertLessThanOrEqual(10, strlen(KaURLify::filter('word word word word', 10)));
 		$this->assertSame('', KaURLify::filter('!!! ???', 90, 'en'));
 		$this->assertSame('', KaURLify::filter('', 90, 'en'));
+	}
+
+	/**
+	 * remove_words() works without voku/stop-words (not bundled). filter() does not remove words
+	 * (urlify removes them only on request), as the old KaURLify with its empty word list.
+	 */
+	public function testRemoveWordsWithoutStopWordsPackage() {
+		KaURLify::remove_words('foo', 'en');
+		KaURLify::remove_words(array('bar'), 'en-gb');
+		$this->assertSame('foo-bar-baz', KaURLify::filter('Foo bar baz', 90, 'en'));
+		$this->assertFalse(class_exists('voku\\helper\\StopWords'));
 	}
 
 	public function testDowncode() {
