@@ -48,11 +48,7 @@ abstract class ControllerSettings extends ControllerInstaller {
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$fields = $this->getFieldsWithData($fields, $old_data, $this->request->post);
 			$values = $this->getFieldValues($fields);
-			if ($this->vendor == 'ka_extensions') {
-				$this->model_setting_setting->editSetting($this->ext_code, $values);
-			} else {
-				$this->model_setting_setting->editSetting($this->vendor . '_' . $this->ext_code, $values);
-			}
+			$this->model_setting_setting->editSetting($this->getSettingCode(), $values);
 			$this->addSettingsMessage($this->language->get('Settings have been stored sucessfully.'), 'S');
 			$params = [
 				'type' => $this-> vendor,
@@ -104,6 +100,25 @@ abstract class ControllerSettings extends ControllerInstaller {
 
 
 	/*
+		Returns the code (group) of the module settings in the OpenCart setting table. The settings page
+		saves the values under this code, install() stores the default values there and uninstall()
+		deletes it. Opencart editSetting() stores only keys starting with the code, so the field codes
+		of the module should start with it.
+
+		vendor 'ka_extensions' - the extension code ('ka_messages')
+		other vendors          - vendor and extension code ('fluffy_opc_orders')
+	*/
+	protected function getSettingCode() {
+
+		if ($this->vendor == 'ka_extensions') {
+			return $this->ext_code;
+		}
+
+		return $this->vendor . '_' . $this->ext_code;
+	}
+
+
+	/*
 		Adds a top message unless the same message has been added already (modules adding the messages
 		themselves do not get them twice).
 	*/
@@ -151,18 +166,18 @@ abstract class ControllerSettings extends ControllerInstaller {
 			}
 		}
 		
-		$settings = $this->model_setting_setting->getSetting($this->ext_code);
+		$settings = $this->model_setting_setting->getSetting($this->getSettingCode());
 		
 		$settings = array_merge($default, $settings);
 		
-		$this->model_setting_setting->editSetting($this->ext_code, $settings);
+		$this->model_setting_setting->editSetting($this->getSettingCode(), $settings);
 		
 		return true;
  	}
 
 		
 	public function uninstall() {
-		$this->model_setting_setting->deleteSetting($this->ext_code);
+		$this->model_setting_setting->deleteSetting($this->getSettingCode());
 		return parent::uninstall();
 	}
 }
