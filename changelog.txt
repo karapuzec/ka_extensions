@@ -1,3 +1,6 @@
+4.1.1.29 (not released)
+- Installation: permissions of the extension pages were added to the user group on every installation, a reinstalled module had its routes in the group lists several times. Fixed: a permission is added only when the group does not have it yet. Existing duplicates are removed when the user group is saved.
+
 4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.
 - Format: convertToByte() parses fractions ('1.5G', '1,5G'), values without a suffix ('512' gave 51), '-1' (unlimited) and suffixes like '10 Mb', '10 KB', '100 bytes', 'T'.
