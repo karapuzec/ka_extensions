@@ -1,5 +1,6 @@
 4.1.1.29 (not released)
 - Installation: permissions of the extension pages were added to the user group on every installation, a reinstalled module had its routes in the group lists several times. Fixed: a permission is added only when the group does not have it yet. Existing duplicates are removed when the user group is saved.
+- Forms: a 'checkboxes' field (a list of checkboxes) could not be saved with all boxes unchecked, the old value was kept because unchecked boxes are not posted. Fixed: a submitted form without the field saves an empty list.
 
 4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.
