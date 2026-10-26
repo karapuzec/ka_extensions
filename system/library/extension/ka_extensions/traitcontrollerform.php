@@ -183,6 +183,16 @@ trait TraitControllerForm {
 					return false;
 				}
 			}
+
+			// 'max_length' limits a text value, e.g. to the size of its database column. The value is
+			// checked as it is posted (OpenCart stores it html-escaped, with entities)
+			//
+			if (in_array($field['type'], array('text', 'textarea')) && !empty($field['max_length'])
+				&& is_string($post[$code]) && mb_strlen($post[$code], 'UTF-8') > $field['max_length']
+			) {
+				$this->errors[$code] = sprintf($this->language->get('error_field_too_long'), $field['max_length']);
+				return false;
+			}
 		
 			if ($field['type'] == 'number') {
 				// a non-numeric value passed the limits, an empty value is checked by 'required'

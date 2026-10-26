@@ -269,6 +269,27 @@ class FormFieldsTest extends UnitTestCase {
 		$this->assertArrayHasKey('name', $errors);
 	}
 
+	/**
+	 * 'max_length' of a text or textarea field: a longer value is an error with the limit in the
+	 * message, the length is counted in characters (UTF-8), not bytes.
+	 */
+	public function testMaxLength() {
+		$this->form->language->set('error_field_too_long', 'Max %s');
+
+		list($result, $errors) = $this->validate('name', array('type' => 'text', 'max_length' => 5), array('name' => 'abcdef'));
+		$this->assertFalse($result);
+		$this->assertSame('Max 5', $errors['name']);
+
+		$this->setProperty($this->form, 'errors', array());
+		list($result, $errors) = $this->validate('name', array('type' => 'text', 'max_length' => 5), array('name' => 'абвгд'));
+		$this->assertTrue($result);
+		$this->assertSame(array(), $errors);
+
+		list($result, $errors) = $this->validate('descr', array('type' => 'textarea', 'max_length' => 3), array('descr' => 'abcd'));
+		$this->assertFalse($result);
+		$this->assertSame('Max 3', $errors['descr']);
+	}
+
 	public function testRequiredMissingField() {
 		list($result, $errors) = $this->validate('name', array('required' => true, 'title' => 'Name'), array());
 		$this->assertFalse($result);
