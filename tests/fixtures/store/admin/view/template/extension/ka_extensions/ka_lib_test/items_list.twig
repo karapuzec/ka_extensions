@@ -1,0 +1,10 @@
+{# Test list of the library tests: plain markers for the assertions #}
+<div id="ka-lib-test-list">
+{{ ka_top }}
+{% for r in records %}
+<p class="record" data-id="{{ r.item_id }}">{{ r.name }}|{{ r.record_title }}{% for a in r.actions %}|{{ a.type }}={{ a.href }}{% endfor %}</p>
+{% endfor %}
+<p class="sort-name">{{ sort_name }}</p>
+<p class="results">{{ results }}</p>
+<div class="pagination">{{ pagination }}</div>
+</div>

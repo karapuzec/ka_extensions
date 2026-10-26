@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Integration tests on the test store (tests/run.sh setup). Copy to phpunit.xml for local settings
+	or pass the values as environment variables. See tests/README.md.
+-->
+<phpunit bootstrap="bootstrap.php" colors="true">
+	<php>
+		<env name="KA_TEST_STORE_DIR" value="" />
+		<env name="KA_TEST_DB_NAME" value="" />
+		<env name="KA_TEST_DB_SNAPSHOT" value="" />
+	</php>
+	<groups>
+		<!-- tests reproducing reported bugs; run them explicitly with the "group known-bug" option -->
+		<exclude>
+			<group>known-bug</group>
+		</exclude>
+	</groups>
+	<testsuites>
+		<testsuite name="integration">
+			<directory>.</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

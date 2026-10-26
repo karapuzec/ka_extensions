@@ -1,0 +1,18 @@
+# Local test settings. Copy to config.local.sh (not versioned) and adjust.
+
+# database access (needs rights to create and drop the test database)
+KA_TEST_DB_USER=root
+KA_TEST_DB_PASSWORD=
+
+# the shared platform ka_oc3_testing: an svn working copy instead of the export into tests/platform
+# KA_TEST_PLATFORM_DIR=/path/to/ka_oc3_testing
+
+# KA_TEST_STORE_DIR=/tmp/ka_extensions_lib_store
+# KA_TEST_STORE_URL=http://localhost:8177/
+# KA_TEST_DB_NAME=kat_ka_extensions_lib
+# KA_TEST_OC_VERSION=3.0.5.1
+
+# ka_build.php and ka_gen.php folder (default: exported from https://svn.ka-station.com/ka_tools)
+# KA_BUILD_TOOLS=/path/to/ka_tools
+# svn command used by ka_build.php and the platform export (default: svn)
+# KA_BUILD_SVN=svn

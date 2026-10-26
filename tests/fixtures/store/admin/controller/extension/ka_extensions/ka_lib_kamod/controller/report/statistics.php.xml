@@ -1,0 +1,13 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[private $error = array();]]></search>
+			<text><![CDATA[private $error = array();
+
+	// added by the kapatch of the library tests
+	protected function kaLibTestPatched() {
+		return 'patched';
+	}]]></text>
+		</operation>
+	</changes>
+</kapatch>

@@ -126,6 +126,8 @@ for step in $STEPS; do
 			--node-dir="$TESTS_DIR/e2e"
 		;;
 	integration)
+		# the test module (controllers, model, language, template) used by the tests
+		cp -R "$TESTS_DIR/fixtures/store/." "$KA_TEST_STORE_DIR/"
 		(cd "$TESTS_DIR/integration" && "$PHP" "$PLATFORM_DIR/vendor/bin/phpunit" "$@")
 		;;
 	*)
