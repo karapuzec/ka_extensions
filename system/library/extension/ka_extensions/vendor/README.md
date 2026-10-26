@@ -1,5 +1,5 @@
-Third-party libraries used by the Ka Extensions library, copied as they are (only the code,
-composer.json and the license of each package):
+Third-party libraries used by the Ka Extensions library, copied as they are (only the code
+and the license of each package; composer.json files are not included):
 
 - jbroadway/urlify 1.2.5        https://github.com/jbroadway/urlify        (BSD-3-Clause, see LICENSE)
 - voku/portable-ascii 2.1.1     https://github.com/voku/portable-ascii     (MIT, see LICENSE.txt)
@@ -7,7 +7,7 @@ composer.json and the license of each package):
 They are loaded by \extension\ka_extensions\KaURLify (kaurlify.php), there is no composer autoloader.
 PHP 7.2 or newer.
 
-Local changes, to keep the package small (the code of the libraries is not changed):
+Local changes (the logic of the libraries is not changed):
 
 - voku/stop-words 2.0.1 (a dependency of urlify) is not bundled. urlify uses it only to remove
   stop words from urls, which KaURLify does not do; KaURLify::remove_words() keeps its own list.
@@ -19,3 +19,5 @@ Local changes, to keep the package small (the code of the libraries is not chang
   fullwidth forms...) are kept.
 - portable-ascii: the non-technical comment at the top of the ASCII class
   (src/voku/helper/ASCII.php) is removed.
+- portable-ascii: the ASCII class is not 'final' (the rule of the Ka Extensions code: classes
+  can be extended).
