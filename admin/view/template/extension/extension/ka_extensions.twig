@@ -157,6 +157,7 @@ function onKaRefresh(event, element) {
 		type: 'post',
 		dataType: 'json',
 		beforeSend: function() {
+			$(element).tooltip('hide');
 			$(element).button('loading');
 		},
 		complete: function() {
