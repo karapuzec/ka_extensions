@@ -100,25 +100,6 @@ abstract class ControllerSettings extends ControllerInstaller {
 
 
 	/*
-		Returns the code (group) of the module settings in the OpenCart setting table. The settings page
-		saves the values under this code, install() stores the default values there and uninstall()
-		deletes it. Opencart editSetting() stores only keys starting with the code, so the field codes
-		of the module should start with it.
-
-		vendor 'ka_extensions' - the extension code ('ka_messages')
-		other vendors          - vendor and extension code ('fluffy_opc_orders')
-	*/
-	protected function getSettingCode() {
-
-		if ($this->vendor == 'ka_extensions') {
-			return $this->ext_code;
-		}
-
-		return $this->vendor . '_' . $this->ext_code;
-	}
-
-
-	/*
 		Adds a top message unless the same message has been added already (modules adding the messages
 		themselves do not get them twice).
 	*/
@@ -176,8 +157,11 @@ abstract class ControllerSettings extends ControllerInstaller {
  	}
 
 		
+	/*
+		The settings of the module stay in the database after uninstallation, they are used again
+		when the module is installed again or upgraded.
+	*/
 	public function uninstall() {
-		$this->model_setting_setting->deleteSetting($this->getSettingCode());
 		return parent::uninstall();
 	}
 }

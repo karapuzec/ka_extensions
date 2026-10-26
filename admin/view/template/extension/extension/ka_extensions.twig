@@ -52,7 +52,9 @@
 	          	{% if extension.docs_link %} | <a href="{{ extension.docs_link }}" target="_blank">{{ t('Docs') }}</a>{% endif %}
 	          </div>
           </td>          
-          <td>{{ extension.version }}</td>
+          <td>{{ extension.version }}
+            {% if extension.action.refresh %}<div class="text-warning"><small>{{ extension.action.refresh.hint }}</small></div>{% endif %}
+          </td>
           <td class="text-center">
           	{% if extension.is_free %}
           		{{ t('Free') }}
@@ -76,6 +78,9 @@
           </td>
 				  <td class="text-right">
 	         	{% if extension.is_installed %}
+		            {% if extension.action.refresh %}
+		            <button type="button" data-href="{{ extension.action.refresh.href }}" data-toggle="tooltip" title="{{ extension.action.refresh.text }}: {{ extension.action.refresh.hint }}" class="btn btn-warning" onclick="javascript: onKaRefresh(event, this);"><i class="fa fa-refresh"></i></button>
+		            {% endif %}
 		            <a href="{{ extension.action.edit.href }}" data-toggle="tooltip" title="{{ extension.action.edit.text }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
 		            <a href="{{ extension.action.uninstall.href }}" data-toggle="tooltip" title="{{ extension.action.uninstall.text }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
 	            {% else %}
@@ -132,6 +137,36 @@ function onRegister(event, row, ext_code) {
 		}
 	});	
 
+}
+
+/*
+	The 'Refresh' button: posts the upgrade request and reloads the list. The page of OpenCart sends
+	a GET request for a click on any .btn-warning button, so the event does not go further.
+*/
+function onKaRefresh(event, element) {
+
+	event.preventDefault();
+	event.stopPropagation();
+
+	if (!confirm('{{ text_confirm }}')) {
+		return;
+	}
+
+	$.ajax({
+		url: $(element).attr('data-href'),
+		type: 'post',
+		dataType: 'json',
+		beforeSend: function() {
+			$(element).button('loading');
+		},
+		complete: function() {
+			$(element).button('reset');
+			$('select[name="type"]').trigger('change');
+		},
+		error: function(xhr, ajaxOptions, thrownError) {
+			alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+		}
+	});
 }
 
 // array of all related extensions prefetched from ka-station.com server

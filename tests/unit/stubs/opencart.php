@@ -284,3 +284,49 @@ class Loader {
 		$this->render_disabled = false;
 	}
 }
+
+
+/*
+	admin/model/setting/setting.php of OpenCart 3.0.5.1 working on an array instead of the setting
+	table: editSetting() replaces the group and stores only keys starting with the code, arrays are
+	stored as JSON, other values as strings.
+*/
+class ModelSettingSetting extends Model {
+	public $rows = array();
+
+	public function getSetting($code, $store_id = 0) {
+		$setting_data = array();
+
+		foreach ($this->rows as $row) {
+			if ($row['store_id'] == (int)$store_id && $row['code'] == $code) {
+				$setting_data[$row['key']] = $row['serialized'] ? json_decode($row['value'], true) : $row['value'];
+			}
+		}
+
+		return $setting_data;
+	}
+
+	public function editSetting($code, $data, $store_id = 0) {
+		$this->deleteSetting($code, $store_id);
+
+		foreach ($data as $key => $value) {
+			if (substr($key, 0, strlen($code)) == $code) {
+				$this->rows[] = array(
+					'store_id'   => (int)$store_id,
+					'code'       => $code,
+					'key'        => $key,
+					'value'      => is_array($value) ? json_encode($value, true) : (string)$value,
+					'serialized' => is_array($value) ? 1 : 0,
+				);
+			}
+		}
+	}
+
+	public function deleteSetting($code, $store_id = 0) {
+		foreach ($this->rows as $i => $row) {
+			if ($row['store_id'] == (int)$store_id && $row['code'] == $code) {
+				unset($this->rows[$i]);
+			}
+		}
+	}
+}
