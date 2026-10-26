@@ -79,7 +79,7 @@ class UpgradeTest extends LibraryTestCase {
 	public function testInstallStoresTheVersionAndNoButton() {
 		$this->install();
 		$this->assertSame('1.0.0.0', $this->installedVersion());
-		$this->assertStringNotContainsString('onKaRefresh(event', $this->listPage());
+		$this->assertStringNotContainsString('onKaRefresh(event, this)', $this->listPage());
 	}
 
 	public function testButtonForNewerFiles() {
@@ -127,7 +127,7 @@ class UpgradeTest extends LibraryTestCase {
 		}
 
 		// nothing to refresh any more
-		$this->assertStringNotContainsString('onKaRefresh(event', $this->listPage());
+		$this->assertStringNotContainsString('onKaRefresh(event, this)', $this->listPage());
 		$this->request('upgrade', array('confirm' => '1'));
 		$this->assertSame(array('E'), $this->messageTypes());
 		$this->assertStringContainsString('nothing to refresh', print_r($this->topMessages(), true));
@@ -176,7 +176,7 @@ class UpgradeTest extends LibraryTestCase {
 		$this->assertNotContains('S', $this->messageTypes());
 		$this->assertStringContainsString('the installed version 0.9.0.0 is kept', print_r($this->topMessages(), true));
 		$this->assertSame('0.9.0.0', $this->installedVersion());
-		$this->assertStringContainsString('onKaRefresh(event', $this->listPage(), 'the button stays');
+		$this->assertStringContainsString('onKaRefresh(event, this)', $this->listPage(), 'the button stays');
 	}
 
 	public function testNotInstalledModuleIsNotUpgraded() {
