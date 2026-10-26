@@ -60,3 +60,11 @@ $_['error_module_required']   = 'Module "%module%" is required in the store befo
 $_['txt_title_ka_extensions_log_emails'] = 'Log submitted emails to a log file';
 
 $_['Vendor'] = 'Vendor';
+
+// the 'Refresh' button: upgrade of an installed module to the version of the uploaded files
+$_['button_refresh_extension']    = 'Refresh';
+$_['text_refresh_hint']           = 'Files: %s, installed: %s';
+$_['text_refresh_successful']     = 'Extension has been refreshed to version %s successfully.';
+$_['error_refresh_failed']        = 'Extension has not been refreshed, the installed version %s is kept.';
+$_['error_refresh_not_installed'] = 'Extension is not installed.';
+$_['error_refresh_not_needed']    = 'Extension is up to date, nothing to refresh.';

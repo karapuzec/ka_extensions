@@ -4,10 +4,11 @@ namespace KaExtensionsTests\Integration;
 
 /**
  * ControllerSettings::getSettingCode(): the default values are installed to the setting group the page
- * saves, uninstallation deletes the saved values. Vendor 'ka_extensions' (code 'ka_lib_test') and another
+ * saves, uninstallation keeps the saved values (4.1.1.29, used by the next installation). Vendor 'ka_extensions' (code 'ka_lib_test') and another
  * vendor (fixture extension/ka_lib_vendor/vtest, code 'ka_lib_vendor_vtest'). Before 4.1.1.29 the other
  * vendor got no defaults (they went to the group 'vtest' where OpenCart skips keys not starting with it)
- * and kept its saved values after uninstallation.
+ * and kept its saved values after uninstallation under the group 'ka_lib_vendor_vtest' while the defaults
+ * went to 'vtest'.
  *
  * @group settings
  * @group installer
@@ -40,7 +41,7 @@ class SettingCodeTest extends LibraryTestCase {
 	}
 
 	protected function cleanUp() {
-		foreach (array('ka_lib_test', 'ka_lib_vendor_vtest', 'vtest') as $code) {
+		foreach (array('ka_lib_test', 'ka_lib_vendor_vtest', 'vtest', 'ka_lib_test_hidden', 'ka_lib_vendor_vtest_hidden') as $code) {
 			$this->deleteSettings($code);
 		}
 		$this->dropItemTable();
@@ -81,8 +82,9 @@ class SettingCodeTest extends LibraryTestCase {
 		$this->assertSame('Saved', $rows['ka_lib_test']['ka_lib_test_title']);
 		$this->assertSame(4, count($rows['ka_lib_test']));
 
+		// uninstallation keeps the settings
 		$this->assertTrue((bool)$this->action(static::MODULE_ROUTE . '/uninstall'));
-		$this->assertSame(array(), $this->rowsByCode('ka_lib_test_'));
+		$this->assertSame($rows, $this->rowsByCode('ka_lib_test_'));
 	}
 
 	public function testOtherVendorDefaultsGoToTheGroupOfThePage() {
@@ -128,10 +130,13 @@ class SettingCodeTest extends LibraryTestCase {
 		)), $this->rowsByCode('ka_lib_vendor_vtest_'));
 	}
 
-	public function testOtherVendorUninstallDeletesSavedValues() {
+	public function testOtherVendorUninstallKeepsSavedValues() {
 		$this->action(static::VENDOR_ROUTE . '/install');
 		$this->save(static::VENDOR_ROUTE, array('ka_lib_vendor_vtest_title' => 'Vendor saved'));
 		$this->assertTrue((bool)$this->action(static::VENDOR_ROUTE . '/uninstall'));
-		$this->assertSame(array(), $this->rowsByCode('ka_lib_vendor_vtest_'));
+		$this->assertSame(array('ka_lib_vendor_vtest' => array(
+			'ka_lib_vendor_vtest_title'   => 'Vendor saved',
+			'ka_lib_vendor_vtest_enabled' => '',
+		)), $this->rowsByCode('ka_lib_vendor_vtest_'));
 	}
 }

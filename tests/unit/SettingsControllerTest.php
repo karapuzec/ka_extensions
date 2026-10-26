@@ -89,7 +89,7 @@ class TestOverriddenSettingsController extends TestVendorSettingsController {
 }
 
 /**
- * ControllerSettings: one setting code (getSettingCode()) for saving, installation and uninstallation.
+ * ControllerSettings: one setting code (getSettingCode()) for saving and installation, uninstallation keeps the settings.
  *
  * @group settings
  */
@@ -147,8 +147,9 @@ class SettingsControllerTest extends UnitTestCase {
 		$this->assertTrue($controller->install());
 		$this->assertSame(array($key => 'Saved'), $this->settings->stored[$code]);
 
+		// the settings stay after uninstallation (used again by the next installation)
 		$this->assertTrue($controller->uninstall());
-		$this->assertSame(array(), $this->settings->stored);
+		$this->assertSame(array($key => 'Saved'), $this->settings->stored[$code]);
 		$this->assertSame(array($code), $this->settings->codes());
 	}
 }

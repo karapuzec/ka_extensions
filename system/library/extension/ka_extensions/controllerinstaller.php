@@ -125,6 +125,100 @@ abstract class ControllerInstaller extends Controller {
 	public function uninstall() {
 		return true;
 	}
+
+
+	/*
+		Upgrades the installed module to the version of the files. The Ka Extensions page calls it by
+		the 'Refresh' button when $extension_version is greater than the installed version.
+
+		By default it runs install() again: it patches the database, adds the default values of new
+		settings and grants permissions to new pages. A module overrides it when install() cannot be
+		repeated safely or when the data has to be migrated, e.g.:
+
+			public function upgradeExtension($from_version, $to_version) {
+				if (!parent::upgradeExtension($from_version, $to_version)) {
+					return false;
+				}
+				if (version_compare($from_version, '1.0.1.0', '<')) {
+					// migration to 1.0.1.0
+				}
+				return true;
+			}
+
+		$from_version - the installed version ('0.0.0.0' when it is not known)
+		$to_version   - the version of the files ($extension_version)
+
+		Returns true on success. On failure the installed version is not changed and the button stays.
+
+		The method is not called upgrade() because older modules have their own upgrade() without
+		parameters (e.g. Abandoned Cart Reminder 4.0.2.x), an incompatible declaration is a fatal error.
+	*/
+	public function upgradeExtension($from_version, $to_version) {
+		return $this->install();
+	}
+
+
+	/*
+		Returns the installed version of the module stored on installation or upgrade, '0.0.0.0' when
+		it is not stored (modules installed by older versions of the library).
+	*/
+	public function getInstalledVersion() {
+
+		if (!$this->hasHiddenSettings()) {
+			return '0.0.0.0';
+		}
+
+		$version = $this->model_setting_setting->getConfigHidden($this->getSettingCode(), 'version');
+		if (empty($version)) {
+			return '0.0.0.0';
+		}
+
+		return $version;
+	}
+
+
+	/*
+		Stores the installed version of the module (the hidden value 'version' of the module).
+	*/
+	public function saveInstalledVersion($version) {
+
+		if (!$this->hasHiddenSettings()) {
+			return false;
+		}
+
+		$this->model_setting_setting->setConfigHidden($this->getSettingCode(), 'version', $version);
+
+		return true;
+	}
+
+
+	/*
+		Checks that the setting model has getConfigHidden() / setConfigHidden() (the kamod cache of this
+		library version is built). OpenCart wraps a model into a Proxy with the methods as properties.
+	*/
+	protected function hasHiddenSettings() {
+		$model = $this->model_setting_setting;
+		return method_exists($model, 'getConfigHidden') || isset($model->getConfigHidden);
+	}
+
+
+	/*
+		Returns the code (group) of the module settings in the OpenCart setting table. The settings page
+		saves the values under this code, install() stores the default values there. Hidden values of
+		the module (the installed version) are stored under '<code>_hidden'. Opencart editSetting()
+		stores only keys starting with the code, so the field codes of the module should start with it.
+
+		vendor 'ka_extensions' - the extension code ('ka_messages')
+		other vendors          - vendor and extension code ('fluffy_opc_orders')
+	*/
+	protected function getSettingCode() {
+
+		if ($this->vendor == 'ka_extensions') {
+			return $this->ext_code;
+		}
+
+		return $this->vendor . '_' . $this->ext_code;
+	}
 	
 	
 	public function getTitle() {

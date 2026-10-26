@@ -127,11 +127,7 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 			
 				$this->load->language('extension/' . $full_extension_code);
 
-				$class = 'ControllerExtension' . str_replace('_', '', $this->vendor . $extension_code);
-				if (!class_exists($class)) {
-					require_once(modification(DIR_APPLICATION . 'controller/extension/' . $full_extension_code . '.php'));
-				}
-				$class = new $class($this->registry);
+				$class = $this->getExtensionObject($extension_code);
 				if (method_exists($class, 'getTitle')) {
 					$heading_title = $class->getTitle();
 				} else {
@@ -212,6 +208,19 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 						'text' => $this->language->get('button_uninstall'),
 						'href' => $this->url->linka('extension/extension/ka_extensions/uninstall', $url_params)
 					);
+
+					// the files are newer than the installed module: the 'Refresh' button runs the upgrade
+					//
+					if (method_exists($class, 'getInstalledVersion')) {
+						$installed_version = $class->getInstalledVersion();
+						if (version_compare($class->getVersion(), $installed_version, '>')) {
+							$action['refresh'] = array(
+								'text' => $this->language->get('button_refresh_extension'),
+								'href' => $this->url->linka('extension/extension/ka_extensions/upgrade', $url_params),
+								'hint' => sprintf($this->language->get('text_refresh_hint'), $class->getVersion(), $installed_version),
+							);
+						}
+					}
 				}
 				
 				$ext['action'] = $action;
@@ -250,9 +259,13 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 			if ($success) {
 				$this->model_setting_extension->install($this->vendor, $this->request->get['extension']);
 
-				$this->load->model('user/user_group');
-				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
-				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
+				$this->addExtensionPermissions($this->request->get['extension']);
+
+				// the installed version, the 'Refresh' button compares it with the version of the files
+				$extension = $this->getExtensionObject($this->request->get['extension']);
+				if (method_exists($extension, 'saveInstalledVersion')) {
+					$extension->saveInstalledVersion($extension->getVersion());
+				}
 				
 				$this->addTopMessage($this->language->get('installation_successful'), 'S');
 			} else {
@@ -293,6 +306,119 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		$this->children = array();
 		$this->getList();			
 	}
+
+	/*
+		Upgrades an installed module to the version of its files (the 'Refresh' button, POST only).
+
+		The module upgradeExtension() is called with the installed version and the version of the files.
+		On success the new version is stored, the kamod cache is rebuilt on the next request and
+		the module pages get the permissions. On failure the installed version stays, the button too.
+	*/
+	public function upgrade() {
+
+		if ($this->request->server['REQUEST_METHOD'] != 'POST') {
+			$this->addTopMessage($this->language->get('error_permission'), 'E');
+
+		} elseif ($this->validateUpgrade()) {
+
+			$extension_code = $this->request->get['extension'];
+			$extension = $this->getExtensionObject($extension_code);
+
+			$from_version = $extension->getInstalledVersion();
+			$to_version   = $extension->getVersion();
+
+			try {
+				$success = $extension->upgradeExtension($from_version, $to_version);
+			} catch (\Throwable $e) {
+				$this->infolog->write('Upgrade of ' . $this->vendor . '/' . $extension_code . ' failed: ' . $e->getMessage());
+				$success = false;
+			}
+
+			if ($success) {
+				$extension->saveInstalledVersion($to_version);
+
+				// new kamod files of the module are applied after the cache rebuild
+				if (method_exists($this->model_setting_extension, 'activateKamodForExtension')) {
+					$this->model_setting_extension->activateKamodForExtension($this->vendor, $extension_code);
+				}
+				\extension\ka_extensions\KamodManager::getInstance()->markKamodCacheInvalid();
+
+				$this->addExtensionPermissions($extension_code);
+
+				$this->addTopMessage(sprintf($this->language->get('text_refresh_successful'), $to_version), 'S');
+			} else {
+				$this->addTopMessage(sprintf($this->language->get('error_refresh_failed'), $from_version), 'E');
+			}
+
+		} elseif (!empty($this->errors)) {
+			$this->addTopMessage($this->errors, 'E');
+		}
+
+		// the page reloads the list with a new request, the messages are kept in the session
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode(array()));
+	}
+
+
+	/*
+		Checks the permission, the required modules and that the module is installed and can be upgraded.
+	*/
+	protected function validateUpgrade() {
+
+		if (empty($this->request->get['extension'])
+			|| !preg_match("/^[0-9a-zA-Z_]+$/", $this->request->get['extension'])
+		) {
+			return false;
+		}
+
+		if (!$this->validateInstall($this->vendor)) {
+			return false;
+		}
+
+		$extension_code = $this->request->get['extension'];
+
+		$installed = $this->model_extension_ka_extensions->getKaInstalled($this->vendor);
+		if (empty($installed[$extension_code])
+			|| !file_exists(DIR_APPLICATION . 'controller/extension/' . $this->vendor . '/' . $extension_code . '.php')
+		) {
+			$this->errors = $this->language->get('error_refresh_not_installed');
+			return false;
+		}
+
+		$extension = $this->getExtensionObject($extension_code);
+		if (!method_exists($extension, 'upgradeExtension')
+			|| !version_compare($extension->getVersion(), $extension->getInstalledVersion(), '>')
+		) {
+			$this->errors = $this->language->get('error_refresh_not_needed');
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/*
+		Returns an object of the module installer (its admin controller).
+	*/
+	protected function getExtensionObject($extension_code) {
+
+		$class = 'ControllerExtension' . str_replace('_', '', $this->vendor . $extension_code);
+		if (!class_exists($class)) {
+			require_once(modification(DIR_APPLICATION . 'controller/extension/' . $this->vendor . '/' . $extension_code . '.php'));
+		}
+
+		return new $class($this->registry);
+	}
+
+
+	/*
+		Grants the access and modify permissions of the module page to the group of the current user.
+	*/
+	protected function addExtensionPermissions($extension_code) {
+		$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $extension_code);
+		$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $extension_code);
+	}
+
 
 	protected function validate() {
 		if (!$this->user->hasPermission('modify', 'extension/extension/ka_extensions')) {

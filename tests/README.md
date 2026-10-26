@@ -6,7 +6,7 @@ Tests of the Ka Extensions library for OpenCart 3 (tested on OpenCart 3.0.5.1, P
 | --- | --- |
 | `unit/` | PHPUnit tests of library classes loaded from this working copy, with small OpenCart stubs (`unit/stubs/opencart.php`) and a recording database adaptor. No store, no database, about a second |
 | `integration/` | PHPUnit tests on a test store: OpenCart 3.0.5.1 with the Ka Extensions package built from the committed `HEAD` of this working copy, real MySQL |
-| `fixtures/store/` | test modules copied into the test store before the integration tests: `ka_lib_test` (settings page, installer, list, form, recordset) and `ka_lib_kamod` (kamod child class and kapatches), `ka_lib_vendor/vtest` (settings page of a vendor other than `ka_extensions`) |
+| `fixtures/store/` | test modules copied into the test store before the integration tests: `ka_lib_test` (settings page, installer with an `upgradeExtension()` migration, list, form, recordset) and `ka_lib_kamod` (kamod child class and kapatches), `ka_lib_vendor/vtest` (settings page of a vendor other than `ka_extensions`) |
 | `e2e/` | only `package.json`: Playwright used by the platform to install the package in the store admin |
 
 The shared platform https://svn.ka-station.com/ka_oc3_testing gives PHPUnit, the store setup and the
@@ -42,7 +42,8 @@ tests/run.sh integration --group=known-bug    # one step per call: a failing ste
 | `urlparams` | `UrlParams`: declared parameters, trimming, arrays, encoding, placeholders, sort links | |
 | `orm` | `QB` SQL and escaping, `ADBTable`, `ModelRecordset`, `ka_insert` / `ka_update` / `ka_delete` | the same on MySQL with quotes, backslashes and Cyrillic values, injection attempts |
 | `installer` | | `addPermission` once (802ae61), install / reinstall / uninstall from Extensions > Ka Extensions, DB patching of a new and an old table, incompatible library version |
-| `settings` | `ControllerSettings::getSettingCode()`: install, save and uninstall use one setting code (vendor `ka_extensions`, another vendor, an override) | `ControllerSettings`; `SettingCodeTest`: defaults installed to the group the page saves, reinstall keeps saved values, uninstall deletes them, for vendor `ka_extensions` and another vendor |
+| `settings` | `ControllerSettings::getSettingCode()`: install, save and uninstall use one setting code (vendor `ka_extensions`, another vendor, an override) | `ControllerSettings`; `SettingCodeTest`: defaults installed to the group the page saves, reinstall keeps saved values, uninstall keeps them, for vendor `ka_extensions` and another vendor |
+| `upgrade` | hidden values of a module (`getConfigHidden` / `setConfigHidden`: missing value, neighbour keys kept, arrays, null), installed version (`0.0.0.0` when not stored), default `upgradeExtension()` runs `install()`, the settings page and uninstall keep the hidden values, version comparison | the 'Refresh' button of Extensions > Ka Extensions: installation stores the version, the button and hint for newer files and for an old installation, POST upgrade keeps settings, adds defaults and tables, stores the version, invalidates the kamod cache; GET, no modify permission, a failed upgrade and a not installed module change nothing; ru-ru strings |
 | `kamod` | `KaPatch` replace / regexp / errors | kamod cache rebuild, child class of an OpenCart controller, PHP and Twig kapatches |
 | `helpers` | top messages (`addTopMessage` types), `Arrays`, `Pagination` | |
 | `smoke` | | the store runs this library and the test module |

@@ -40,7 +40,8 @@ of the module are defined in ``onLoad()``:
     class_alias(__NAMESPACE__ . '\ControllerMyModule', 'ControllerExtensionMyCompMyModule');
 
 The page shows the fields, validates them on submit and saves them as store settings.
-Default values are saved on install, the settings are deleted on uninstall.
+Default values are saved on install (saved values are kept). The settings stay in the database after
+uninstall, see :doc:`upgrading_modules`.
 
 Field Format
 ------------

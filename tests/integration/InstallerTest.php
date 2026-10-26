@@ -3,7 +3,8 @@
 namespace KaExtensionsTests\Integration;
 
 /**
- * Installation: permissions (added once, 802ae61), database patching, reinstall and uninstall.
+ * Installation: permissions (added once, 802ae61), database patching, the installed version, reinstall and
+ * uninstall (the settings stay).
  *
  * @group installer
  */
@@ -22,6 +23,7 @@ class InstallerTest extends LibraryTestCase {
 		$this->setPermissions($this->getUserGroupId(), $this->saved_permissions);
 		$this->db()->query("DELETE FROM `" . DB_PREFIX . "extension` WHERE `type` = 'ka_extensions' AND `code` = 'ka_lib_test'");
 		$this->deleteSettings('ka_lib_test');
+		$this->deleteSettings('ka_lib_test_hidden');
 		$this->dropItemTable();
 	}
 
@@ -87,6 +89,9 @@ class InstallerTest extends LibraryTestCase {
 		), $this->getSettings('ka_lib_test'));
 
 		$this->assertNotEmpty($this->queryRow("SELECT * FROM `" . DB_PREFIX . "extension` WHERE `type` = 'ka_extensions' AND `code` = 'ka_lib_test'"));
+
+		// the installed version is a hidden value of the module
+		$this->assertSame(array('ka_lib_test_hidden_version' => '1.0.0.0'), $this->getSettings('ka_lib_test_hidden'));
 	}
 
 	public function testReinstallDoesNotDuplicatePermissions() {
@@ -112,12 +117,14 @@ class InstallerTest extends LibraryTestCase {
 		$this->assertSame(array(1, 2), $settings['ka_lib_test_groups']);
 	}
 
-	public function testUninstallRemovesSettings() {
+	public function testUninstallKeepsSettings() {
 		$this->extensionAction('install');
+		$this->fixtures()->setSetting('ka_lib_test', 'ka_lib_test_title', 'Changed');
 		$output = $this->extensionAction('uninstall');
 		$this->assertStringContainsString('[type] => S', $output);
 		$this->assertStringNotContainsString('[type] => E', $output);
-		$this->assertSame(array(), $this->getSettings('ka_lib_test'));
+		$this->assertSame('Changed', $this->getSettings('ka_lib_test')['ka_lib_test_title']);
+		$this->assertSame(array('ka_lib_test_hidden_version' => '1.0.0.0'), $this->getSettings('ka_lib_test_hidden'));
 		$this->assertEmpty($this->queryRow("SELECT * FROM `" . DB_PREFIX . "extension` WHERE `type` = 'ka_extensions' AND `code` = 'ka_lib_test'"));
 	}
 

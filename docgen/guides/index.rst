@@ -14,6 +14,7 @@ high-level usage that isn't captured in the API DocBlocks.
    Overriding Core Files <overriding_core_files>
    Twig Templates <twig_templates>
    Module Settings Page <settings_page>
+   Upgrading Modules <upgrading_modules>
    Sending Emails <mail>
    Applying a Patch <apply_kapatch>
    Useful Constants <useful_constants>

@@ -85,6 +85,28 @@ class ControllerKaLibTest extends ControllerSettings {
 	protected function getExtensionPages() {
 		return array('items', 'item');
 	}
+
+	/*
+		Upgrade of the module: the default upgrade (install()) and a migration of older versions.
+		The tests make it fail with the hidden value 'fail_upgrade'.
+	*/
+	public function upgradeExtension($from_version, $to_version) {
+
+		if ($this->model_setting_setting->getConfigHidden($this->getSettingCode(), 'fail_upgrade')) {
+			$this->addTopMessage('The test upgrade failed.', 'E');
+			return false;
+		}
+
+		if (!parent::upgradeExtension($from_version, $to_version)) {
+			return false;
+		}
+
+		if (version_compare($from_version, '1.0.0.0', '<')) {
+			$this->model_setting_setting->setConfigHidden($this->getSettingCode(), 'migrated_from', $from_version);
+		}
+
+		return true;
+	}
 }
 
 class_alias(__NAMESPACE__ . '\ControllerKaLibTest', '\ControllerExtensionKaExtensionsKaLibTest');
