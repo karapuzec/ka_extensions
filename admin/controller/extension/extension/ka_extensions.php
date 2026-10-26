@@ -251,8 +251,8 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 				$this->model_setting_extension->install($this->vendor, $this->request->get['extension']);
 
 				$this->load->model('user/user_group');
-				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
-				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
+				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
+				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->request->get['extension']);
 				
 				$this->addTopMessage($this->language->get('installation_successful'), 'S');
 			} else {

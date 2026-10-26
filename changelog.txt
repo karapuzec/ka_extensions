@@ -1,4 +1,6 @@
 4.1.1.29 (not released)
+- Installation: permissions of the extension pages were added to the user group on every installation, a reinstalled module had its routes in the group lists several times. Fixed: a permission is added only when the group does not have it yet. Existing duplicates are removed when the user group is saved.
+- Forms: a 'checkboxes' field (a list of checkboxes) could not be saved with all boxes unchecked, the old value was kept because unchecked boxes are not posted. Fixed: a submitted form without the field saves an empty list.
 - ControllerList: delete() and deleteRecord() work by POST requests only, a GET request (e.g. a link) deletes nothing and shows the permission error. A delete link in a list template has to be replaced with a button posting to the same url.
 
 4.1.1.28

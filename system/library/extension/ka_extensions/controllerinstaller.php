@@ -113,8 +113,8 @@ abstract class ControllerInstaller extends Controller {
 		$routes = $this->getExtensionPages();
 		if (!empty($routes)) {
 			foreach($routes as $r) {
-				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->ext_code . '/' . $r);
-				$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->ext_code . '/' . $r);
+				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'access', 'extension/' . $this->vendor . '/' . $this->ext_code . '/' . $r);
+				$this->model_extension_ka_extensions->addPermission($this->user->getGroupId(), 'modify', 'extension/' . $this->vendor . '/' . $this->ext_code . '/' . $r);
 			}
 		}
 		

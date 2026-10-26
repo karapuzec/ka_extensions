@@ -462,6 +462,23 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	}
 	
 	
+	/*
+		Adds a permission ('access' or 'modify') for the route to the user group if the group
+		does not have it yet. Opencart addPermission() adds the route on every call, so repeated
+		installations created duplicates.
+	*/
+	public function addPermission($user_group_id, $type, $route) {
+		$this->load->model('user/user_group');
+
+		$user_group = $this->model_user_user_group->getUserGroup($user_group_id);
+		if (!empty($user_group['permission'][$type]) && in_array($route, $user_group['permission'][$type])) {
+			return;
+		}
+
+		$this->model_user_user_group->addPermission($user_group_id, $type, $route);
+	}
+
+
 	public function getLoadedExtensions($vendor = 'ka_extensions') {
 		$extensions = array();
 

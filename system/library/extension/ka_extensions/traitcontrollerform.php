@@ -61,7 +61,10 @@ trait TraitControllerForm {
 			if (isset($new_data[$k])) {
 				$f['value'] = $new_data[$k];
 			} else {		
-				if (empty($f['type']) || $f['type'] != 'checkbox') {
+				// unchecked checkboxes are not posted
+				if (!empty($f['type']) && $f['type'] == 'checkboxes') {
+					$f['value'] = [];
+				} elseif (empty($f['type']) || $f['type'] != 'checkbox') {
 					if (isset($old_data[$k])) {
 						$f['value'] = $old_data[$k];
 					} else {
