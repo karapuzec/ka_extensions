@@ -22,7 +22,8 @@ cp tests/config.local.sh.dist tests/config.local.sh   # database access and othe
 tests/run.sh                                  # unit + setup + integration
 tests/run.sh unit                             # unit tests only (no store needed)
 tests/run.sh integration --group=orm          # one group on the already prepared store
-tests/run.sh unit integration --group=known-bug   # tests reproducing known bugs (they fail until fixed)
+tests/run.sh unit --group=known-bug           # tests reproducing known bugs (they fail until fixed),
+tests/run.sh integration --group=known-bug    # one step per call: a failing step stops run.sh
 ```
 
 - `setup` builds the package of the committed `HEAD` (`ka_build.php` in a temporary git worktree, cached per
