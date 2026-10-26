@@ -117,11 +117,8 @@ class MiscTest extends UnitTestCase {
 	}
 
 	/**
-	 * Without 'limit' the class reads 'config_pagination_admin' (the OpenCart 4 setting). OpenCart 3
-	 * keeps 'Default Items Per Page (Admin)' in 'config_limit_admin', so the store setting is ignored
-	 * and 20 is used.
-	 *
-	 * @group known-bug
+	 * Without 'limit' the class takes 'Default Items Per Page (Admin)' of OpenCart 3 ('config_limit_admin');
+	 * it read only the OpenCart 4 setting 'config_pagination_admin' and used 20.
 	 */
 	public function testPaginationTakesTheOpenCart3Limit() {
 		$this->registry->get('config')->set('config_limit_admin', 7);

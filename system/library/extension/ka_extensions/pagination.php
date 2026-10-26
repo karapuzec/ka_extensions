@@ -42,9 +42,13 @@ class Pagination {
 		if (!empty($params['limit'])) {
 			$this->limit = $params['limit'];
 		} else {
+			// OpenCart 3 keeps the admin limit in config_limit_admin, OpenCart 4 in config_pagination_admin
 			$store_limit = $this->config->get('config_pagination_admin');
+			if (empty($store_limit)) {
+				$store_limit = $this->config->get('config_limit_admin');
+			}
 		 	if (!empty($store_limit)) {
-		 		$this->limit = $store_limit;
+		 		$this->limit = (int)$store_limit;
 		 	}
 		}
 		
