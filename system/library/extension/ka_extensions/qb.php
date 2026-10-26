@@ -215,7 +215,7 @@ class QB {
 		if (empty($after)) {
 			$this->orderBy[$order] = $order;
 		} else {
-			$this->orderBy = Arrays::insertAfterKey($this->orderBy, $order, $after);
+			$this->orderBy = $this->insertAfter($this->orderBy, $order, $after);
 		}
 	}
 
@@ -230,8 +230,23 @@ class QB {
 		if (empty($after)) {
 			$this->groupBy[$groupBy] = $groupBy;
 		} else {
-			$this->groupBy = Arrays::insertAfterKey($this->groupBy, $groupBy, $after);
+			$this->groupBy = $this->insertAfter($this->groupBy, $groupBy, $after);
 		}
+	}
+	
+	/*
+		Puts $value after the $after value of the list (orderBy, groupBy), at the end when $after is not
+		in the list.
+	*/
+	protected function insertAfter($list, $value, $after) {
+	
+		unset($list[$value]);
+		if (!isset($list[$after])) {
+			$list[$value] = $value;
+			return $list;
+		}
+		
+		return Arrays::insertAfterKey($list, $after, array($value => $value));
 	}
 	
 	/*
@@ -268,13 +283,15 @@ class QB {
 			$sql .= " FROM (" . implode(' UNION ALL ', $parts) . ") AS " . $this->from_union_alias;
 
 		} else if (!empty($this->from)) {
-			$sql .= " FROM ";
+			$tables = array();
 			foreach ($this->from as $k => $v) {			
-				$sql .= '`' . DB_PREFIX . $v . '`';
+				$table = '`' . DB_PREFIX . $v . '`';
 				if ($v != $k) {
-					$sql .= " " . $k;
+					$table .= " " . $k;
 				}
+				$tables[] = $table;
 			}
+			$sql .= " FROM " . implode(", ", $tables);
 		}
 		
 		// inner join parameters

@@ -101,11 +101,8 @@ class QBTest extends UnitTestCase {
 	}
 
 	/**
-	 * orderBy($order, $after) / groupBy() pass the arguments to Arrays::insertAfterKey($array, $key, $value)
-	 * in the wrong order (the new value as the key, the string $after as the array to insert): the value
-	 * is silently dropped (or a TypeError when $order is already in the list).
-	 *
-	 * @group known-bug
+	 * orderBy($order, $after) / groupBy() put the value after $after (the arguments of
+	 * Arrays::insertAfterKey() were in the wrong order, the value was dropped).
 	 */
 	public function testOrderByAfter() {
 		$qb = new QB();
@@ -117,15 +114,27 @@ class QBTest extends UnitTestCase {
 	}
 
 	/**
-	 * Several from() tables are joined without a comma: "FROM `oc_a` a`oc_b` b".
-	 *
-	 * @group known-bug
+	 * Several from() tables are separated with commas (they were joined without a comma).
 	 */
 	public function testSeveralFromTables() {
 		$qb = new QB();
 		$qb->select('*', 'product', 'p');
 		$qb->from('category', 'c');
 		$this->assertSame("SELECT * FROM `oc_product` p, `oc_category` c", $this->sql($qb));
+	}
+
+	public function testGroupByAfterAndMovedValues() {
+		$qb = new QB();
+		$qb->select('*', 'product');
+		$qb->groupBy('a');
+		$qb->groupBy('b');
+		$qb->groupBy('c', 'a');
+		$qb->groupBy('b', 'missing');
+		$qb->orderBy('x');
+		$qb->orderBy('y');
+		$qb->orderBy('y', 'missing');
+		$qb->orderBy('x', 'y');
+		$this->assertSame("SELECT * FROM `oc_product` GROUP BY a, c, b ORDER BY y, x", $this->sql($qb));
 	}
 
 	public function testDelete() {
