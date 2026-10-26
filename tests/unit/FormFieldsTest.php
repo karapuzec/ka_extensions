@@ -210,10 +210,8 @@ class FormFieldsTest extends UnitTestCase {
 	}
 
 	/**
-	 * initFields() returns null for no fields, ControllerForm::validate() then calls foreach on null
-	 * (a warning in PHP 8) for a form without fields.
-	 *
-	 * @group known-bug
+	 * initFields() returns an empty array for no fields (it returned null, ControllerForm::validate() then
+	 * called foreach on null).
 	 */
 	public function testInitFieldsOfNoFieldsGivesAnArray() {
 		$this->assertSame(array(), $this->call($this->form, 'initFields', array()));
@@ -262,10 +260,8 @@ class FormFieldsTest extends UnitTestCase {
 	}
 
 	/**
-	 * validateField() trims the value only when empty() is true, so a value of spaces passes
-	 * a required field (the trim() check is never reached for it).
-	 *
-	 * @group known-bug
+	 * A value of spaces is empty for a required field (the trim() check was reached only when empty()
+	 * was true).
 	 */
 	public function testRequiredWhitespaceIsEmpty() {
 		list($result, $errors) = $this->validate('name', array('type' => 'text', 'required' => true, 'title' => 'Name'), array('name' => "  \t"));
@@ -314,24 +310,42 @@ class FormFieldsTest extends UnitTestCase {
 	}
 
 	/**
-	 * A non-numeric value passes the number limits ('abc' < 1 is false in PHP 8).
-	 *
-	 * @group known-bug
+	 * A non-numeric value of a number field with limits is an error (it passed: 'abc' < 1 is false in PHP 8).
 	 */
 	public function testNonNumericValueOfANumberField() {
-		list(, $errors) = $this->validate('qty', array('type' => 'number', 'min_value' => 1), array('qty' => 'abc'));
+		list($result, $errors) = $this->validate('qty', array('type' => 'number', 'min_value' => 1), array('qty' => 'abc'));
+		$this->assertFalse($result);
+		$this->assertSame('The value must be a number', $errors['qty']);
+
+		$this->setProperty($this->form, 'errors', array());
+		list(, $errors) = $this->validate('qty', array('type' => 'number', 'max_value' => 10), array('qty' => '1e9x'));
 		$this->assertArrayHasKey('qty', $errors);
+
+		// numeric values and an empty optional value are checked as before
+		$this->setProperty($this->form, 'errors', array());
+		list($result, $errors) = $this->validate('qty', array('type' => 'number', 'max_value' => 10), array('qty' => ''));
+		$this->assertTrue($result);
+		$this->assertSame(array(), $errors);
+
+		list($result, $errors) = $this->validate('qty', array('type' => 'number', 'min_value' => 1), array('qty' => '2.5'));
+		$this->assertTrue($result);
+		$this->assertSame(array(), $errors);
 	}
 
 	/**
-	 * A required 'checkboxes' field posted as an empty array calls trim() on an array (TypeError in PHP 8).
-	 *
-	 * @group known-bug
+	 * A required 'checkboxes' field posted as an empty array is empty (trim() was called on the array,
+	 * a TypeError in PHP 8).
 	 */
 	public function testRequiredCheckboxesPostedEmpty() {
 		list($result, $errors) = $this->validate('groups', array('type' => 'checkboxes', 'required' => true, 'title' => 'Groups'), array('groups' => array()));
 		$this->assertFalse($result);
 		$this->assertSame('Field Groups is empty', $errors['groups']);
+	}
+
+	public function testRequiredCheckboxesWithValues() {
+		list($result, $errors) = $this->validate('groups', array('type' => 'checkboxes', 'required' => true), array('groups' => array('0')));
+		$this->assertTrue($result);
+		$this->assertSame(array(), $errors);
 	}
 
 	public function testValidateFields() {

@@ -7,6 +7,7 @@
 - kamod: the log (kamod.log) had the month name instead of the hour in the time. Fixed.
 - Pagination: without the 'limit' parameter the OpenCart 3 setting 'Default Items Per Page (Admin)' (config_limit_admin) was ignored and 20 was used. Fixed.
 - Model: the deprecated getNamespace() used an undefined variable for a class without a namespace (a warning). Fixed: an empty namespace is returned.
+- Forms: validation of fields. A required field of spaces passed; a required 'checkboxes' field posted as an empty list gave a TypeError; a non-numeric value of a 'number' field with min_value/max_value passed the limits (now 'The value must be a number'); initFields() of no fields returned null instead of an empty array. Fixed.
 
 4.1.1.28
 - Twig: added include_jska('path/file.js', ...) and include_csska('path/file.css', ...) functions. They print <script>/<link> tags for the given urls (as in src/href) with ?v=<file time>.

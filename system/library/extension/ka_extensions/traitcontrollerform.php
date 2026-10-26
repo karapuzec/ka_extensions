@@ -26,7 +26,7 @@ trait TraitControllerForm {
 	protected function initFields($fields) {
 	
 		if (empty($fields)) {
-			return;
+			return array();
 		}
 		
 		foreach ($fields as $k => $v) {
@@ -158,21 +158,20 @@ trait TraitControllerForm {
 	
 		if (!empty($field['required'])) {
 
-			if (empty($post[$code])) {
-				if (!isset($post[$code]) || !strlen(trim($post[$code]))) {
-					$name = $code;
+			// a value of spaces is empty too, '0' is a value
+			if (!isset($post[$code]) || (is_array($post[$code]) ? empty($post[$code]) : !strlen(trim($post[$code])))) {
+				$name = $code;
 
-					if (!empty($field['title'])) {
-						$name = $field['title'];
-					} else {
-						$langvar = $this->language->get('txt_title_' . $code);
-						if (!empty($langvar)) {
-							$name = $langvar;
-						}
+				if (!empty($field['title'])) {
+					$name = $field['title'];
+				} else {
+					$langvar = $this->language->get('txt_title_' . $code);
+					if (!empty($langvar)) {
+						$name = $langvar;
 					}
-					$this->errors[$code] = sprintf($this->language->get('error_field_is_empty'), $name);
-					return false;
 				}
+				$this->errors[$code] = sprintf($this->language->get('error_field_is_empty'), $name);
+				return false;
 			}
 		}
 
@@ -186,6 +185,11 @@ trait TraitControllerForm {
 			}
 		
 			if ($field['type'] == 'number') {
+				// a non-numeric value passed the limits, an empty value is checked by 'required'
+				if ((isset($field['min_value']) || isset($field['max_value'])) && $post[$code] !== '' && !is_numeric($post[$code])) {
+					$this->errors[$code] = $this->language->get('The value must be a number');
+					return false;
+				}
 				if (isset($field['min_value'])) {
 					if ($field['min_value'] > $post[$code]) {
 						$this->errors[$code] = sprintf($this->language->get("Minimum value is %s"), $field['min_value']);
