@@ -110,10 +110,11 @@ class SettingCodeTest extends LibraryTestCase {
 		$this->action(static::VENDOR_ROUTE . '/install');
 		$this->save(static::VENDOR_ROUTE, array('ka_lib_vendor_vtest_title' => 'Vendor saved'));
 
-		// one group, one row per key: the saved values replaced the defaults
+		// one group, one row per key: the saved values replaced the defaults (an unchecked box of the
+		// settings page is saved as '', see SettingsTest::testSaveWithAllBoxesUnchecked)
 		$this->assertSame(array('ka_lib_vendor_vtest' => array(
 			'ka_lib_vendor_vtest_title'   => 'Vendor saved',
-			'ka_lib_vendor_vtest_enabled' => '0',
+			'ka_lib_vendor_vtest_enabled' => '',
 		)), $this->rowsByCode('ka_lib_vendor_vtest_'));
 	}
 
