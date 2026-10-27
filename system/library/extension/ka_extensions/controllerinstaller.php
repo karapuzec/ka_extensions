@@ -18,7 +18,7 @@ abstract class ControllerInstaller extends Controller {
 
 	// contstants
 	//
-	public static $ka_extensions_version = '4.1.1.28';
+	public static $ka_extensions_version = '4.1.1.29';
 	
 	protected $extension_version = '0.0.0';
 	protected $min_store_version = '3.0.0.0';
