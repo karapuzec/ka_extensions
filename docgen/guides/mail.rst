@@ -62,6 +62,32 @@ Attachments
 
 The second parameter is the file name shown in the email (optional).
 
+Inline Images
+-------------
+
+An image can be shown in the html part of the email instead of being a regular attachment (library 4.1.1.30+):
+
+.. code-block:: php
+
+    $cid = 'mymodule-12.png';
+    if (method_exists($mail, 'addInlineImage')) {
+        $mail->addInlineImage($file, $cid);      // $mime = '' - detected from the file
+    } else {
+        $mail->addAttachment($file, $cid);       // older library
+    }
+    $mail->data['image_src'] = 'cid:' . urlencode($cid);   // <img src="{{ image_src }}">
+
+- ``$cid`` is the content id and the file name of the image, allowed characters ``A-Z a-z 0-9 . _ -``;
+- supported types: ``image/png``, ``image/jpeg``, ``image/gif``, ``image/webp``;
+- the method returns ``false`` when the file is added as a regular attachment (not a supported image,
+  a wrong content id).
+
+Inline images are sent as ``image/*`` parts with ``Content-Disposition: inline`` inside ``multipart/related``
+together with the text and html parts; other attachments stay in ``multipart/mixed``. Without an html part
+they are inline ``image/*`` parts of ``multipart/mixed``. Emails without inline images are built exactly as
+before. The structure is made by the library patches of the OpenCart mail adaptors
+(``mail/mail.php.xml``, ``mail/smtp.php.xml``), so the kamod cache has to be rebuilt after the library update.
+
 Settings and Logging
 --------------------
 

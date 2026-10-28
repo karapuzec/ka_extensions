@@ -7,7 +7,15 @@
 		</operation>
 		<operation type="replace">
 			<search><![CDATA[foreach ($this->attachments as $attachment) {]]></search>
-			<text><![CDATA[foreach ($this->attachments as $file_title => $attachment) {]]></text>
+			<text><![CDATA[// ka-extensions: inline images added by addInlineImage() are sent in multipart/related with the html part
+			$ka_related = (!empty($this->ka_inline_images) && !empty($this->html) && class_exists('extension\\ka_extensions\\MailInline'));
+			if ($ka_related) {
+				$message = \extension\ka_extensions\MailInline::wrapRelated($message, $boundary, $this->attachments, $this->ka_inline_images);
+			}
+			foreach ($this->attachments as $file_title => $attachment) {
+				if ($ka_related && !empty($this->ka_inline_images[$file_title])) {
+					continue;
+				}]]></text>
 		</operation>
 		<operation type="replace">
 			<search><![CDATA[basename($attachment)]]></search>
@@ -32,6 +40,14 @@
 				}
 			}
 			$header .= 'X-Mailer: PHP]]></text>
+		</operation>
+		<operation type="replace">
+			<search><![CDATA['Content-Type: application/octet-stream; name="']]></search>
+			<text><![CDATA['Content-Type: ' . (!empty($this->ka_inline_images[$file_title]['mime']) ? $this->ka_inline_images[$file_title]['mime'] : 'application/octet-stream') . '; name="']]></text>
+		</operation>
+		<operation type="replace">
+			<search><![CDATA['Content-Disposition: attachment; filename="']]></search>
+			<text><![CDATA['Content-Disposition: ' . (!empty($this->ka_inline_images[$file_title]) ? 'inline' : 'attachment') . '; filename="']]></text>
 		</operation>
 	</changes>
 </kapatch>

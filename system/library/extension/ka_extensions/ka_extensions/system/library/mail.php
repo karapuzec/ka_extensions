@@ -12,12 +12,49 @@ class Mail extends \Mail {
 	// when true, exceptions of the send() method are logged and suppressed
 	protected $suppress_exceptions = true;
 
+	// inline images added by addInlineImage(): [<content id> => ['mime' => <image mime type>]].
+	// The patched mail adaptors (mail/mail.php.xml, mail/smtp.php.xml) send them as image/* parts with
+	// 'Content-Disposition: inline' inside multipart/related. Without them the email is built as before.
+	protected $ka_inline_images = [];
+
 	public function addNamedAttachment($filename, $name) {
 		$this->attachments[$name] = $filename;
 	}
 
 	public function addAttachment($filename) {
 		$this->addNamedAttachment($filename, basename($filename));
+	}
+
+	/*
+		Adds an image shown in the html part of the email by <img src="cid:<$cid>">.
+
+		$filename - full path to the image file
+		$cid      - content id and file name of the image, allowed characters: A-Z a-z 0-9 . _ -
+		$mime     - image/png, image/jpeg, image/gif or image/webp; detected from the file when empty
+
+		The file is always added as a named attachment. Returns true when it is marked as an inline image,
+		false when it stays a regular attachment (not a supported image or a wrong content id).
+	*/
+	public function addInlineImage($filename, $cid, $mime = '') {
+
+		$this->addNamedAttachment($filename, $cid);
+
+		if (empty($mime) && is_file($filename)) {
+			$info = @getimagesize($filename);
+			if (!empty($info['mime'])) {
+				$mime = $info['mime'];
+			}
+		}
+
+		$allowed = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+		if (!in_array($mime, $allowed, true) || !preg_match('/^[A-Za-z0-9._\-]+$/', $cid) || is_numeric($cid)) {
+			unset($this->ka_inline_images[$cid]);
+			return false;
+		}
+
+		$this->ka_inline_images[$cid] = ['mime' => $mime];
+
+		return true;
 	}
 	
 	

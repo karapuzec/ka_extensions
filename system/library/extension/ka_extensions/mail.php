@@ -213,6 +213,27 @@ class Mail {
 			$this->mail->addAttachment($filename);
 		}
 	}
+
+	/*
+		Adds an image for the html part of the email. Refer to it in the template as
+		<img src="cid:{{ cid }}">, where cid is urlencode($cid) (the same for the allowed characters).
+
+		$filename - full path to the image file
+		$cid      - content id and file name of the image, allowed characters: A-Z a-z 0-9 . _ -
+		$mime     - image/png, image/jpeg, image/gif or image/webp; detected from the file when empty
+
+		The image is sent as an inline part of multipart/related. Returns false when the file is added as
+		a regular attachment (not a supported image, a wrong content id, an old mail object).
+	*/
+	public function addInlineImage($filename, $cid, $mime = '') {
+		if (method_exists($this->mail, 'addInlineImage')) {
+			return $this->mail->addInlineImage($filename, $cid, $mime);
+		}
+
+		$this->addAttachment($filename, $cid);
+
+		return false;
+	}
 	
 	public function sendContent($to, $subject, $tpl, $from = '', $extra = []) {
 		$extra['send_content'] = 1;
