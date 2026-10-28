@@ -18,6 +18,10 @@ namespace extension\ka_extensions;
 	1. You need to attach the trait in a model/controller class.
 	2. Create a function that will receive parameters: $sql string and $data array
 	3. set the filter before calling the original function and remove the filter after that.
+	   setFilter() returns the filter id, pass it to removeFilter($id) in a 'finally' block: only this
+	   filter is removed even when the original function throws an exception. The filters of a class
+	   are a stack, removeFilter() without the id removes the last filter of the current class
+	   (before 4.1.1.29 it removed all filters of the class, also the ones of the calling methods).
 
 	Here is an example:
 	
@@ -29,9 +33,12 @@ class ModelCatalogDownload extends \ModelCatalogDownload {
 
 	public function getDownloads($data = array()) {
 	
-		$this->db->setFilter([$this, 'getDownloadsDBFilter'], $data);
-		$result = parent::getDownloads();
-		$this->db->removeFilter();
+		$filter_id = $this->db->setFilter([$this, 'getDownloadsDBFilter'], $data);
+		try {
+			$result = parent::getDownloads($data);
+		} finally {
+			$this->db->removeFilter($filter_id);
+		}
 	
 		return $result;
 	}

@@ -218,6 +218,8 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 								'text' => $this->language->get('button_refresh_extension'),
 								'href' => $this->url->linka('extension/extension/ka_extensions/upgrade', $url_params),
 								'hint' => sprintf($this->language->get('text_refresh_hint'), $class->getVersion(), $installed_version),
+								// no stored version (0.0.0.0): nothing under the version, the hint stays in the tooltip
+								'show_hint' => ($installed_version != '0.0.0.0'),
 							);
 						}
 					}

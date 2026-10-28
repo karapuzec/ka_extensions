@@ -139,4 +139,26 @@ class SettingCodeTest extends LibraryTestCase {
 			'ka_lib_vendor_vtest_enabled' => '',
 		)), $this->rowsByCode('ka_lib_vendor_vtest_'));
 	}
+
+	/*
+		The module language file has no validation texts, they come from the library common language file
+		(before 4.1.1.29 the raw key 'error_field_is_empty' was shown).
+	*/
+	public function testRequiredFieldErrorIsTextNotKey() {
+		$this->action(static::VENDOR_ROUTE . '/install');
+		$this->oc->get('session')->data['ka_top_messages'] = null;
+		$result = $this->oc->request(static::VENDOR_ROUTE, array(), array('ka_lib_vendor_vtest_title' => ''));
+		$this->assertSame('', $result['redirect']);
+		$this->assertStringContainsString('<div class="text-danger">Field is empty</div>', $result['output']);
+		$this->assertStringNotContainsString('error_field_is_empty', $result['output']);
+	}
+
+	public function testRussianValidationTexts() {
+		$language = new \Language('ru-ru');
+		$language->load('extension/ka_extensions/ka_extensions/common');
+		$this->assertSame('Поле не заполнено', $language->get('error_field_is_empty'));
+		$this->assertSame('Минимальное значение: %s', $language->get('Minimum value is %s'));
+		$this->assertSame('Максимальное значение: %s', $language->get('Maximum value is %s'));
+		$this->assertSame('Значение должно быть числом', $language->get('The value must be a number'));
+	}
 }
