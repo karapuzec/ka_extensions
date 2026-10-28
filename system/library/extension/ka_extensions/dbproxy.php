@@ -22,7 +22,11 @@ class DBProxy {
 
 	protected $db;
 	protected $current_class = 'db';
+	// filters by class: class name => [filter id => [callable, args]], in the order of setting
 	protected $filters = array();
+
+	// the last filter id, ids are unique for all classes
+	protected static $last_filter_id = 0;
 
 	
 	public function __construct($db) {
@@ -65,18 +69,45 @@ class DBProxy {
 	}
 	
 	
+	/*
+		Adds a filter to the queries of the current class. Returns the filter id for removeFilter().
+	*/
 	public function setFilter($filter, $args = null) {
 	
 		if (!isset($this->filters[$this->current_class])) {
 			$this->filters[$this->current_class] = [];
 		}
 		
-		$this->filters[$this->current_class][] = [$filter, $args];
+		$id = ++static::$last_filter_id;
+		$this->filters[$this->current_class][$id] = [$filter, $args];
+
+		return $id;
 	}
 
 	
-	public function removeFilter() {
-		$this->filters[$this->current_class] = [];
+	/*
+		Removes the filter with the id returned by setFilter(). Without the id the last filter set by
+		the current class is removed (the filters of a class are a stack), other filters stay.
+		Returns false when there was no such filter.
+	*/
+	public function removeFilter($id = null) {
+
+		if (is_null($id)) {
+			if (empty($this->filters[$this->current_class])) {
+				return false;
+			}
+			array_pop($this->filters[$this->current_class]);
+			return true;
+		}
+
+		foreach ($this->filters as $class => $filters) {
+			if (isset($filters[$id])) {
+				unset($this->filters[$class][$id]);
+				return true;
+			}
+		}
+
+		return false;
 	}	
 	
 	
