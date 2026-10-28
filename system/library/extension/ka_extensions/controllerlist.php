@@ -75,17 +75,6 @@ abstract class ControllerList extends ControllerPage {
 	}
 	
 	
-	// records are deleted by POST requests only
-	//
-	protected function validateDeleteRequest() {
-		if ($this->request->server['REQUEST_METHOD'] != 'POST') {
-			$this->addTopMessage($this->language->get('error_permission'), 'E');
-			return false;
-		}
-		return true;
-	}
-	
-	
 	protected function getPageFilterFields($filter_fields = array()) {
 	
 		$fields = array();
@@ -207,7 +196,14 @@ abstract class ControllerList extends ControllerPage {
 	
 	public function delete() {
 
-		if (!$this->validateDeleteRequest() || !$this->validateDelete() || empty($this->request->post['selected'])) {
+		// records are deleted by POST requests only
+		if ($this->request->server['REQUEST_METHOD'] != 'POST') {
+			$this->addTopMessage($this->language->get('error_permission'), 'E');
+			$this->response->redirect($this->url->linka(static::PAGE_ROUTE, $this->url_params->getUrlParams()));
+			return;
+		}
+
+		if (!$this->validateDelete() || empty($this->request->post['selected'])) {
 			$this->response->redirect($this->url->linka(static::PAGE_ROUTE, $this->url_params->getUrlParams()));
 			return;
 		}
@@ -225,7 +221,13 @@ abstract class ControllerList extends ControllerPage {
 	//
 	public function deleteRecord() {
 
-		if (!$this->validateDeleteRequest() || !$this->validateDelete()) {
+		if ($this->request->server['REQUEST_METHOD'] != 'POST') {
+			$this->addTopMessage($this->language->get('error_permission'), 'E');
+			$this->response->redirect($this->url->linka(static::PAGE_ROUTE, $this->url_params->getUrlParams()));
+			return;
+		}
+
+		if (!$this->validateDelete()) {
 			$this->response->redirect($this->url->linka(static::PAGE_ROUTE, $this->url_params->getUrlParams()));
 			return;
 		}
