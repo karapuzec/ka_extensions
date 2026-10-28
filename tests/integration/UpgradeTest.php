@@ -90,12 +90,17 @@ class UpgradeTest extends LibraryTestCase {
 		$this->assertStringContainsString('class="btn btn-warning" onclick="javascript: onKaRefresh(event, this);"', $output);
 		$this->assertStringContainsString('route=extension/extension/ka_extensions/upgrade', $output);
 		$this->assertStringContainsString('Files: 1.0.0.0, installed: 0.9.0.0', $output);
+		// the orange text under the version
+		$this->assertStringContainsString('<div class="text-warning" style="white-space: nowrap"><small>Files: 1.0.0.0, installed: 0.9.0.0</small></div>', $output);
 	}
 
 	public function testOldInstallationWithoutVersionIsZero() {
 		$this->install();
 		$this->deleteSettings('ka_lib_test_hidden');
-		$this->assertStringContainsString('Files: 1.0.0.0, installed: 0.0.0.0', $this->listPage());
+		$output = $this->listPage();
+		// the button and its tooltip have the hint, nothing is shown under the version
+		$this->assertStringContainsString('title="Refresh: Files: 1.0.0.0, installed: 0.0.0.0"', $output);
+		$this->assertStringNotContainsString('<small>Files: 1.0.0.0, installed: 0.0.0.0</small>', $output);
 	}
 
 	public function testRefreshUpgradesAndKeepsSettings() {
