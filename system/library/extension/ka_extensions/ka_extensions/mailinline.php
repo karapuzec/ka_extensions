@@ -6,7 +6,7 @@
 	$Version$ ($Revision$)
 */
 
-namespace extension\ka_extensions;
+namespace extension\ka_extensions\ka_extensions;
 
 /**
 	Builds multipart/related for inline images of an email. It is called by the OpenCart mail adaptors

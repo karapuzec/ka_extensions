@@ -3,9 +3,9 @@
 		<operation type="replace">
 			<search><![CDATA[foreach ($this->attachments as $attachment) {]]></search>
 			<text><![CDATA[// ka-extensions: inline images added by addInlineImage() are sent in multipart/related with the html part
-			$ka_related = (!empty($this->ka_inline_images) && !empty($this->html) && class_exists('extension\\ka_extensions\\MailInline'));
+			$ka_related = (!empty($this->ka_inline_images) && !empty($this->html) && class_exists('extension\\ka_extensions\\ka_extensions\\MailInline'));
 			if ($ka_related) {
-				$message = \extension\ka_extensions\MailInline::wrapRelated($message, $boundary, $this->attachments, $this->ka_inline_images);
+				$message = \extension\ka_extensions\ka_extensions\MailInline::wrapRelated($message, $boundary, $this->attachments, $this->ka_inline_images);
 			}
 			foreach ($this->attachments as $file_title => $attachment) {
 				if ($ka_related && !empty($this->ka_inline_images[$file_title])) {
