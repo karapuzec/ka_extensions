@@ -80,7 +80,7 @@ abstract class LibraryTestCase extends \KaTesting\TestCase {
 
 	protected function getSettings($code) {
 		$settings = array();
-		foreach ($this->queryRows("SELECT `key`, `value`, serialized FROM `" . DB_PREFIX . "setting` WHERE store_id = '0' AND `code` = '" . $this->esc($code) . "'") as $row) {
+		foreach ($this->queryRows("SELECT `key`, `value`, serialized FROM `" . DB_PREFIX . "setting` WHERE store_id = '0' AND `code` = '" . $this->esc($code) . "' ORDER BY setting_id") as $row) {
 			$settings[$row['key']] = $row['serialized'] ? json_decode($row['value'], true) : $row['value'];
 		}
 		return $settings;

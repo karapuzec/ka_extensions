@@ -59,7 +59,9 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
  						'query' => "ALTER TABLE `" . DB_PREFIX . "translation` ADD `is_html` TINYINT(1) NOT NULL DEFAULT '0'"
  					]
  				]
- 			]
+ 			],
+ 			// notifications of the admin header bell (\extension\ka_extensions\Notifications)
+ 			\extension\ka_extensions\Notifications::TABLE => \extension\ka_extensions\Notifications::getTableInfo(),
 		);
 		
 		$messages = array();
@@ -359,6 +361,34 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		// the page reloads the list with a new request, the messages are kept in the session
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode(array()));
+	}
+
+
+	/*
+		The cross of a notification in the admin header bell (POST only, the modify permission of
+		Ka Extensions): deletes the notification of the logged in administrator or the one for all
+		administrators. Returns JSON: ['success' => true] or ['error' => text].
+	*/
+	public function deleteNotification() {
+
+		$json = array();
+
+		if ($this->request->server['REQUEST_METHOD'] != 'POST'
+			|| !$this->user->hasPermission('modify', 'extension/extension/ka_extensions')
+		) {
+			$json['error'] = $this->language->get('error_permission');
+
+		} elseif (empty($this->request->post['notification_id'])
+			|| !\extension\ka_extensions\Notifications::deleteById($this->request->post['notification_id'])
+		) {
+			$json['error'] = $this->language->get('error_notification_not_found');
+
+		} else {
+			$json['success'] = true;
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 
 
