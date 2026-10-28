@@ -12,6 +12,15 @@
 					continue;
 				}]]></text>
 		</operation>
+		<!-- ka-extensions: inline images, these two operations go before the basename() one -->
+		<operation type="replace">
+			<search><![CDATA['Content-Type: application/octet-stream; name="' . basename($attachment) . '"']]></search>
+			<text><![CDATA['Content-Type: ' . (!empty($this->ka_inline_images[$file_title]['mime']) ? $this->ka_inline_images[$file_title]['mime'] : 'application/octet-stream') . '; name="' . (!empty($this->ka_inline_images[$file_title]['name']) ? $this->ka_inline_images[$file_title]['name'] : basename($attachment)) . '"']]></text>
+		</operation>
+		<operation type="replace">
+			<search><![CDATA['Content-Disposition: attachment; filename="' . basename($attachment) . '"']]></search>
+			<text><![CDATA['Content-Disposition: ' . (!empty($this->ka_inline_images[$file_title]) ? 'inline' : 'attachment') . '; filename="' . (!empty($this->ka_inline_images[$file_title]['name']) ? $this->ka_inline_images[$file_title]['name'] : basename($attachment)) . '"']]></text>
+		</operation>
 		<operation type="replace">
 			<search><![CDATA[basename($attachment)]]></search>
 			<text><![CDATA[(!is_numeric($file_title) ? $file_title : basename($attachment))]]></text>
@@ -35,14 +44,6 @@
 				}
 			}
 			$header .= 'X-Mailer: PHP]]></text>
-		</operation>
-		<operation type="replace">
-			<search><![CDATA['Content-Type: application/octet-stream; name="']]></search>
-			<text><![CDATA['Content-Type: ' . (!empty($this->ka_inline_images[$file_title]['mime']) ? $this->ka_inline_images[$file_title]['mime'] : 'application/octet-stream') . '; name="']]></text>
-		</operation>
-		<operation type="replace">
-			<search><![CDATA['Content-Disposition: attachment; filename="']]></search>
-			<text><![CDATA['Content-Disposition: ' . (!empty($this->ka_inline_images[$file_title]) ? 'inline' : 'attachment') . '; filename="']]></text>
 		</operation>
 	</changes>
 </kapatch>

@@ -12,7 +12,7 @@ class Mail extends \Mail {
 	// when true, exceptions of the send() method are logged and suppressed
 	protected $suppress_exceptions = true;
 
-	// inline images added by addInlineImage(): [<content id> => ['mime' => <image mime type>]].
+	// inline images added by addInlineImage(): [<content id> => ['mime' => <image mime type>, 'name' => <file name>]].
 	// The patched mail adaptors (mail/mail.php.xml, mail/smtp.php.xml) send them as image/* parts with
 	// 'Content-Disposition: inline' inside multipart/related. Without them the email is built as before.
 	protected $ka_inline_images = [];
@@ -26,20 +26,30 @@ class Mail extends \Mail {
 	}
 
 	/*
-		Adds an image shown in the html part of the email by <img src="cid:<$cid>">.
+		Returns the content id of an inline image file, see \extension\ka_extensions\Mail::generateCid().
+	*/
+	public static function generateCid($filename) {
+		return \extension\ka_extensions\Mail::generateCid($filename);
+	}
+
+	/*
+		Adds an image shown in the html part of the email by <img src="cid:<generateCid($filename)>">.
 
 		$filename - full path to the image file
-		$cid      - content id and file name of the image, allowed characters: A-Z a-z 0-9 . _ -
-		$mime     - image/png, image/jpeg, image/gif or image/webp; detected from the file when empty
+		$name     - file name of the image in the email, basename($filename) when empty
 
-		The file is always added as a named attachment. Returns true when it is marked as an inline image,
-		false when it stays a regular attachment (not a supported image or a wrong content id).
+		The type (image/png, image/jpeg, image/gif, image/webp) is detected from the file. Returns false
+		when the file is not a supported image, it is added as a regular attachment then.
 	*/
-	public function addInlineImage($filename, $cid, $mime = '') {
+	public function addInlineImage($filename, $name = '') {
 
-		$this->addNamedAttachment($filename, $cid);
+		if (empty($name)) {
+			$name = basename($filename);
+		}
+		$name = str_replace(["\r", "\n", '"'], '', $name);
 
-		if (empty($mime) && is_file($filename)) {
+		$mime = '';
+		if (is_file($filename)) {
 			$info = @getimagesize($filename);
 			if (!empty($info['mime'])) {
 				$mime = $info['mime'];
@@ -47,12 +57,15 @@ class Mail extends \Mail {
 		}
 
 		$allowed = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
-		if (!in_array($mime, $allowed, true) || !preg_match('/^[A-Za-z0-9._\-]+$/', $cid) || is_numeric($cid)) {
-			unset($this->ka_inline_images[$cid]);
+		if (!in_array($mime, $allowed, true)) {
+			$this->addNamedAttachment($filename, $name);
 			return false;
 		}
 
-		$this->ka_inline_images[$cid] = ['mime' => $mime];
+		// the attachment key is the Content-ID of the part, the name is used in the name/filename headers
+		$cid = static::generateCid($filename);
+		$this->addNamedAttachment($filename, $cid);
+		$this->ka_inline_images[$cid] = ['mime' => $mime, 'name' => $name];
 
 		return true;
 	}

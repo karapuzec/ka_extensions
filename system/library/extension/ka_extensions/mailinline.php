@@ -23,8 +23,8 @@ class MailInline {
 
 		$message     - the email body built by the adaptor before the attachments
 		$boundary    - the boundary of the top multipart/mixed part
-		$attachments - [<name> => <file>] attachments of the email
-		$inline      - [<name> => ['mime' => <mime type>]] inline images
+		$attachments - [<name or content id> => <file>] attachments of the email
+		$inline      - [<content id> => ['mime' => <mime type>, 'name' => <file name>]] inline images
 
 		The line ending of the message is kept ("\r\n" or "\n"). An unknown structure of the message
 		is returned unchanged.
@@ -46,10 +46,12 @@ class MailInline {
 		$result .= '--' . $related . $eol;
 		$result .= substr($message, strlen($head));
 
-		foreach ($attachments as $name => $file) {
-			if (empty($inline[$name]['mime']) || !is_file($file)) {
+		foreach ($attachments as $cid => $file) {
+			if (empty($inline[$cid]['mime']) || !is_file($file)) {
 				continue;
 			}
+
+			$name = !empty($inline[$cid]['name']) ? $inline[$cid]['name'] : $cid;
 
 			$content = file_get_contents($file);
 			if ($content === false) {
@@ -57,10 +59,10 @@ class MailInline {
 			}
 
 			$result .= '--' . $related . $eol;
-			$result .= 'Content-Type: ' . $inline[$name]['mime'] . '; name="' . $name . '"' . $eol;
+			$result .= 'Content-Type: ' . $inline[$cid]['mime'] . '; name="' . $name . '"' . $eol;
 			$result .= 'Content-Transfer-Encoding: base64' . $eol;
 			$result .= 'Content-Disposition: inline; filename="' . $name . '"' . $eol;
-			$result .= 'Content-ID: <' . urlencode($name) . '>' . $eol . $eol;
+			$result .= 'Content-ID: <' . urlencode($cid) . '>' . $eol . $eol;
 			$result .= chunk_split(base64_encode($content), 76, $eol);
 		}
 

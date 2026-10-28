@@ -215,22 +215,36 @@ class Mail {
 	}
 
 	/*
-		Adds an image for the html part of the email. Refer to it in the template as
-		<img src="cid:{{ cid }}">, where cid is urlencode($cid) (the same for the allowed characters).
-
-		$filename - full path to the image file
-		$cid      - content id and file name of the image, allowed characters: A-Z a-z 0-9 . _ -
-		$mime     - image/png, image/jpeg, image/gif or image/webp; detected from the file when empty
-
-		The image is sent as an inline part of multipart/related. Returns false when the file is added as
-		a regular attachment (not a supported image, a wrong content id, an old mail object).
+		Returns the content id of an inline image added by addInlineImage($filename). It is built from
+		the full path of the file and is the same for every call, e.g. 'ka-<md5 of the path>.png'.
+		Use it in the template as <img src="cid:{{ cid }}">.
 	*/
-	public function addInlineImage($filename, $cid, $mime = '') {
-		if (method_exists($this->mail, 'addInlineImage')) {
-			return $this->mail->addInlineImage($filename, $cid, $mime);
+	public static function generateCid($filename) {
+		$cid = 'ka-' . md5($filename);
+
+		$ext = preg_replace('/[^a-z0-9]/', '', strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
+		if ($ext !== '') {
+			$cid .= '.' . $ext;
 		}
 
-		$this->addAttachment($filename, $cid);
+		return $cid;
+	}
+
+	/*
+		Adds an image for the html part of the email, shown by <img src="cid:<generateCid($filename)>">.
+
+		$filename - full path to the image file
+		$name     - file name of the image in the email, basename($filename) when empty
+
+		The image (png, jpeg, gif, webp) is sent as an inline part of multipart/related. Returns false when
+		the file is added as a regular attachment (not a supported image, an old mail object).
+	*/
+	public function addInlineImage($filename, $name = '') {
+		if (method_exists($this->mail, 'addInlineImage')) {
+			return $this->mail->addInlineImage($filename, $name);
+		}
+
+		$this->addAttachment($filename, !empty($name) ? $name : basename($filename));
 
 		return false;
 	}

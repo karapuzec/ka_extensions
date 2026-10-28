@@ -69,18 +69,19 @@ An image can be shown in the html part of the email instead of being a regular a
 
 .. code-block:: php
 
-    $cid = 'mymodule-12.png';
     if (method_exists($mail, 'addInlineImage')) {
-        $mail->addInlineImage($file, $cid);      // $mime = '' - detected from the file
+        $mail->addInlineImage($file, 'photo.png');   // the name is optional, basename($file) when empty
+        $mail->data['image_src'] = 'cid:' . \extension\ka_extensions\Mail::generateCid($file);
     } else {
-        $mail->addAttachment($file, $cid);       // older library
+        $mail->addAttachment($file, 'photo.png');    // older library
     }
-    $mail->data['image_src'] = 'cid:' . urlencode($cid);   // <img src="{{ image_src }}">
+    // template: <img src="{{ image_src }}">
 
-- ``$cid`` is the content id and the file name of the image, allowed characters ``A-Z a-z 0-9 . _ -``;
-- supported types: ``image/png``, ``image/jpeg``, ``image/gif``, ``image/webp``;
-- the method returns ``false`` when the file is added as a regular attachment (not a supported image,
-  a wrong content id).
+- ``generateCid($filename)`` is static; it returns ``ka-<md5 of the full path>.<extension>``, the same for every
+  call with the same path, so it can be called before or after ``addInlineImage()``;
+- ``$name`` is the file name of the image in the email (``name`` / ``filename`` headers);
+- supported types: ``image/png``, ``image/jpeg``, ``image/gif``, ``image/webp``, detected from the file;
+- the method returns ``false`` when the file is added as a regular attachment (not a supported image).
 
 Inline images are sent as ``image/*`` parts with ``Content-Disposition: inline`` inside ``multipart/related``
 together with the text and html parts; other attachments stay in ``multipart/mixed``. Without an html part
