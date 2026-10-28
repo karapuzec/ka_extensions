@@ -317,17 +317,50 @@ class FormFieldsTest extends UnitTestCase {
 	public function testNumberLimits() {
 		$field = array('type' => 'number', 'min_value' => 1, 'max_value' => 10);
 
-		list(, $errors) = $this->validate('qty', $field, array('qty' => '0'));
+		// a value out of the limits fails validation (validateField() returned true before 4.1.1.29)
+		list($result, $errors) = $this->validate('qty', $field, array('qty' => '0'));
+		$this->assertFalse($result);
 		$this->assertSame('Minimum value is 1', $errors['qty']);
 
 		$this->setProperty($this->form, 'errors', array());
-		list(, $errors) = $this->validate('qty', $field, array('qty' => '11'));
+		list($result, $errors) = $this->validate('qty', $field, array('qty' => '11'));
+		$this->assertFalse($result);
 		$this->assertSame('Maximum value is 10', $errors['qty']);
 
 		$this->setProperty($this->form, 'errors', array());
 		list($result, $errors) = $this->validate('qty', $field, array('qty' => '5'));
 		$this->assertTrue($result);
 		$this->assertSame(array(), $errors);
+	}
+
+	/**
+	 * An empty value of a non-required number field is not checked against the limits (a minimum above
+	 * zero gave the error 'Minimum value is ...' before 4.1.1.29). A required field is still empty.
+	 */
+	public function testEmptyOptionalNumberHasNoLimits() {
+		$field = array('type' => 'number', 'min_value' => 1, 'max_value' => 10);
+		foreach (array('', '  ') as $value) {
+			$this->setProperty($this->form, 'errors', array());
+			list($result, $errors) = $this->validate('qty', $field, array('qty' => $value));
+			$this->assertTrue($result);
+			$this->assertSame(array(), $errors);
+		}
+
+		$this->setProperty($this->form, 'errors', array());
+		list($result, $errors) = $this->validate('qty', $field + array('required' => true, 'title' => 'Qty'), array('qty' => ''));
+		$this->assertFalse($result);
+		$this->assertSame('Field Qty is empty', $errors['qty']);
+	}
+
+	/**
+	 * A child class checking more after parent::validateField() gets false for a value out of the limits
+	 * and keeps the limit error.
+	 */
+	public function testMinimumErrorStopsTheValidation() {
+		$field = array('type' => 'number', 'min_value' => 5, 'max_value' => 3);
+		list($result, $errors) = $this->validate('qty', $field, array('qty' => '4'));
+		$this->assertFalse($result);
+		$this->assertSame('Minimum value is 5', $errors['qty']);
 	}
 
 	/**
