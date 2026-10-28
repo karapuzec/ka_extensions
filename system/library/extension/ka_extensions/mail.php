@@ -237,16 +237,14 @@ class Mail {
 		$name     - file name of the image in the email, basename($filename) when empty
 
 		The image (png, jpeg, gif, webp) is sent as an inline part of multipart/related. Returns false when
-		the file is added as a regular attachment (not a supported image, an old mail object).
+		the file is added as a regular attachment (not a supported image).
 	*/
 	public function addInlineImage($filename, $name = '') {
-		if (method_exists($this->mail, 'addInlineImage')) {
-			return $this->mail->addInlineImage($filename, $name);
+		if (empty($name)) {
+			$name = basename($filename);
 		}
 
-		$this->addAttachment($filename, !empty($name) ? $name : basename($filename));
-
-		return false;
+		return $this->mail->addInlineImage($filename, $name);
 	}
 	
 	public function sendContent($to, $subject, $tpl, $from = '', $extra = []) {

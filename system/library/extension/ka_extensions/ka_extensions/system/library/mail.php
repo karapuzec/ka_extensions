@@ -36,16 +36,13 @@ class Mail extends \Mail {
 		Adds an image shown in the html part of the email by <img src="cid:<generateCid($filename)>">.
 
 		$filename - full path to the image file
-		$name     - file name of the image in the email, basename($filename) when empty
+		$name     - file name of the image in the email (name and filename headers)
 
 		The type (image/png, image/jpeg, image/gif, image/webp) is detected from the file. Returns false
 		when the file is not a supported image, it is added as a regular attachment then.
 	*/
-	public function addInlineImage($filename, $name = '') {
+	public function addInlineImage($filename, $name) {
 
-		if (empty($name)) {
-			$name = basename($filename);
-		}
 		$name = str_replace(["\r", "\n", '"'], '', $name);
 
 		$mime = '';
