@@ -2,7 +2,7 @@
 	<changes>
 		<operation type="replace">
 			<search regexp="true"><![CDATA[\{\{ logout \}\}(.*)<\/ul>]]></search>
-			<text><![CDATA[{{ logout }}$1</ul>{% include 'extension/ka_extensions/ka_extensions/header/kamod_status.twig' ignore missing %}]]></text>
+			<text><![CDATA[{{ logout }}$1</ul>{% include 'extension/ka_extensions/ka_extensions/header/kamod_status.twig' ignore missing %}{% include 'extension/ka_extensions/ka_extensions/header/notifications.twig' ignore missing %}]]></text>
 		</operation>
 	</changes>
 </kapatch>

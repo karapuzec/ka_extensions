@@ -16,3 +16,6 @@ $_['text_refresh_successful']     = 'Модуль успешно обновлё�
 $_['error_refresh_failed']        = 'Модуль не обновлён, осталась установленная версия %s.';
 $_['error_refresh_not_installed'] = 'Модуль не установлен.';
 $_['error_refresh_not_needed']    = 'Модуль уже обновлён, обновлять нечего.';
+
+// the cross of a notification in the admin header bell
+$_['error_notification_not_found'] = 'Уведомление не найдено, возможно, его уже закрыли.';

@@ -15,6 +15,7 @@ high-level usage that isn't captured in the API DocBlocks.
    Twig Templates <twig_templates>
    Module Settings Page <settings_page>
    Upgrading Modules <upgrading_modules>
+   Admin Notifications <notifications>
    Sending Emails <mail>
    Applying a Patch <apply_kapatch>
    Useful Constants <useful_constants>

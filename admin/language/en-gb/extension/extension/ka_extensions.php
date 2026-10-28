@@ -68,3 +68,6 @@ $_['text_refresh_successful']     = 'Extension has been refreshed to version %s 
 $_['error_refresh_failed']        = 'Extension has not been refreshed, the installed version %s is kept.';
 $_['error_refresh_not_installed'] = 'Extension is not installed.';
 $_['error_refresh_not_needed']    = 'Extension is up to date, nothing to refresh.';
+
+// the cross of a notification in the admin header bell
+$_['error_notification_not_found'] = 'The notification is not found, it may have been closed already.';

@@ -1,0 +1,59 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+
+    The notification bell of \extension\ka_extensions\Notifications. It is shown only when there are
+    notifications; the cross deletes a notification by a POST request.
+#}
+
+{% if logged and ka_notifications %}
+  <ul class="nav pull-right" id="ka-notifications">
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ ka_notifications_title|ka_escape }}">
+        <i class="fa fa-bell fa-lg"></i> <span class="label label-danger ka-notifications-total">{{ ka_notifications|length }}</span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-right" style="min-width: 320px; max-width: 480px;">
+        <li class="dropdown-header">{{ ka_notifications_title|ka_escape }}</li>
+        {% for notification in ka_notifications %}
+        <li class="ka-notification" style="padding: 5px 10px 5px 20px; white-space: normal;">
+          <button type="button" class="close" title="{{ ka_notification_close|ka_escape }}" data-id="{{ notification.notification_id }}" onclick="javascript: kaNotificationDelete(event, this);" style="margin-left: 10px;">&times;</button>
+          <i class="fa fa-exclamation-triangle text-warning fa-fw"></i> {{ notification.text|ka_escape }}
+        </li>
+        {% endfor %}
+      </ul>
+    </li>
+  </ul>
+  <script type="text/javascript">
+  /*
+    Deletes a notification (POST) and removes it from the list; the bell is hidden with the last one.
+  */
+  function kaNotificationDelete(event, element) {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    $.ajax({
+      url: '{{ ka_notification_delete }}'.replace(/&amp;/g, '&'),
+      type: 'post',
+      data: { notification_id: $(element).attr('data-id') },
+      dataType: 'json',
+      success: function(json) {
+        if (json['error']) {
+          alert(json['error']);
+        }
+        $(element).closest('li.ka-notification').remove();
+        var total = $('#ka-notifications li.ka-notification').length;
+        if (total) {
+          $('#ka-notifications .ka-notifications-total').text(total);
+        } else {
+          $('#ka-notifications').remove();
+        }
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+      }
+    });
+  }
+  </script>
+{% endif %}
