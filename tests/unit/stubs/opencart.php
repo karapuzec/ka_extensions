@@ -78,6 +78,10 @@ class DB {
 	public function getLastId() {
 		return $this->adaptor->getLastId();
 	}
+
+	public function countAffected() {
+		return $this->adaptor->countAffected();
+	}
 }
 
 class Config {
@@ -135,9 +139,20 @@ class FakeDbAdaptor {
 	public $queries = array();
 	public $results = array();
 	public $last_id = 0;
+	public $affected = 0;
+
+	// rows of the setting table for the queries of HiddenSettings (see FakeSettingTable), null = off
+	public $setting_table = null;
 
 	public function query($sql) {
 		$this->queries[] = $sql;
+		$this->affected = 0;
+		if ($this->setting_table) {
+			$result = $this->setting_table->query($sql, $this->affected);
+			if (!is_null($result)) {
+				return $result;
+			}
+		}
 		foreach ($this->results as $pattern => $rows) {
 			if (strpos($sql, $pattern) !== false) {
 				return static::makeResult($rows);
@@ -176,6 +191,10 @@ class FakeDbAdaptor {
 
 	public function getLastId() {
 		return $this->last_id;
+	}
+
+	public function countAffected() {
+		return $this->affected;
 	}
 
 	public function lastQuery() {
@@ -328,5 +347,70 @@ class ModelSettingSetting extends Model {
 				unset($this->rows[$i]);
 			}
 		}
+	}
+}
+
+/*
+	The setting table of the stub ModelSettingSetting (its $rows, the array index is the setting_id) for
+	the SQL of \extension\ka_extensions\HiddenSettings: select, update, insert, delete and the
+	increment of one key (GET_LOCK / RELEASE_LOCK are plain selects of the adaptor). Other queries return null (the adaptor handles them).
+*/
+class FakeSettingTable {
+	protected $model;
+
+	public function __construct(ModelSettingSetting $model) {
+		$this->model = $model;
+	}
+
+	protected static function unescape($value) {
+		return stripcslashes($value);
+	}
+
+	protected function find($store_id, $code, $key) {
+		foreach ($this->model->rows as $id => $row) {
+			if ($row['store_id'] == $store_id && $row['code'] === $code && $row['key'] === $key) {
+				return $id;
+			}
+		}
+		return null;
+	}
+
+	public function query($sql, &$affected) {
+		$sql = preg_replace('/\s+/', ' ', trim($sql));
+		$where = "`store_id` = '(\d+)' AND `code` = '((?:[^'\\\\]|\\\\.)*)' AND `key` = '((?:[^'\\\\]|\\\\.)*)'";
+
+		if (preg_match("/^SELECT `setting_id`, `value`, `serialized` FROM `oc_setting` WHERE $where/", $sql, $m)) {
+			$id = $this->find($m[1], static::unescape($m[2]), static::unescape($m[3]));
+			$rows = is_null($id) ? array() : array(array('setting_id' => $id) + $this->model->rows[$id]);
+			return FakeDbAdaptor::makeResult($rows);
+		}
+		if (preg_match("/^DELETE FROM `oc_setting` WHERE $where/", $sql, $m)) {
+			$id = $this->find($m[1], static::unescape($m[2]), static::unescape($m[3]));
+			if (!is_null($id)) {
+				unset($this->model->rows[$id]);
+				$affected = 1;
+			}
+			return true;
+		}
+		if (preg_match("/^UPDATE `oc_setting` SET `value` = '((?:[^'\\\\]|\\\\.)*)', `serialized` = '(\d)' WHERE `setting_id` = '(\d+)'$/", $sql, $m)) {
+			$this->model->rows[$m[3]]['value']      = static::unescape($m[1]);
+			$this->model->rows[$m[3]]['serialized'] = (int)$m[2];
+			$affected = 1;
+			return true;
+		}
+		if (preg_match("/^UPDATE `oc_setting` SET `value` = `value` \+ (-?[\d.]+) WHERE $where/", $sql, $m)) {
+			$id = $this->find($m[2], static::unescape($m[3]), static::unescape($m[4]));
+			if (!is_null($id)) {
+				$this->model->rows[$id]['value'] = (string)((float)$this->model->rows[$id]['value'] + (float)$m[1]);
+				$affected = 1;
+			}
+			return true;
+		}
+		if (preg_match("/^INSERT INTO `oc_setting` SET `store_id` = '(\d+)', `code` = '((?:[^'\\\\]|\\\\.)*)', `key` = '((?:[^'\\\\]|\\\\.)*)', `value` = '((?:[^'\\\\]|\\\\.)*)', `serialized` = '(\d)'$/", $sql, $m)) {
+			$this->model->rows[] = array('store_id' => (int)$m[1], 'code' => static::unescape($m[2]), 'key' => static::unescape($m[3]), 'value' => static::unescape($m[4]), 'serialized' => (int)$m[5]);
+			$affected = 1;
+			return true;
+		}
+		return null;
 	}
 }

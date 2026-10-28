@@ -69,9 +69,31 @@ Rules for modules
 Hidden values
 -------------
 
-Values that are not fields of the settings page (the installed version, counters) are stored by the
-admin setting model in the group ``<setting code>_hidden``, under the keys
-``<setting code>_hidden_<key>``. Saving the settings page does not touch them.
+Values that are not fields of the settings page (the installed version, counters) are stored in the
+setting table in the group ``<setting code>_hidden``, under the keys ``<setting code>_hidden_<key>``.
+Saving the settings page does not touch them.
+
+The class ``\extension\ka_extensions\HiddenSettings`` works in the admin area and in the catalog:
+
+.. code-block:: php
+
+    use \extension\ka_extensions\HiddenSettings;
+
+    HiddenSettings::set('mymodule', 'last_run', date('Y-m-d'));
+    $last_run = HiddenSettings::get('mymodule', 'last_run');          // '2026-10-28'
+    $limit    = HiddenSettings::get('mymodule', 'limit', 100);         // 100 when not stored
+    $requests = HiddenSettings::increase('mymodule', 'requests');     // +1, returns the new value
+    HiddenSettings::set('mymodule', 'last_run', null);                 // removes the key
+
+- ``get($ext_code, $key, $default = null)`` returns the value or ``$default`` when it is not stored;
+- ``set($ext_code, $key, $value)`` writes one key, the other hidden values of the module are not
+  rewritten; arrays are stored as JSON (``serialized`` = 1), other values as strings, ``null``
+  removes the key;
+- ``increase($ext_code, $key, $add = 1)`` changes a numeric value with one ``UPDATE`` in the database
+  (``value = value + $add``), so parallel requests do not lose increments; a missing value is
+  created with ``$add``. It returns the new value.
+
+In the admin area the setting model has the same methods as wrappers of this class:
 
 .. code-block:: php
 
@@ -80,9 +102,6 @@ admin setting model in the group ``<setting code>_hidden``, under the keys
     $this->model_setting_setting->setConfigHidden('mymodule', 'requests', 15);
     $requests = $this->model_setting_setting->getConfigHidden('mymodule', 'requests'); // '15'
 
-- ``getConfigHidden($ext_code, $key)`` returns the value or ``null`` when it is not stored;
-- ``setConfigHidden($ext_code, $key, $value)`` stores one value and keeps the other hidden values
-  of the module; arrays are stored as JSON, other values as strings, ``null`` removes the key.
-
 The values belong to the default store (``store_id`` 0). They are loaded into the store config as
-``<setting code>_hidden_<key>`` like other settings.
+``<setting code>_hidden_<key>`` at the start of a request like other settings; the methods above
+always read the database.

@@ -76,6 +76,8 @@ class UpgradeTest extends UnitTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->settings = new ModelSettingSetting($this->registry);
+		// getConfigHidden() / setConfigHidden() call HiddenSettings, its SQL works on the rows of the stub
+		$this->adaptor->setting_table = new \FakeSettingTable($this->settings);
 		$this->registry->set('model_setting_setting', $this->settings);
 		$this->registry->set('user', new UpgradeUser());
 		$this->ka_model = new UpgradeKaExtensionsModel();
