@@ -102,6 +102,68 @@ class KamodManager {
 		$this->initMainStoreDirectoryNames();
 	}
 	
+	/*
+		Returns a full module code 'vendor/code'. A code without a vendor is treated
+		as a Karapuz module, i.e. 'ka_extensions/<code>'. An empty code returns an empty string.
+	*/
+	public static function getFullModuleCode($code) {
+
+		$code = trim((string)$code);
+		if ($code === '') {
+			return '';
+		}
+
+		if (strpos($code, '/') === false) {
+			$code = 'ka_extensions/' . $code;
+		}
+
+		return $code;
+	}
+
+
+	/*
+		Returns a list of full module codes ('vendor/code') from a module list field
+		of kamod.ini (depends_on, install_before, install_after).
+
+		Parameters:
+			$ini   - an array returned by parse_ini_file() for kamod.ini
+			$field - a field name
+
+		The field can be a string with comma-separated codes (field = "a, b") or an array
+		(field[] = a), array items can contain comma-separated codes too. Codes are trimmed,
+		empty items and duplicates are dropped, codes without a vendor get the 'ka_extensions/' prefix.
+	*/
+	public static function getManifestModules($ini, $field) {
+
+		$result = [];
+
+		if (empty($ini[$field])) {
+			return $result;
+		}
+
+		$values = $ini[$field];
+		if (!is_array($values)) {
+			$values = [$values];
+		}
+
+		foreach ($values as $value) {
+			if (!is_scalar($value)) {
+				continue;
+			}
+
+			foreach (explode(',', (string)$value) as $code) {
+				$code = static::getFullModuleCode($code);
+				if ($code === '' || in_array($code, $result, true)) {
+					continue;
+				}
+				$result[] = $code;
+			}
+		}
+
+		return $result;
+	}
+
+
 	public static function getInstance() {
 		
 		if (!is_null(static::$instance)) {

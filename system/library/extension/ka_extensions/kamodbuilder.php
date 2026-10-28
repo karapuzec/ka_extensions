@@ -1376,14 +1376,16 @@ CNT;
 			}
 
 			$file = $new[$ak];
-			unset($new[$ak]);
+			$others = $new;
+			unset($others[$ak]);
 			
-			// insert the file after a specific module code
+			// insert the file after the last of the listed modules. When none of them
+			// overrides this class, the file stays where it is.
 			//
-			$best = 0;
-			$new_keys = array_keys($new);
+			$best = -1;
+			$new_keys = array_keys($others);
 			foreach ($after as $v) {
-				$pos = array_search($v, $new_keys);
+				$pos = array_search($v, $new_keys, true);
 				if ($pos === false) {
 					continue;
 				}
@@ -1391,10 +1393,13 @@ CNT;
 					$best = $pos;
 				}
 			}
+			if ($best < 0) {
+				continue;
+			}
 			$element = array(
 				$ak => $file,
 			);
-			$new = Arrays::insertAfterKey($new, $new_keys[$best], $element);
+			$new = Arrays::insertAfterKey($others, $new_keys[$best], $element);
 		}
 		
 		// walk through all items and sort them by 'before' position
@@ -1408,26 +1413,31 @@ CNT;
 			}
 
 			$file = $new[$ak];
-			unset($new[$ak]);
+			$others = $new;
+			unset($others[$ak]);
 
-			// insert the file before a specific module code
+			// insert the file before the first of the listed modules. When none of them
+			// overrides this class, the file stays where it is.
 			//
-			$best = count($new);
-			$new_keys = array_keys($new);
+			$best = -1;
+			$new_keys = array_keys($others);
 			foreach ($before as $v) {
-				$pos = array_search($v, $new_keys);
+				$pos = array_search($v, $new_keys, true);
 				if ($pos === false) {
 					continue;
 				}
-				if ($pos < $best) {
+				if ($best < 0 || $pos < $best) {
 					$best = $pos;
 				}
+			}
+			if ($best < 0) {
+				continue;
 			}
 			
 			$element = array(
 				$ak => $file,
 			);
-			$new = Arrays::insertBeforeKey($new, $new_keys[$best], $element);
+			$new = Arrays::insertBeforeKey($others, $new_keys[$best], $element);
 		}
 		
 		return $new;
@@ -1464,9 +1474,11 @@ CNT;
 			$file  - a path to the class file
 			$order - 'before' or 'after'
 		
-		The following tags are supported in files:
+		The following fields of kamod.ini are supported:
 			install_before
 			install_after
+		
+		See KamodManager::getManifestModules() for the accepted formats.
 	*/
 	protected function getModulesOrder($code, $file, $order = '') {
 
@@ -1487,34 +1499,12 @@ CNT;
 		//
 		$ini = \parse_ini_file($manifest);
 
-		$value = '';
 		if ($order == 'before') {
-			if (!empty($ini['install_before'])) {
-				$value = $ini['install_before'];
-			}
+			$result = KamodManager::getManifestModules($ini, 'install_before');
 		} elseif ($order == 'after') {
-			if (!empty($ini['install_after'])) {
-				$value = $ini['install_after'];
-			}
-		}		
-
-		if (empty($value)) {
-			return $result;
+			$result = KamodManager::getManifestModules($ini, 'install_after');
 		}
 
-		// parse the inheritance priority string
-		//
-		$modules = explode(",", $value);
-		
-		foreach ($modules as $m) {
-			$m = trim($m);
-			if (empty($m)) {
-				continue;
-			}
-			
-			$result[] = $m;
-		}
-		
 		return $result;
 	}
 

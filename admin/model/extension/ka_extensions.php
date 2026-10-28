@@ -541,16 +541,8 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	public function getRequiredModules($module, $vendor) {
 	
 		$ini = $this->getManifest($vendor, $module);
-		
-		if (empty($ini['depends_on'])) {
-			return [];
-		}
-			
-		if (!is_array($ini['depends_on'])) {
-			$ini['depends_on'] = [$ini['depends_on']];
-		}
-		
-		return array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+
+		return \extension\ka_extensions\KamodManager::getManifestModules($ini, 'depends_on');
 	}
 
 
@@ -579,12 +571,7 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		treated as a Karapuz module, i.e. 'ka_extensions/<code>'.
 	*/
 	protected function getFullModuleCode($code) {
-		$code = trim((string)$code);
-		if (strpos($code, '/') === false) {
-			$code = 'ka_extensions/' . $code;
-		}
-
-		return $code;
+		return \extension\ka_extensions\KamodManager::getFullModuleCode($code);
 	}
 
 
@@ -608,15 +595,7 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 			// parse ini settings
 			$ini = \parse_ini_file($m);
 			
-			if (empty($ini['depends_on'])) {
-				continue;
-			}
-			
-			if (!is_array($ini['depends_on'])) {
-				$ini['depends_on'] = [$ini['depends_on']];
-			}
-			
-			$depends_on = array_map([$this, 'getFullModuleCode'], $ini['depends_on']);
+			$depends_on = \extension\ka_extensions\KamodManager::getManifestModules($ini, 'depends_on');
 			if (!in_array($full_module_code, $depends_on)) {
 				continue;
 			}
