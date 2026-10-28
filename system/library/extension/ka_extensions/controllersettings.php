@@ -25,6 +25,8 @@ abstract class ControllerSettings extends ControllerInstaller {
 	protected function onLoad() {
 		parent::onLoad();
 
+		// texts of the field validation (error_field_is_empty etc.), the files below override them
+		$this->load->language('extension/ka_extensions/ka_extensions/common');
 		$this->load->language('extension/ka_extensions/ka_extensions/settings');
 		$this->load->language('extension/' . $this->vendor . '/' . $this->ext_code);
 	}
