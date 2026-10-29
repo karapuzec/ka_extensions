@@ -176,13 +176,16 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 				//
 				$extension_info = $this->model_extension_ka_extensions->getExtensionInfoByObject($class, $heading_title);
 				$ext = array_merge($ext, $extension_info);
-				$ext = array_merge($ext, $this->model_extension_ka_extensions->getExtensionInfo($extension_code));
 
+				// a Lite version has its own license record '<code>_lite' (the server marks it free),
+				// all license data of the row (free flag, key, expiry date, wrong license) comes from it
+				//
+				$license_code = $extension_code;
 				if (!empty($extension_info['is_lite'])) {
-					$ext['is_registered'] = $this->model_extension_ka_extensions->isRegistered($extension_code . '_lite', $this->vendor);
-				} else {
-					$ext['is_registered'] = $this->model_extension_ka_extensions->isRegistered($extension_code, $this->vendor);
+					$license_code = $extension_code . '_lite';
 				}
+				$ext = array_merge($ext, $this->model_extension_ka_extensions->getExtensionInfo($license_code));
+				$ext['is_registered'] = $this->model_extension_ka_extensions->isRegistered($license_code, $this->vendor);
 				
 				if (!empty($ext['expiry_date'])) {
 					$ext['expiry_date'] = date($this->language->get('date_format_long'), strtotime($ext['expiry_date']));
