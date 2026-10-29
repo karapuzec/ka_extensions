@@ -14,5 +14,5 @@ https://i.imgur.com/jGAJtEg.png
 + write about kapatch
 + write about built-in constants
 + write about 'safe mode'
-- write about the mail function
++ write about the mail function
 

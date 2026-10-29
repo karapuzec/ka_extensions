@@ -6,7 +6,7 @@ It is distributed as a ZIP archive with a name similar to:
 
 ::
 
-    ka_extensions_ver4.1.1.24.ocmod.zip
+    ka_extensions_ver4.1.1.30.ocmod.zip
 
 The library is free and can be downloaded from the official OpenCart website
 or from our official website. The latest version is also available on the

@@ -99,7 +99,8 @@ Ka Extensions settings:
 - **log emails** (``ka_extensions_log_emails``) - every email is written to ``ka_mail_log.log``
   in ``DIR_LOGS`` with the result;
 - **images are enclosed** (``ka_extensions_mail_images_are_enclosed``) - images are attached to the email
-  (``cid:``) instead of links to the store.
+  (``cid:``) instead of links to the store. The setting does not affect ``addInlineImage()``:
+  inline images are always sent with ``cid:``.
 
 Errors
 ------

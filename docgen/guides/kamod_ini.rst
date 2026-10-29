@@ -57,7 +57,8 @@ Module Codes
 ``depends_on``, ``install_before`` and ``install_after`` contain lists of module codes. A module code is
 ``<vendor>/<module>``, the same as the module directory under ``admin/controller/extension/``,
 for example ``ka_extensions/ka_messages``. A code without a vendor is treated as a Karapuz module:
-``ka_messages`` means ``ka_extensions/ka_messages``. Writing the full code is recommended.
+``ka_messages`` means ``ka_extensions/ka_messages``. Writing the full code is recommended. The library itself is
+``ka_extensions/ka_extensions``, so ``install_after = "ka_extensions"`` means the library.
 
 The recommended form is an array with one code per line:
 
