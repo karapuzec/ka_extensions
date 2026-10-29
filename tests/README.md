@@ -6,7 +6,7 @@ Tests of the Ka Extensions library for OpenCart 3 (tested on OpenCart 3.0.5.1, P
 | --- | --- |
 | `unit/` | PHPUnit tests of library classes loaded from this working copy, with small OpenCart stubs (`unit/stubs/opencart.php`) and a recording database adaptor. No store, no database, about a second |
 | `integration/` | PHPUnit tests on a test store: OpenCart 3.0.5.1 with the Ka Extensions package built from the committed `HEAD` of this working copy, real MySQL |
-| `fixtures/store/` | test modules copied into the test store before the integration tests: `ka_lib_test` (settings page, installer with an `upgradeExtension()` migration, list, form, recordset) and `ka_lib_kamod` (kamod child class and kapatches), `ka_lib_vendor/vtest` (settings page of a vendor other than `ka_extensions`) |
+| `fixtures/store/` | test modules copied into the test store before the integration tests: `ka_lib_test` (settings page, installer with an `upgradeExtension()` migration, list, form, recordset) and `ka_lib_kamod` (kamod child class and kapatches), `ka_lib_lite` (a Lite module, `isLite()` true), `ka_lib_vendor/vtest` (settings page of a vendor other than `ka_extensions`) |
 | `e2e/` | only `package.json`: Playwright used by the platform to install the package in the store admin |
 
 The shared platform https://svn.ka-station.com/ka_oc3_testing gives PHPUnit, the store setup and the
@@ -47,5 +47,6 @@ tests/run.sh integration --group=known-bug    # one step per call: a failing ste
 | `kamod` | `KaPatch` replace / regexp / errors; module list fields of `kamod.ini` (`depends_on`, `install_before`, `install_after`: string, array, bare codes) and the order of child classes in the kamod chain | kamod cache rebuild, child class of an OpenCart controller, PHP and Twig kapatches |
 | `helpers` | top messages (`addTopMessage` types), `Arrays`, `Pagination` | |
 | `notifications` | `Notifications`: SQL of add / addForAll / remove / get, user_id 0 without an administrator, no table | the table on the Ka Extensions page, add / addForAll / remove / get of two administrators, lifetime and cleanup, the header bell (escaping, access to Ka Extensions, no table), the cross (POST, modify permission, another administrator) |
+| `license` | | the license column of Extensions > Ka Extensions (server not reachable, `kareg` records written by the test): a Lite module (`ka_lib_lite`) reads its `<code>_lite` record only, a full module is unchanged |
 | `smoke` | | the store runs this library and the test module |
 | `known-bug` | reproduces a found bug that is not fixed yet; excluded by default (no such tests at the moment: the bugs found by the first version of the tests are fixed in 4.1.1.29 and their tests are normal tests now) | |
