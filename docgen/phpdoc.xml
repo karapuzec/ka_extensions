@@ -15,6 +15,9 @@
             <source dsn="../tmp_pack/upload">
                 <path>.</path>
             </source>
+            <ignore>
+                <path>system/library/extension/ka_extensions/vendor/**</path>
+            </ignore>
         </api>
         <guide>
             <source>
