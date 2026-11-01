@@ -430,6 +430,11 @@ CFGTXT;
 
 		$this->kamod_builder->buildCache();
 
+		// templates are compiled again with the new cache
+		if (!defined('KAMOD_DEBUG')) {
+			$this->clearTemplateCache();
+		}
+
 		// save the config file
 		//
 		if ($this->is_admin_area) {
@@ -446,6 +451,29 @@ CFGTXT;
 	}
 	
 	
+	/*
+		Removes the compiled twig templates of OpenCart (DIR_CACHE/template/).
+
+		Twig recompiles a template only when the template file is newer than its compiled copy, and the
+		extension installer keeps the file times stored in the archive. So the templates of a new module
+		version may be older than the compiled copies of the previous version and the old templates would
+		be shown until the theme cache is refreshed on the dashboard.
+	*/
+	protected function clearTemplateCache() {
+
+		if (!defined('DIR_CACHE') || !is_dir(DIR_CACHE . 'template')) {
+			return;
+		}
+
+		// a file that cannot be deleted must not break the kamod cache
+		try {
+			Directory::clearDirectory(DIR_CACHE . 'template');
+		} catch (\Exception $e) {
+			$this->kamod_builder->log('The twig cache was not cleared: ' . $e->getMessage());
+		}
+	}
+
+
 	public function loadClass($class) {
 
 		$file = strtolower(str_replace('\\', '/', $class)) . '.php';
