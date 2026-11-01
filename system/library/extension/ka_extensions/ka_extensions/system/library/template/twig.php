@@ -80,10 +80,14 @@ class Twig extends \Template\Twig {
 			// include kamod general cache
 			if (is_dir($kamod_cache_dir . 'catalog/view/theme')) {
 				$fs_mod_loader->prependPath($kamod_cache_dir . 'catalog/view/theme');
+				// '@ka_common': the kamod cache of the theme folder, the theme folder, the kamod cache of the default folder
+				// (the original default folder is added by the shortcut below), so kapatches of the common templates
+				// are applied with any theme and a theme template still overrides a patched default one
+				$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
 				if ($theme_dir != 'default') {
-					$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
+					$this->prependPath($fs_mod_loader, DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
+					$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 				}
-				$this->prependPath($fs_mod_loader, 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
 			// include 'store specific' cache (when the admin modified templates)
@@ -95,13 +99,17 @@ class Twig extends \Template\Twig {
 				$this->prependPath($fs_mod_loader, $store_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
-			// add '@ka_common' shortcut
-			if (is_dir(DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common')) {
-				$fs_mod_loader->addPath(DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
-				if ($theme_dir != 'default') {
-					if (is_dir(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common')) {
-						$fs_mod_loader->addPath(DIR_TEMPLATE . 'default/template/extension/ka_extensions/common', 'ka_common');
-					}
+			// add '@ka_common' shortcut: the folder of the theme first, then the folder of the default theme.
+			// A theme overrides only the templates it has, the others come from the default theme
+			// (also for themes without the folder)
+			$common_dirs = array();
+			if ($theme_dir != 'default') {
+				$common_dirs[] = DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common';
+			}
+			$common_dirs[] = DIR_TEMPLATE . 'default/template/extension/ka_extensions/common';
+			foreach ($common_dirs as $common_dir) {
+				if (is_dir($common_dir)) {
+					$fs_mod_loader->addPath($common_dir, 'ka_common');
 				}
 			}
 		}
