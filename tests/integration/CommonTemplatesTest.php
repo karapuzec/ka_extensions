@@ -14,11 +14,31 @@ class CommonTemplatesTest extends LibraryTestCase {
 	const TEMPLATE = 'extension/ka_lib_test/ka_common';
 
 	protected function setUp(): void {
+		$this->rebuildKamodCache();
 		$this->bootCatalog();
 	}
 
+	/*
+		The storefront uses the template class of Ka Extensions from the kamod cache. The cache is built
+		by a separate admin request (with the kapatch of the module ka_lib_kamod).
+	*/
+	protected function rebuildKamodCache() {
+		$php = getenv('KA_TEST_PHP') ?: PHP_BINARY;
+		$platform_dir = getenv('KA_TEST_PLATFORM_DIR') ?: dirname(__DIR__) . '/platform';
+
+		$process = proc_open(
+			array($php, __DIR__ . '/tools/kamod_rebuild.php', $platform_dir, \KaTesting\Env::getStoreDir()),
+			array(1 => array('pipe', 'w'), 2 => array('pipe', 'w')),
+			$pipes
+		);
+		$output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+		$this->assertSame(0, proc_close($process), $output);
+	}
+
 	protected function render($theme) {
+		// the active theme of the store (an enabled theme extension, see catalog/controller/event/theme.php)
 		$this->oc->get('config')->set('config_theme', $theme);
+		$this->oc->get('config')->set('theme_' . $theme . '_status', 1);
 
 		$data = array(
 			'breadcrumbs' => array(
@@ -78,5 +98,28 @@ class CommonTemplatesTest extends LibraryTestCase {
 		$output = $this->render('ka_lib_no_such_theme');
 		$this->assertDefaultBreadcrumbs($output);
 		$this->assertDefaultWell($output);
+	}
+
+	/*
+		A kapatch of a default '@ka_common' template (the module ka_lib_kamod) is applied with another theme
+		(the kamod cache of the default folder is registered for non-default themes).
+	*/
+	public function testKapatchOfCommonTemplateWithAnotherTheme() {
+		$output = $this->render('ka_lib_theme');
+		$this->assertStringContainsString('<!-- ka-lib-kamod-well -->ka-lib-well-contents', $output);
+		$this->assertDefaultBreadcrumbs($output);
+	}
+
+	/**
+	 * The same kapatch is not applied with the default theme: for the default theme the kamod cache of
+	 * the common folder is not registered, twig.php registers the relative path
+	 * 'catalog/view/theme/<theme>/template/extension/ka_extensions/common' (the original folder) instead.
+	 * No module patches '@ka_common' templates now, the test documents the behaviour.
+	 *
+	 * @group known-bug
+	 */
+	public function testKapatchOfCommonTemplateWithDefaultTheme() {
+		$output = $this->render('default');
+		$this->assertStringContainsString('<!-- ka-lib-kamod-well -->ka-lib-well-contents', $output);
 	}
 }
