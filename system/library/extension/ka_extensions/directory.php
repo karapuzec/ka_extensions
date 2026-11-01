@@ -36,24 +36,28 @@ class Directory {
 		}
 
 		$level++;
-		
-		$files = glob($path . '/{,.}*[!.]', GLOB_BRACE);
-		foreach ($files as $file) {
-		
-			if (in_array($file, array('.','..'))) {
-				continue;
-			}
 
-			if (!empty($exclude)) {
-				if (in_array(basename($file), $exclude)) {
+		// the level is restored when a subfolder cannot be deleted (an exception), otherwise the next call
+		// in the same request would delete its root folder too
+		try {
+			$files = glob($path . '/{,.}*[!.]', GLOB_BRACE);
+			foreach ($files as $file) {
+			
+				if (in_array($file, array('.','..'))) {
 					continue;
 				}
+
+				if (!empty($exclude)) {
+					if (in_array(basename($file), $exclude)) {
+						continue;
+					}
+				}
+					
+				is_dir($file) ? static::_clearDirectory($file) : unlink($file);
 			}
-				
-			is_dir($file) ? static::_clearDirectory($file) : unlink($file);
+		} finally {
+			$level--;
 		}
-		
-		$level--;
 		
 		if (!empty($level)) {
 			if (is_dir($path)) {
