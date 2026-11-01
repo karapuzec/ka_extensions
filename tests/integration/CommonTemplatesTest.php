@@ -110,16 +110,24 @@ class CommonTemplatesTest extends LibraryTestCase {
 		$this->assertDefaultBreadcrumbs($output);
 	}
 
-	/**
-	 * The same kapatch is not applied with the default theme: for the default theme the kamod cache of
-	 * the common folder is not registered, twig.php registers the relative path
-	 * 'catalog/view/theme/<theme>/template/extension/ka_extensions/common' (the original folder) instead.
-	 * No module patches '@ka_common' templates now, the test documents the behaviour.
-	 *
-	 * @group known-bug
-	 */
+	/*
+		The same kapatch is applied with the default theme too (before 4.1.1.31 the kamod cache of the common
+		folder was not registered for the default theme).
+	*/
 	public function testKapatchOfCommonTemplateWithDefaultTheme() {
 		$output = $this->render('default');
+		$this->assertStringContainsString('<!-- ka-lib-kamod-well -->ka-lib-well-contents', $output);
+		$this->assertStringContainsString('<ul class="breadcrumb"><!-- ka-lib-kamod-breadcrumbs -->', $output);
+	}
+
+	/*
+		A theme template overrides the default one also when the default one is patched (breadcrumbs.twig of
+		the default folder is patched by ka_lib_kamod, ka_lib_theme2 has its own breadcrumbs.twig).
+	*/
+	public function testThemeTemplateWinsOverPatchedDefault() {
+		$output = $this->render('ka_lib_theme2');
+		$this->assertStringContainsString('<!-- ka-lib-theme2-breadcrumbs -->', $output);
+		$this->assertStringNotContainsString('<!-- ka-lib-kamod-breadcrumbs -->', $output);
 		$this->assertStringContainsString('<!-- ka-lib-kamod-well -->ka-lib-well-contents', $output);
 	}
 }

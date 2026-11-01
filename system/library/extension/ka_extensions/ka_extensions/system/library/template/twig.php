@@ -80,10 +80,14 @@ class Twig extends \Template\Twig {
 			// include kamod general cache
 			if (is_dir($kamod_cache_dir . 'catalog/view/theme')) {
 				$fs_mod_loader->prependPath($kamod_cache_dir . 'catalog/view/theme');
+				// '@ka_common': the kamod cache of the theme folder, the theme folder, the kamod cache of the default folder
+				// (the original default folder is added by the shortcut below), so kapatches of the common templates
+				// are applied with any theme and a theme template still overrides a patched default one
+				$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
 				if ($theme_dir != 'default') {
-					$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/default/template/extension/ka_extensions/common', 'ka_common');
+					$this->prependPath($fs_mod_loader, DIR_TEMPLATE . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
+					$this->prependPath($fs_mod_loader, $kamod_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 				}
-				$this->prependPath($fs_mod_loader, 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
 			// include 'store specific' cache (when the admin modified templates)
