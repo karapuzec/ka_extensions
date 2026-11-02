@@ -1212,6 +1212,18 @@ CNT;
 		if (preg_match("/\{%\s*endblock[\s]*%\}/mis", $file_contents, $matches)) {		
 			$is_block_found = true;
 		}
+
+		// the base file of a chain is wrapped in the parent_template block even when it has its own blocks,
+		// so a child without blocks replaces the whole template and a child can override parent_template.
+		// The own blocks of the base file become nested blocks and can be overridden as before. The file
+		// is not wrapped when it has the block already or tags allowed at the top level only.
+		//
+		if (empty($parent_info) && $is_block_found
+			&& !preg_match("/\{%-?\s*block\s+parent_template\b/is", $file_contents)
+			&& !preg_match("/\{%-?\s*(extends|use|macro|import|from)\b/is", $file_contents)
+		) {
+			$is_block_found = false;
+		}
 		
 		// generate new lines for the copy
 		//
