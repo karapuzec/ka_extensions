@@ -861,6 +861,15 @@ class ControllerMarketplaceModification extends Controller {
 		}
 		
 		$code = html_entity_decode($theme_mod['code'], ENT_QUOTES, 'UTF-8');
+
+		// the storefront takes the template from the theme cache first, the copy there has no modifications
+		//
+		if (class_exists('\extension\ka_extensions\KamodManager')) {
+			$theme_file = \extension\ka_extensions\KamodManager::getThemeCacheDir(0) . 'catalog/view/theme/' . $theme . '/template/' . $route . '.twig';
+			if (is_file($theme_file)) {
+				unlink($theme_file);
+			}
+		}
 		
 		return $code;
 	}

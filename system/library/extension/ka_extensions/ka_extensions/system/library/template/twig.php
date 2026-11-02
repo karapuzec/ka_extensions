@@ -99,6 +99,12 @@ class Twig extends \Template\Twig {
 				$this->prependPath($fs_mod_loader, $store_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
+			// templates changed in the theme editor for this theme when it has no own copy of them
+			// (requested from the default theme folder), they win over the default ones
+			if ($theme_dir != 'default') {
+				$this->prependPath($fs_mod_loader, KamodManager::getInheritedThemeCacheDir($store_id, $theme_dir));
+			}
+
 			// add '@ka_common' shortcut: the folder of the theme first, then the folder of the default theme.
 			// A theme overrides only the templates it has, the others come from the default theme
 			// (also for themes without the folder)
