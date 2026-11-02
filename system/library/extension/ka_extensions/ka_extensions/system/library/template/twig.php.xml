@@ -17,8 +17,8 @@
 			$this->extendTwig($1twig);
 			
 			// save the twig object and re-use it in future calls
-			if (isset($ka_twig_engine) && empty($ka_twig_engine)) {
-				$ka_twig_engine = $twig;
+			if (empty($ka_twig_engine)) {
+				$ka_twig_engine = $1twig;
 			}
 ]]></text>
 		</operation>
