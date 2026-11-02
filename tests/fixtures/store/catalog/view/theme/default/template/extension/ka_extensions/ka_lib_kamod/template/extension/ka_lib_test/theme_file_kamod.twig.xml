@@ -1,0 +1,8 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[file-end]]></search>
+			<text><![CDATA[file-end [ka-lib-kamod]]]></text>
+		</operation>
+	</changes>
+</kapatch>

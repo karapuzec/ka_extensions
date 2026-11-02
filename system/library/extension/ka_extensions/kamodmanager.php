@@ -77,6 +77,17 @@ class KamodManager {
 		return DIR_STORAGE . static::THEME_CACHE_DIR . '/' . $store_id . '/';
 	}
 
+
+	/*
+		Returns a full path to the copies of templates changed in the theme editor for a theme without
+		its own copy of the template. The storefront requests such a template from the default theme folder
+		('default/template/<route>.twig'), so the copies are kept under that name. Ended with slash.
+	*/
+	public static function getInheritedThemeCacheDir($store_id, $theme) {
+
+		return static::getThemeCacheDir($store_id) . 'inherited/' . $theme . '/';
+	}
+
 	
 	protected function __construct() {
 
@@ -532,6 +543,21 @@ TXT;
 		Directory::checkDirectory($file);		
 		file_put_contents($file, $code);
 		
+		$this->kamod_builder->log("Saved a theme cache file: " . $file);
+	}
+
+
+	/*
+		Saves a template changed in the theme editor for a theme without its own copy of the template
+		(see getInheritedThemeCacheDir()). Kapatches are not applied to it.
+	*/
+	public function storeInheritedThemeFile($store_id, $theme, $route, $code) {
+
+		$file = static::getInheritedThemeCacheDir($store_id, $theme) . 'default/template/' . $route . '.twig';
+
+		Directory::checkDirectory($file);
+		file_put_contents($file, $code);
+
 		$this->kamod_builder->log("Saved a theme cache file: " . $file);
 	}
 	
