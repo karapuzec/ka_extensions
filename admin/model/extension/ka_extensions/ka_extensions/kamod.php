@@ -39,6 +39,11 @@ class ModelKamod extends \extension\ka_extensions\Model {
 		foreach ($themes as $theme) {
 			$code = html_entity_decode($theme['code'], ENT_QUOTES, 'UTF-8');
 			$this->kamod_manager->storeThemeFile($theme['store_id'], $theme['theme'], $theme['route'], $code);
+
+			// a theme without its own copy of the template shows the template of the default theme folder
+			if ($theme['theme'] != 'default' && !is_file(DIR_CATALOG . 'view/theme/' . $theme['theme'] . '/template/' . $theme['route'] . '.twig')) {
+				$this->kamod_manager->storeInheritedThemeFile($theme['store_id'], $theme['theme'], $theme['route'], $code);
+			}
 		}
 		
 		$this->kamod_manager->rebuildTwigCache();

@@ -209,20 +209,73 @@ class ThemeFilesTest extends LibraryTestCase {
 		$this->assertSame('ka-lib-theme-file: theme-editor v2 file-end [ka-lib-ocmod]', $this->render(static::ROUTE));
 	}
 
-	/**
-	 * A template changed in the theme editor for a theme without its own copy of the template: core
-	 * OpenCart shows the change (catalog/controller/event/theme.php), with Ka Extensions the storefront
-	 * looks for the theme cache file of the default theme folder and the change is not shown (also
-	 * without the option and in 4.1.1.30).
-	 *
-	 * @group known-bug
-	 */
+	protected function inheritedFile($theme, $route) {
+		return \extension\ka_extensions\KamodManager::getInheritedThemeCacheDir(0, $theme) . 'default/template/' . $route . '.twig';
+	}
+
+	/*
+		A template changed in the theme editor for a theme without its own copy of the template
+		(ka_lib_theme): the storefront requests the template of the default theme folder, the change is shown
+		for that theme only (before 4.1.1.32 it was not shown at all; core OpenCart shows it). The default
+		theme and a theme with its own copy are not changed.
+	*/
 	public function testThemeEditorChangeOfInheritedTemplate() {
 		$this->setOption(0);
 		$this->editTheme('ka_lib_theme', static::ROUTE, 'ka-lib-theme-file: ka_lib_theme theme-editor file-end');
 		$this->refreshModifications();
 
+		$this->assertFileExists($this->inheritedFile('ka_lib_theme', static::ROUTE));
 		$this->assertSame('ka-lib-theme-file: ka_lib_theme theme-editor file-end', $this->render(static::ROUTE, 'ka_lib_theme'));
+		$this->assertSame('ka-lib-theme-file: original file-end', $this->render(static::ROUTE));
+		$this->assertSame('ka-lib-theme-file: ka_lib_theme2 original file-end', $this->render(static::ROUTE, 'ka_lib_theme2'));
+	}
+
+	/*
+		The default theme and the theme without its own copy both changed in the theme editor: each theme
+		shows its own change.
+	*/
+	public function testThemeEditorChangeOfInheritedAndDefaultTemplate() {
+		$this->setOption(0);
+		$this->editTheme('default', static::ROUTE, 'ka-lib-theme-file: theme-editor file-end');
+		$this->editTheme('ka_lib_theme', static::ROUTE, 'ka-lib-theme-file: ka_lib_theme theme-editor file-end');
+		$this->refreshModifications();
+
+		$this->assertSame('ka-lib-theme-file: ka_lib_theme theme-editor file-end', $this->render(static::ROUTE, 'ka_lib_theme'));
+		$this->assertSame('ka-lib-theme-file: theme-editor file-end', $this->render(static::ROUTE));
+	}
+
+	/*
+		No change in the theme editor: no inherited copy, the theme shows the template of the default theme.
+		A change of a theme with its own copy (ka_lib_theme2) is not saved as an inherited copy.
+	*/
+	public function testNoInheritedCopyWithoutChangeOrWithOwnTemplate() {
+		$this->setOption(0);
+		$this->editTheme('ka_lib_theme2', static::ROUTE, 'ka-lib-theme-file: theme2 theme-editor file-end');
+		$this->refreshModifications();
+
+		$this->assertFileDoesNotExist($this->inheritedFile('ka_lib_theme', static::ROUTE));
+		$this->assertFileDoesNotExist($this->inheritedFile('ka_lib_theme2', static::ROUTE));
+		$this->assertSame('ka-lib-theme-file: original file-end', $this->render(static::ROUTE, 'ka_lib_theme'));
+		$this->assertSame('ka-lib-theme-file: theme2 theme-editor file-end', $this->render(static::ROUTE, 'ka_lib_theme2'));
+	}
+
+	/*
+		With 'Modify Theme Files' the OCMOD modification is applied to the change of the default theme only:
+		the change of a theme without its own copy is shown as it is (OCMOD changes existing files only),
+		and so is a kapatch of the default template (not applied to such a change).
+	*/
+	public function testInheritedChangeWithOptionOnHasNoModifications() {
+		$this->setOption(1);
+		$this->addOcmod();
+		$this->editTheme('default', static::ROUTE, 'ka-lib-theme-file: theme-editor file-end');
+		$this->editTheme('ka_lib_theme', static::ROUTE, 'ka-lib-theme-file: ka_lib_theme theme-editor file-end');
+		$this->editTheme('ka_lib_theme', static::KAMOD_ROUTE, 'ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end');
+		$this->refreshModifications();
+
+		$this->assertSame('ka-lib-theme-file: ka_lib_theme theme-editor file-end', $this->render(static::ROUTE, 'ka_lib_theme'));
+		$this->assertSame('ka-lib-theme-file: theme-editor file-end [ka-lib-ocmod]', $this->render(static::ROUTE));
+		$this->assertSame('ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end', $this->stripKamodComment($this->render(static::KAMOD_ROUTE, 'ka_lib_theme')));
+		$this->assertSame('ka-lib-theme-file-kamod: original file-end [ka-lib-kamod] [ka-lib-ocmod]', $this->stripKamodComment($this->render(static::KAMOD_ROUTE)));
 	}
 
 	protected function stripKamodComment($output) {
