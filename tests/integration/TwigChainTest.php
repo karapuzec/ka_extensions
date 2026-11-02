@@ -97,6 +97,16 @@ class TwigChainTest extends LibraryTestCase {
 		$this->assertSame('<page></page>', $this->render($page, 'install_after = "ka_extensions/ka_lib_chain_block"'));
 	}
 
+	/*
+		The outer full page passes its block to the inner chain with parent(): the block child is shown
+		without changing the order of the modules. The 'set' of the replaced base is not run, the blocks
+		get the variables of the page.
+	*/
+	public function testNestedBlockOfFullPageWithParentAfterBlockChild() {
+		$page = "{% block parent_template %}{% set label = 'page-info' %}<page>{% block info %}{{ parent() }}{% endblock %}</page>{% endblock %}";
+		$this->assertSame('<page><page-info><vendor></page>', $this->render($page, 'install_after = "ka_extensions/ka_lib_chain_block"'));
+	}
+
 	public function testParentOfFullPageIsBase() {
 		$page = "{% block parent_template %}<page>{{ parent() }}</page>{% endblock %}";
 		$this->assertSame('<page><base><info><vendor></base></page>', $this->render($page, 'install_before = "ka_extensions/ka_lib_chain_block"'));

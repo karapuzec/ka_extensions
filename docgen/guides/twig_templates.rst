@@ -60,20 +60,23 @@ In that case define the ``parent_template`` block explicitly:
     {% endblock %}
 
 A module template replacing the whole page should keep the blocks of the original template that
-other modules override, e.g. ``product_info_extra`` of a theme product page:
+other modules override, e.g. ``product_info_extra`` of a theme product page. Call ``parent()`` in
+such a block: then the block of other modules is shown whatever the order of the modules is
+(a block of the outer template wins, ``parent()`` passes it to the inner templates):
 
 .. code-block:: twig
 
     {% block parent_template %}
         <div class="my-layout">
             <ul class="list-unstyled">
-                {% block product_info_extra %}{% endblock %}
+                {% block product_info_extra %}{{ parent() }}{% endblock %}
             </ul>
         </div>
     {% endblock %}
 
-The order of the modules is set by ``install_before`` / ``install_after`` of ``kamod.ini``
-(see :doc:`kamod_ini`): the module listed in ``install_before`` is outer, its block wins.
+The order of the modules can be set by ``install_before`` / ``install_after`` of ``kamod.ini``
+(see :doc:`kamod_ini`), but these fields change the order of all classes and templates the modules
+override together, not of one template.
 
 The ``t()`` Function
 --------------------
