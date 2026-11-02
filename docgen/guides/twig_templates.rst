@@ -36,6 +36,10 @@ When a module overrides a template (see :doc:`overriding_core_files`), kamod bui
 templates where every template extends the previous one.
 
 A template **without blocks** is wrapped in the ``parent_template`` block automatically.
+The original template (the base of the chain) is wrapped even when it has its own blocks, so a
+module template without blocks replaces the whole template, and the blocks of the original template
+can still be overridden by other modules. The original template is not wrapped when it defines
+``parent_template`` itself or uses ``extends``, ``use``, ``macro``, ``import`` or ``from``.
 To add HTML to such a template, call ``parent()``:
 
 .. code-block:: twig
@@ -54,6 +58,22 @@ In that case define the ``parent_template`` block explicitly:
         {% endblock %}
         {{ parent() }}
     {% endblock %}
+
+A module template replacing the whole page should keep the blocks of the original template that
+other modules override, e.g. ``product_info_extra`` of a theme product page:
+
+.. code-block:: twig
+
+    {% block parent_template %}
+        <div class="my-layout">
+            <ul class="list-unstyled">
+                {% block product_info_extra %}{% endblock %}
+            </ul>
+        </div>
+    {% endblock %}
+
+The order of the modules is set by ``install_before`` / ``install_after`` of ``kamod.ini``
+(see :doc:`kamod_ini`): the module listed in ``install_before`` is outer, its block wins.
 
 The ``t()`` Function
 --------------------

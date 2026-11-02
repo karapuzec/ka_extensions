@@ -26,7 +26,14 @@ class TwigChainTest extends LibraryTestCase {
 				@rmdir($dir . 'extension/ka_extensions/' . $module);
 			}
 		}
+		$this->rebuild();
+	}
+
+	protected function rebuild() {
+		// deprecation notices of the builder on new PHP versions are not errors of the tests
+		$level = error_reporting(E_ALL & ~E_DEPRECATED);
 		\extension\ka_extensions\KamodManager::getInstance()->rebuildKamodCache();
+		error_reporting($level);
 	}
 
 	protected function themeDir() {
@@ -50,7 +57,7 @@ class TwigChainTest extends LibraryTestCase {
 		if (!empty($page)) {
 			$this->addModule('ka_lib_chain_page', $page, $ini);
 		}
-		\extension\ka_extensions\KamodManager::getInstance()->rebuildKamodCache();
+		$this->rebuild();
 
 		// the storefront is rendered in a separate process
 		$php = getenv('KA_TEST_PHP') ?: PHP_BINARY;
