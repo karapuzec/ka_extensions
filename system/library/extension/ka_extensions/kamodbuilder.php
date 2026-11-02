@@ -59,6 +59,14 @@ class KamodBuilder {
 
 	// Service name of the area direcotry (catalog, admin, system)
 	protected $area_dir;
+
+	// comment added to patched twig templates, set in generateTwigChains()
+	protected $mod_comment;
+
+	// directories of the twig chain being generated, set in generateTwigChains() (full dirs)
+	protected $twig_common_cache_dir;
+	protected $twig_store_cache_dir;
+	protected $twig_theme_cache_dir;
 	
 	public static function log($msg, $type = 'I') {
 
