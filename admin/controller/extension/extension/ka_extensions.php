@@ -214,17 +214,17 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 						'href' => $this->url->linka('extension/extension/ka_extensions/uninstall', $url_params)
 					);
 
-					// the files are newer than the installed module: the 'Refresh' button runs the upgrade
+					// the files are newer than the installed module: the 'Refresh' button runs the upgrade.
+					// No stored version (0.0.0.0, a module installed by an older library): the installed version
+					// is not known, nothing is shown
 					//
 					if (method_exists($class, 'getInstalledVersion')) {
 						$installed_version = $class->getInstalledVersion();
-						if (version_compare($class->getVersion(), $installed_version, '>')) {
+						if ($installed_version != '0.0.0.0' && version_compare($class->getVersion(), $installed_version, '>')) {
 							$action['refresh'] = array(
 								'text' => $this->language->get('button_refresh_extension'),
 								'href' => $this->url->linka('extension/extension/ka_extensions/upgrade', $url_params),
 								'hint' => sprintf($this->language->get('text_refresh_hint'), $class->getVersion(), $installed_version),
-								// no stored version (0.0.0.0): nothing under the version, the hint stays in the tooltip
-								'show_hint' => ($installed_version != '0.0.0.0'),
 							);
 						}
 					}
