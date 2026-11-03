@@ -7,8 +7,8 @@
 class ControllerMarketplaceModification extends Controller {
 	private $error = array();
 //karapuz: after:private $error = array();
-	// full paths of the inherited theme editor copies taking part in the refresh (see getInheritedThemeFiles())
-	protected $ka_inherited_files = array();
+	// full paths of the theme editor copies taking part in the refresh (see getThemeEditorFiles())
+	protected $ka_theme_editor_files = array();
 ///karapuz
 
 	public function index() {
@@ -190,7 +190,7 @@ class ControllerMarketplaceModification extends Controller {
 							$files = glob($path, GLOB_BRACE);
 //karapuz: after:glob($path, GLOB_BRACE);
 							if ($files && $this->config->get('ka_extensions_modify_theme_files')) {
-								$files = array_merge($files, $this->getInheritedThemeFiles($files));
+								$files = array_merge($files, $this->getThemeEditorFiles($files));
 							}
 ///karapuz
 
@@ -209,8 +209,8 @@ class ControllerMarketplaceModification extends Controller {
 										$key = 'system/' . substr($file, strlen(DIR_SYSTEM));
 									}
 //karapuz: after:$key = 'system/' . substr($file, strlen(DIR_SYSTEM));
-									// an inherited theme editor copy is kept under its full path
-									if (isset($this->ka_inherited_files[$file])) {
+									// a theme editor copy is kept under its full path
+									if (isset($this->ka_theme_editor_files[$file])) {
 										$key = $file;
 									}
 ///karapuz
@@ -218,14 +218,6 @@ class ControllerMarketplaceModification extends Controller {
 									// If file contents is not already in the modification array we need to load it.
 									if (!isset($modification[$key])) {
 										$content = file_get_contents($file);
-//karapuz: after:$content = file_get_contents($file);
-										if ($this->config->get('ka_extensions_modify_theme_files') && !isset($this->ka_inherited_files[$file])) {
-											$theme_content = $this->getThemeContent($file);
-											if (!is_null($theme_content)) {
-												$content = $theme_content;
-											}
-										}
-///karapuz
 										
 										
 										$modification[$key] = preg_replace('~\r?\n~', "\n", $content);
@@ -427,8 +419,8 @@ class ControllerMarketplaceModification extends Controller {
 			// Write all modification files
 			foreach ($modification as $key => $value) {
 //karapuz: after:foreach ($modification as $key => $value) {
-				// the inherited theme editor copy is replaced with its modified version
-				if (isset($this->ka_inherited_files[$key])) {
+				// the theme editor copy is replaced with its modified version
+				if (isset($this->ka_theme_editor_files[$key])) {
 					if ($original[$key] != $value) {
 						file_put_contents($key, $value);
 					}
@@ -847,94 +839,33 @@ class ControllerMarketplaceModification extends Controller {
 //karapuz: before:n validate(
 
 	/*
-		Returns contents of the file if it was modified by administrator for the default store. 
-		When the file is found, a copy of that file is deleted from kamod theme cache (to apply changes to the modified file version).
-		
-		IMPORTANT: it works with the default store only.
+		With 'Modify Theme Files' the templates changed in the theme editor get the OCMOD modifications of the
+		template files they stand for. Returns the theme editor copies of the templates in $files (all stores, the
+		copies of themes without their own template for a default template too, see
+		KamodManager::getThemeEditorFiles()). The refresh applies the operations to them as to the files and
+		saves the result in place of the copy. The modification files themselves are built from the original files.
 	*/
-	protected function getThemeContent($file) {
-	
-		$result = null;
-	
-		if (pathinfo($file, PATHINFO_EXTENSION) != 'twig') {
-			return $result;
-		}
-		
-		// validate the path
-		//
-		$catalog_path = substr($file, strlen(DIR_CATALOG));
-		$catalog_path = str_replace('\\', '/', $catalog_path);
-		
-		$parts = explode('/', $catalog_path);
-		
-		// possible minimum path: view/theme/<theme name>/<template name>
-		//
-		if (empty($parts) || count($parts) < 4) {
-			return $result;
-		}
-
-		if ($parts[0] != 'view' || $parts[1] != 'theme') {
-			return $result;
-		}
-		
-		// get theme and route parameters
-		//
-		$theme = $parts[2];
-		$route = implode('/', array_slice($parts, 4, -1)) . '/' . basename($file, ".twig");
-
-		$this->load->model('design/theme');
-		
-		// request the theme modification
-		//
-		$theme_mod = $this->model_design_theme->getTheme(0, $theme, $route);
-		
-		if (empty($theme_mod)) {
-			return $result;
-		}
-		
-		$code = html_entity_decode($theme_mod['code'], ENT_QUOTES, 'UTF-8');
-
-		// the storefront takes the template from the theme cache first, the copy there has no modifications
-		//
-		if (class_exists('\extension\ka_extensions\KamodManager')) {
-			$theme_file = \extension\ka_extensions\KamodManager::getThemeCacheDir(0) . 'catalog/view/theme/' . $theme . '/template/' . $route . '.twig';
-			if (is_file($theme_file)) {
-				unlink($theme_file);
-			}
-		}
-		
-		return $code;
-	}
-
-
-	/*
-		Returns the theme editor copies of the default templates in $files saved for themes without their own
-		copy of the template (see KamodManager::getInheritedThemeFiles()). They are the base of the template for
-		such a theme and get the same OCMOD modifications as the default template.
-
-		IMPORTANT: it works with the default store only, as getThemeContent().
-	*/
-	protected function getInheritedThemeFiles($files) {
+	protected function getThemeEditorFiles($files) {
 
 		$result = array();
 
 		if (!class_exists('\extension\ka_extensions\KamodManager')
-			|| !method_exists('\extension\ka_extensions\KamodManager', 'getInheritedThemeFiles')
+			|| !method_exists('\extension\ka_extensions\KamodManager', 'getThemeEditorFiles')
 		) {
 			return $result;
 		}
 
-		$default_dir = DIR_CATALOG . 'view/theme/default/template/';
+		$theme_dir = DIR_CATALOG . 'view/theme/';
 
 		foreach ($files as $file) {
-			if (substr($file, 0, strlen($default_dir)) != $default_dir || pathinfo($file, PATHINFO_EXTENSION) != 'twig') {
+			if (substr($file, 0, strlen($theme_dir)) != $theme_dir || pathinfo($file, PATHINFO_EXTENSION) != 'twig') {
 				continue;
 			}
 
-			$template = 'catalog/view/theme/default/template/' . substr($file, strlen($default_dir));
-			foreach (\extension\ka_extensions\KamodManager::getInheritedThemeFiles(0, $template) as $inherited_file) {
-				$this->ka_inherited_files[$inherited_file] = true;
-				$result[] = $inherited_file;
+			$template = 'catalog/view/theme/' . substr($file, strlen($theme_dir));
+			foreach (\extension\ka_extensions\KamodManager::getThemeEditorFiles($template) as $editor_file) {
+				$this->ka_theme_editor_files[$editor_file] = true;
+				$result[] = $editor_file;
 			}
 		}
 

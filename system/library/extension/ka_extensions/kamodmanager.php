@@ -101,21 +101,43 @@ class KamodManager {
 
 
 	/*
-		Returns full paths of the inherited theme editor copies (all themes of the store) of a default template.
-		$file - a template path like 'catalog/view/theme/default/template/<route>.twig'
+		Returns full paths of the theme editor copies (all stores) standing for a template file: the copies of the
+		theme of the file ('theme.kamod/<store_id>/<file>') and, for a template of the default theme, the copies of
+		themes without their own copy of the template (see getInheritedThemeCacheDir()).
+		$file - a template path like 'catalog/view/theme/<theme>/template/<route>.twig'
 	*/
-	public static function getInheritedThemeFiles($store_id, $file) {
+	public static function getThemeEditorFiles($file) {
 
 		$files = array();
 
-		$theme_dirs = glob(static::getThemeCacheDir($store_id) . 'inherited/*', GLOB_ONLYDIR);
-		if (empty($theme_dirs)) {
+		$store_dirs = glob(DIR_STORAGE . static::THEME_CACHE_DIR . '/*', GLOB_ONLYDIR);
+		if (empty($store_dirs)) {
 			return $files;
 		}
 
-		foreach ($theme_dirs as $theme_dir) {
-			if (is_file($theme_dir . '/' . $file)) {
-				$files[] = $theme_dir . '/' . $file;
+		$is_default = (strpos($file, 'catalog/view/theme/default/template/') === 0);
+
+		foreach ($store_dirs as $store_dir) {
+			if (!ctype_digit(basename($store_dir))) {
+				continue;
+			}
+
+			if (is_file($store_dir . '/' . $file)) {
+				$files[] = $store_dir . '/' . $file;
+			}
+
+			if (!$is_default) {
+				continue;
+			}
+
+			$theme_dirs = glob($store_dir . '/inherited/*', GLOB_ONLYDIR);
+			if (empty($theme_dirs)) {
+				continue;
+			}
+			foreach ($theme_dirs as $theme_dir) {
+				if (is_file($theme_dir . '/' . $file)) {
+					$files[] = $theme_dir . '/' . $file;
+				}
 			}
 		}
 

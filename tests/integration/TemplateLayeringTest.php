@@ -29,9 +29,14 @@ namespace KaExtensionsTests\Integration;
  * - ka_speedup (one Twig environment for the request, emulated by the module ka_lib_speedup) on and off: the
  *   results are the same.
  *
+ * The same with several stores (testMultiStore*): the default store with the default theme, store 1 with ka_lib_theme
+ * (no own files), store 2 with ka_lib_theme2 (own files), every store has its own theme editor copies (the text
+ * names the store). The copies of a store are used by that store only, OCMOD is applied to the copies of all stores.
+ *
  * Templates, OCMOD modification, the module ka_lib_layer with kapatches and child templates are written by the test.
- * The theme of the store is changed in the database, so the Twig environment re-used with ka_speedup (created
- * when the request starts) is the one of that theme.
+ * The theme of the store is changed in the database and a store is selected by its url (the url of the test
+ * store is given to the rendered store), so the Twig environment re-used with ka_speedup (created when the request
+ * starts) is the one of that store and theme.
  * With the environment variable KA_LAYERING_MATRIX_FILE the results are added to that file (json lines).
  *
  * @group theme-files
@@ -50,13 +55,36 @@ class TemplateLayeringTest extends LibraryTestCase {
 		'ka_lib_theme'  => false,
 	);
 
-	// themes with a theme editor copy of the template
-	protected static $editor_states = array(
-		'none' => array(),
-		'def'  => array('default'),
-		'own'  => array('ka_lib_theme', 'ka_lib_theme2'),
-		'all'  => array('default', 'ka_lib_theme', 'ka_lib_theme2'),
+	/*
+		The template sets of a test: 'editors' - keys of the templates (a template per key), 'copies' - the theme editor
+		copies of a template: store_id => themes, 'renders' - the stores and themes rendered.
+	*/
+	protected static $layouts = array(
+		// one store, every theme rendered: no copies, copies of the default theme only, of the other themes only, of all themes
+		'single' => array(
+			'copies' => array(
+				'none' => array(),
+				'def'  => array(0 => array('default')),
+				'own'  => array(0 => array('ka_lib_theme', 'ka_lib_theme2')),
+				'all'  => array(0 => array('default', 'ka_lib_theme', 'ka_lib_theme2')),
+			),
+			'renders' => array(array(0, 'default'), array(0, 'ka_lib_theme2'), array(0, 'ka_lib_theme')),
+		),
+		// three stores with different themes and copies: m1 is changed in the default store only, m2 - m4 in stores
+		// 1 and 2 (the default theme, the theme of the store, both)
+		'multi' => array(
+			'copies' => array(
+				'm1' => array(0 => array('default')),
+				'm2' => array(1 => array('default'), 2 => array('default')),
+				'm3' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'm4' => array(1 => array('default', 'ka_lib_theme'), 2 => array('default', 'ka_lib_theme2')),
+			),
+			'renders' => array(array(0, 'default'), array(1, 'ka_lib_theme'), array(2, 'ka_lib_theme2')),
+		),
 	);
+
+	// additional stores of the test
+	protected static $stores = array(1 => 'ka_lib_theme', 2 => 'ka_lib_theme2');
 
 	protected $store_theme;
 
@@ -76,6 +104,7 @@ class TemplateLayeringTest extends LibraryTestCase {
 		$this->db()->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `key` = '" . $this->esc(static::SETTING) . "'");
 		$this->oc->get('config')->set(static::SETTING, null);
 		$this->setStoreTheme('default');
+		$this->removeStores();
 
 		foreach (array_keys(static::$themes) as $theme) {
 			$this->removeDir(DIR_CATALOG . 'view/theme/' . $theme . '/template/' . static::DIR);
@@ -118,6 +147,39 @@ class TemplateLayeringTest extends LibraryTestCase {
 		}
 	}
 
+	/*
+		Stores 1 and 2 with their themes (settings of a store override the settings of the default store).
+	*/
+	protected function addStores() {
+		foreach (static::$stores as $store_id => $theme) {
+			$this->db()->query("INSERT INTO `" . DB_PREFIX . "store` SET store_id = '" . (int)$store_id . "', name = 'Ka layering store " . (int)$store_id . "', url = '" . $this->storeUrl($store_id) . "', `ssl` = '" . $this->storeUrl($store_id) . "'");
+			$this->db()->query("INSERT INTO `" . DB_PREFIX . "setting` SET store_id = '" . (int)$store_id . "', `code` = 'config', `key` = 'config_theme', `value` = '" . $this->esc($theme) . "', serialized = '0'");
+			$this->db()->query("INSERT INTO `" . DB_PREFIX . "setting` SET store_id = '" . (int)$store_id . "', `code` = 'theme_" . $this->esc($theme) . "', `key` = 'theme_" . $this->esc($theme) . "_status', `value` = '1', serialized = '0'");
+		}
+	}
+
+	protected function removeStores() {
+		foreach (array_keys(static::$stores) as $store_id) {
+			$this->db()->query("DELETE FROM `" . DB_PREFIX . "store` WHERE store_id = '" . (int)$store_id . "'");
+			$this->db()->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE store_id = '" . (int)$store_id . "'");
+		}
+	}
+
+	protected function storeUrl($store_id) {
+		return 'http://ka-layering-store-' . (int)$store_id . '.invalid/';
+	}
+
+	/*
+		The storefront request selects the store by its url: the store gets the url of the test store, the others
+		get their own urls (the default store is used when no store has the url).
+	*/
+	protected function selectStore($store_id) {
+		foreach (array_keys(static::$stores) as $id) {
+			$url = ($id == $store_id) ? HTTP_CATALOG : $this->storeUrl($id);
+			$this->db()->query("UPDATE `" . DB_PREFIX . "store` SET url = '" . $this->esc($url) . "', `ssl` = '" . $this->esc($url) . "' WHERE store_id = '" . (int)$id . "'");
+		}
+	}
+
 	protected function route($ocmod, $kind, $editor) {
 		return static::DIR . ($ocmod ? 'o' : 'n') . '_' . $kind . '_' . $editor;
 	}
@@ -129,7 +191,7 @@ class TemplateLayeringTest extends LibraryTestCase {
 	/*
 		Templates of the default theme and ka_lib_theme2, the module ka_lib_layer with the kamod changes of $kind.
 	*/
-	protected function writeTemplates($ocmod, $kind) {
+	protected function writeTemplates($ocmod, $kind, $layout) {
 
 		$this->writeFile(DIR_CATALOG . 'view/theme/default/template/' . static::DIR . 'first.twig', 'FIRST');
 
@@ -137,7 +199,7 @@ class TemplateLayeringTest extends LibraryTestCase {
 		$this->writeFile($module_dir . 'kamod.ini', "module = \"" . static::MODULE . "\"\n");
 		$this->writeFile($module_dir . 'active.kamod', '');
 
-		foreach (array_keys(static::$editor_states) as $editor) {
+		foreach (array_keys(static::$layouts[$layout]['copies']) as $editor) {
 			$route = $this->route($ocmod, $kind, $editor);
 
 			foreach (static::$themes as $theme => $has_files) {
@@ -224,10 +286,12 @@ class TemplateLayeringTest extends LibraryTestCase {
 	/*
 		Saves the templates as Design > Theme Editor does (the model rebuilds the theme cache of Ka Extensions).
 	*/
-	protected function editTemplates($ocmod, $kind) {
-		foreach (static::$editor_states as $editor => $themes) {
-			foreach ($themes as $theme) {
-				$this->oc->model('design/theme')->editTheme(0, $theme, $this->route($ocmod, $kind, $editor), $this->template('edit-' . $theme));
+	protected function editTemplates($ocmod, $kind, $layout) {
+		foreach (static::$layouts[$layout]['copies'] as $editor => $stores) {
+			foreach ($stores as $store_id => $themes) {
+				foreach ($themes as $theme) {
+					$this->oc->model('design/theme')->editTheme($store_id, $theme, $this->route($ocmod, $kind, $editor), $this->template('edit-' . $theme . '@' . $store_id));
+				}
 			}
 		}
 	}
@@ -252,8 +316,13 @@ class TemplateLayeringTest extends LibraryTestCase {
 		Renders the routes in one storefront request of the theme (tools/render_catalog.php), the first route is
 		a template without changes, so with ka_speedup the others are rendered with a re-used Twig environment.
 	*/
-	protected function render($theme, $routes) {
-		$this->setStoreTheme($theme);
+	protected function render($store_id, $theme, $routes) {
+		if ($store_id) {
+			$this->selectStore($store_id);
+		} else {
+			$this->selectStore(0);
+			$this->setStoreTheme($theme);
+		}
 
 		$php = getenv('KA_TEST_PHP') ?: PHP_BINARY;
 		$platform_dir = getenv('KA_TEST_PLATFORM_DIR') ?: dirname(__DIR__) . '/platform';
@@ -270,6 +339,7 @@ class TemplateLayeringTest extends LibraryTestCase {
 		$this->assertSame(0, proc_close($process), $output . $errors);
 
 		$this->setStoreTheme('default');
+		$this->selectStore(0);
 
 		$outputs = explode('|', $output);
 		$this->assertSame('FIRST', trim(array_shift($outputs)), $output . $errors);
@@ -285,19 +355,20 @@ class TemplateLayeringTest extends LibraryTestCase {
 	/*
 		The expected template by the rules (see the class comment).
 	*/
-	protected function expected($theme, $ocmod, $kind, $editor, $option, $refreshed) {
+	protected function expected($store_id, $theme, $ocmod, $kind, $editor, $option, $refreshed, $layout) {
 
 		$has_file = static::$themes[$theme];
-		$copies   = static::$editor_states[$editor];
+		$copies   = static::$layouts[$layout]['copies'][$editor];
+		$copies   = isset($copies[$store_id]) ? $copies[$store_id] : array();
 
 		$is_copy = true;
 		if (in_array($theme, $copies)) {
-			$base = 'edit-' . $theme;
+			$base = 'edit-' . $theme . '@' . $store_id;
 		} elseif ($has_file) {
 			$base = 'orig-' . $theme;
 			$is_copy = false;
 		} elseif (in_array('default', $copies)) {
-			$base = 'edit-default';
+			$base = 'edit-default@' . $store_id;
 		} else {
 			$base = 'orig-default';
 			$is_copy = false;
@@ -339,7 +410,19 @@ class TemplateLayeringTest extends LibraryTestCase {
 	public function testNoOcmodKapatchesOfThemeTemplates() { $this->checkMatrix(0, 'kptheme'); }
 	public function testNoOcmodChildTemplates() { $this->checkMatrix(0, 'child'); }
 
-	protected function checkMatrix($ocmod, $kind) {
+	/*
+		The same with three stores of different themes and theme editor copies.
+	*/
+	public function testMultiStoreOcmodNoKamod() { $this->checkMatrix(1, 'none', 'multi'); }
+	public function testMultiStoreOcmodKapatchOfDefaultTemplate() { $this->checkMatrix(1, 'kpdef', 'multi'); }
+	public function testMultiStoreOcmodKapatchesOfThemeTemplates() { $this->checkMatrix(1, 'kptheme', 'multi'); }
+	public function testMultiStoreOcmodChildTemplates() { $this->checkMatrix(1, 'child', 'multi'); }
+	public function testMultiStoreNoOcmodNoKamod() { $this->checkMatrix(0, 'none', 'multi'); }
+	public function testMultiStoreNoOcmodKapatchOfDefaultTemplate() { $this->checkMatrix(0, 'kpdef', 'multi'); }
+	public function testMultiStoreNoOcmodKapatchesOfThemeTemplates() { $this->checkMatrix(0, 'kptheme', 'multi'); }
+	public function testMultiStoreNoOcmodChildTemplates() { $this->checkMatrix(0, 'child', 'multi'); }
+
+	protected function checkMatrix($ocmod, $kind, $layout = 'single') {
 
 		$expected = array();
 		$actual   = array();
@@ -347,14 +430,14 @@ class TemplateLayeringTest extends LibraryTestCase {
 		foreach (array(1, 0) as $option) {
 			foreach (array(0, 1) as $speedup) {
 				$this->cleanUp();
-				$this->checkCase($ocmod, $kind, $option, $speedup, $expected, $actual);
+				$this->checkCase($ocmod, $kind, $option, $speedup, $layout, $expected, $actual);
 			}
 		}
 
 		$this->assertSame($expected, $actual);
 	}
 
-	protected function checkCase($ocmod, $kind, $option, $speedup, &$expected, &$actual) {
+	protected function checkCase($ocmod, $kind, $option, $speedup, $layout, &$expected, &$actual) {
 
 		$prefix = 'option ' . ($option ? 'on' : 'off') . ', speedup ' . ($speedup ? 'on' : 'off') . ', ';
 
@@ -362,7 +445,10 @@ class TemplateLayeringTest extends LibraryTestCase {
 		if ($speedup) {
 			$this->addSpeedupModule();
 		}
-		$this->writeTemplates($ocmod, $kind);
+		if ($layout == 'multi') {
+			$this->addStores();
+		}
+		$this->writeTemplates($ocmod, $kind, $layout);
 		if ($ocmod) {
 			$this->addOcmod();
 		}
@@ -377,11 +463,11 @@ class TemplateLayeringTest extends LibraryTestCase {
 		}
 
 		// the theme editor saves after the refresh, then the refresh
-		$this->editTemplates($ocmod, $kind);
+		$this->editTemplates($ocmod, $kind, $layout);
 		$this->rebuild();
 
 		$routes = array();
-		foreach (array_keys(static::$editor_states) as $editor) {
+		foreach (array_keys(static::$layouts[$layout]['copies']) as $editor) {
 			$routes[$editor] = $this->route($ocmod, $kind, $editor);
 		}
 
@@ -390,17 +476,18 @@ class TemplateLayeringTest extends LibraryTestCase {
 				$this->refreshModifications();
 			}
 
-			foreach (array_keys(static::$themes) as $theme) {
-				$outputs = $this->render($theme, $routes);
+			foreach (static::$layouts[$layout]['renders'] as $render) {
+				list($store_id, $theme) = $render;
+				$outputs = $this->render($store_id, $theme, $routes);
 				foreach ($routes as $editor => $route) {
-					$key = $prefix . ($refreshed ? 'after' : 'before') . ' refresh, ' . $theme . ', editor ' . $editor;
-					$expected[$key] = $this->expected($theme, $ocmod, $kind, $editor, $option, $refreshed);
+					$key = $prefix . ($refreshed ? 'after' : 'before') . ' refresh, store ' . $store_id . ', ' . $theme . ', editor ' . $editor;
+					$expected[$key] = $this->expected($store_id, $theme, $ocmod, $kind, $editor, $option, $refreshed, $layout);
 					$actual[$key]   = $outputs[$route];
 
 					if (getenv('KA_LAYERING_MATRIX_FILE')) {
 						file_put_contents(getenv('KA_LAYERING_MATRIX_FILE'), json_encode(array(
-							'ocmod' => $ocmod, 'kind' => $kind, 'option' => $option, 'speedup' => $speedup,
-							'refreshed' => $refreshed, 'theme' => $theme, 'editor' => $editor,
+							'layout' => $layout, 'ocmod' => $ocmod, 'kind' => $kind, 'option' => $option, 'speedup' => $speedup,
+							'refreshed' => $refreshed, 'store' => $store_id, 'theme' => $theme, 'editor' => $editor,
 							'expected' => $expected[$key], 'actual' => $actual[$key],
 						)) . "\n", FILE_APPEND);
 					}
@@ -410,10 +497,11 @@ class TemplateLayeringTest extends LibraryTestCase {
 
 		// a kapatch in the folder of a theme without its own template is not applied to anything (no cache file)
 		if ($kind == 'kptheme') {
+			$first = reset($routes);
 			$cache_dir = \extension\ka_extensions\KamodManager::getKamodTemplatesDir() . 'catalog/view/theme/';
-			$actual[$prefix . 'kapatch cache of ka_lib_theme'] = is_file($cache_dir . 'ka_lib_theme/template/' . $routes['none'] . '.twig');
+			$actual[$prefix . 'kapatch cache of ka_lib_theme'] = is_file($cache_dir . 'ka_lib_theme/template/' . $first . '.twig');
 			$expected[$prefix . 'kapatch cache of ka_lib_theme'] = false;
-			$actual[$prefix . 'kapatch cache of ka_lib_theme2'] = is_file($cache_dir . 'ka_lib_theme2/template/' . $routes['none'] . '.twig');
+			$actual[$prefix . 'kapatch cache of ka_lib_theme2'] = is_file($cache_dir . 'ka_lib_theme2/template/' . $first . '.twig');
 			$expected[$prefix . 'kapatch cache of ka_lib_theme2'] = true;
 		}
 	}

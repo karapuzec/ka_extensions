@@ -4,7 +4,7 @@ namespace KaExtensionsTests\Integration;
 
 /**
  * The setting 'Modify Theme Files' of Ka Extensions: OCMOD modifications are applied to the templates
- * changed by the administrator in Design > Theme Editor (table oc_theme, the default store only).
+ * changed by the administrator in Design > Theme Editor (table oc_theme, all stores: see TemplateLayeringTest).
  *
  * The test modification changes the fixture templates extension/ka_lib_test/theme_file*.twig of all
  * themes (the default theme and ka_lib_theme2, which has its own copy of theme_file.twig; ka_lib_theme
