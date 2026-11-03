@@ -6,6 +6,8 @@
 	php render_catalog.php <platform dir> <store dir> <template route> [<theme>]
 
 	Without a theme the theme of the store settings is used (the default theme of the test store).
+	Several routes separated by commas are rendered one after another in this request (one Template object
+	per view as in the storefront), the outputs are joined with '|'.
 */
 
 list(, $platform_dir, $store_dir, $route) = $argv;
@@ -22,4 +24,8 @@ if ($theme !== '') {
 	$oc->get('config')->set('theme_' . $theme . '_status', 1);
 }
 
-echo $oc->get('load')->view($route);
+$output = array();
+foreach (explode(',', $route) as $view_route) {
+	$output[] = $oc->get('load')->view($view_route);
+}
+echo implode('|', $output);

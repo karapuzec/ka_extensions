@@ -61,6 +61,12 @@ class Twig extends \Template\Twig {
 		
 			$fs_mod_after_loader->addPath(DIR_TEMPLATE);
 			
+			// templates changed by OCMOD modifications (DIR_MODIFICATION) with the lowest priority of this loader: the copies
+			// of the theme editor and the kamod cache (built over the modification files) are added below and win over them.
+			// Without this path only the template whose code is passed to render() had its modification: included templates
+			// and templates rendered with a re-used Twig environment (ka_speedup) were read from DIR_TEMPLATE without it
+			$this->prependPath($fs_mod_loader, DIR_MODIFICATION . 'catalog/view/theme');
+			
 			// find a cache file modified by administrator
 			if (is_dir($theme_cache_dir . 'catalog/view/theme/')) {
 				$fs_mod_loader->prependPath($theme_cache_dir . 'catalog/view/theme');
@@ -70,11 +76,6 @@ class Twig extends \Template\Twig {
 				if ($theme_dir != 'default') {
 					$this->prependPath($fs_mod_loader, $theme_cache_dir . 'catalog/view/theme/'. $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 				}
-			}
-			
-			// the main modification location
-			if (is_dir(DIR_MODIFICATION . 'catalog/view/theme')) {
-//				$fs_mod_loader->prependPath(DIR_MODIFICATION . 'catalog/view/theme');
 			}
 			
 			// include kamod general cache
