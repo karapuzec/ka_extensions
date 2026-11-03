@@ -81,6 +81,21 @@ class TemplateLayeringTest extends LibraryTestCase {
 			),
 			'renders' => array(array(0, 'default'), array(1, 'ka_lib_theme'), array(2, 'ka_lib_theme2')),
 		),
+		// more than 10 theme editor changes (15) in three stores: before 4.1.1.32 only the 10 newest were in the theme
+		// cache. The change of x01 is the oldest one, x08 of the default store has an older duplicate row
+		'many' => array(
+			'copies' => array(
+				'x01' => array(0 => array('default')),
+				'x02' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x03' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x04' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x05' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x06' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x07' => array(1 => array('ka_lib_theme'), 2 => array('ka_lib_theme2')),
+				'x08' => array(0 => array('default'), 1 => array('default')),
+			),
+			'renders' => array(array(0, 'default'), array(1, 'ka_lib_theme'), array(2, 'ka_lib_theme2')),
+		),
 	);
 
 	// additional stores of the test
@@ -296,6 +311,21 @@ class TemplateLayeringTest extends LibraryTestCase {
 		}
 	}
 
+	/*
+		The change of x01 becomes the oldest one, x08 of the default store gets an older duplicate row (the core
+		model keeps one row per template, a row added in another way must not win over the newer one). The theme
+		cache is rebuilt as on a save in the theme editor.
+	*/
+	protected function ageThemeEditorChanges($ocmod, $kind) {
+		$this->db()->query("UPDATE `" . DB_PREFIX . "theme` SET date_added = '2020-01-01 00:00:00' WHERE route = '" . $this->esc($this->route($ocmod, $kind, 'x01')) . "'");
+		$this->db()->query("INSERT INTO `" . DB_PREFIX . "theme` SET store_id = '0', theme = 'default', route = '" . $this->esc($this->route($ocmod, $kind, 'x08')) . "', code = '" . $this->esc($this->template('edit-default@0-old')) . "', date_added = '2019-01-01 00:00:00'");
+
+		$total = $this->db()->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "theme` WHERE route LIKE '" . $this->esc(static::DIR) . "%'")->row['total'];
+		$this->assertEquals(16, $total);
+
+		$this->oc->get('load')->kamodel('extension/ka_extensions/ka_extensions/kamod')->rebuildThemeCache();
+	}
+
 	protected function refreshModifications() {
 		$result = $this->oc->request('marketplace/modification/refresh');
 		$this->assertNotEmpty($result['redirect'], $result['output']);
@@ -422,6 +452,13 @@ class TemplateLayeringTest extends LibraryTestCase {
 	public function testMultiStoreNoOcmodKapatchesOfThemeTemplates() { $this->checkMatrix(0, 'kptheme', 'multi'); }
 	public function testMultiStoreNoOcmodChildTemplates() { $this->checkMatrix(0, 'child', 'multi'); }
 
+	/*
+		More than 10 theme editor changes in three stores: all of them are used, the oldest one gets the OCMOD
+		modification after the refresh, of two rows of one template the newest one is used.
+	*/
+	public function testManyThemeEditorChangesOcmod() { $this->checkMatrix(1, 'none', 'many'); }
+	public function testManyThemeEditorChangesOcmodKapatch() { $this->checkMatrix(1, 'kpdef', 'many'); }
+
 	protected function checkMatrix($ocmod, $kind, $layout = 'single') {
 
 		$expected = array();
@@ -445,7 +482,7 @@ class TemplateLayeringTest extends LibraryTestCase {
 		if ($speedup) {
 			$this->addSpeedupModule();
 		}
-		if ($layout == 'multi') {
+		if ($layout != 'single') {
 			$this->addStores();
 		}
 		$this->writeTemplates($ocmod, $kind, $layout);
@@ -464,6 +501,9 @@ class TemplateLayeringTest extends LibraryTestCase {
 
 		// the theme editor saves after the refresh, then the refresh
 		$this->editTemplates($ocmod, $kind, $layout);
+		if ($layout == 'many') {
+			$this->ageThemeEditorChanges($ocmod, $kind);
+		}
 		$this->rebuild();
 
 		$routes = array();
