@@ -435,6 +435,14 @@ class ControllerMarketplaceModification extends Controller {
 
 			// Maintance mode back to original settings
 			$this->model_setting_setting->editSettingValue('config', 'config_maintenance', $maintenance);
+//karapuz: after:$this->model_setting_setting->editSettingValue('config', 'config_maintenance', $maintenance);
+			// the next request rebuilds the kamod cache over the new modification files. The cache is valid
+			// while it is not older than the modification folder (one-second times), a cache built in the
+			// same second over the old files (e.g. by this request after a module upgrade) would stay
+			if (class_exists('\extension\ka_extensions\KamodManager')) {
+				\extension\ka_extensions\KamodManager::getInstance()->markKamodCacheInvalid();
+			}
+///karapuz
 
 			// Do not return success message if refresh() was called with $data
 			if (!empty($data['redirect'])) {

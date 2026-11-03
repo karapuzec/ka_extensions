@@ -327,7 +327,7 @@ array(1) {
 	
 	public function markCacheInvalid() {
 	
-		$this->log('Cache marked valid at ' . date('c'));
+		$this->log('Cache marked invalid at ' . date('c'));
 	
 		// add an 'invalid' marker
 		//

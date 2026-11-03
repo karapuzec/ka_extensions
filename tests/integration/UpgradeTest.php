@@ -138,6 +138,45 @@ class UpgradeTest extends LibraryTestCase {
 		$this->assertStringContainsString('nothing to refresh', print_r($this->topMessages(), true));
 	}
 
+	/*
+		A module installed by its older version without kamod (no kamod.ini then, so no active.kamod)
+		gets kamod files in the new version: the upgrade activates kamod of the module, as the
+		installation does. Before, the check method_exists() on the setting model (an OpenCart Proxy
+		object) was always false and active.kamod was never written: the kamod files of the module were
+		not applied after an upgrade (seen with Ka Tags 2.0.0.3 -> 2.0.1.0 on 4.1.1.31).
+	*/
+	public function testUpgradeActivatesKamodOfTheModule() {
+		$dir = DIR_APPLICATION . 'controller/extension/ka_extensions/ka_lib_test/';
+		$manifest = $dir . \extension\ka_extensions\KamodManager::MANIFEST_INI_FILE;
+		$marker = $dir . \extension\ka_extensions\KamodManager::ACTIVE_KAMOD_FILE;
+		try {
+			$this->install();
+			$this->setInstalledVersion('0.9.0.0');
+			// the new version of the files has kamod.ini, the old installation has no active.kamod
+			file_put_contents($manifest, "module = Ka Library Test\n");
+			@unlink($marker);
+
+			$this->request('upgrade', array('confirm' => '1'));
+			$this->assertSame(array('S'), $this->messageTypes());
+			$this->assertSame('1.0.0.0', $this->installedVersion());
+			$this->assertFileExists($marker, 'kamod of the module is activated');
+			$this->assertFalse(\extension\ka_extensions\KamodManager::getInstance()->isKamodCacheValid());
+		} finally {
+			@unlink($manifest);
+			@unlink($marker);
+		}
+	}
+
+	public function testUpgradeOfModuleWithoutKamodWritesNoMarker() {
+		$marker = DIR_APPLICATION . 'controller/extension/ka_extensions/ka_lib_test/' . \extension\ka_extensions\KamodManager::ACTIVE_KAMOD_FILE;
+		$this->install();
+		$this->setInstalledVersion('0.9.0.0');
+
+		$this->request('upgrade', array('confirm' => '1'));
+		$this->assertSame(array('S'), $this->messageTypes());
+		$this->assertFileDoesNotExist($marker, 'no kamod.ini, nothing to activate');
+	}
+
 	public function testOldInstallationWithoutVersionIsRefreshed() {
 		$this->install();
 		$this->deleteSettings('ka_lib_test_hidden');
