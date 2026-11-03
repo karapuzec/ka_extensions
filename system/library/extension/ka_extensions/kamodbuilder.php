@@ -663,6 +663,13 @@ CMTXT;
 	protected function generateTwigChain($file, $fdata) {
 
 		if (empty($fdata['children'])) {
+			// kapatches change existing templates only: a kapatch in a theme folder is not applied when
+			// the theme has no own copy of the template (the default template is shown for that theme)
+			if (!$this->isTwigTargetFound($file)) {
+				$this->log("Twig patch target was not found: " . $file);
+				return;
+			}
+
 			$real_file = $this->getActualTwigFile($file);
 
 			$contents = file_get_contents($real_file);
@@ -704,6 +711,27 @@ CMTXT;
 	}
 
 	
+	/*
+		Returns true when the template patched by kamod exists in its folder: the original file or its OCMOD
+		modification ($file is a path with the service directory name). A copy of the theme editor saved under
+		the path of a theme without its own template does not count, the storefront never requests that path.
+	*/
+	protected function isTwigTargetFound($file) {
+
+		$parts = explode('/', $file);
+		$area = $parts[0];
+
+		if (!empty($this->service_dirs[$area])) {
+			unset($parts[0]);
+			$real_file = $this->root_dir . $this->service_dirs[$area] . '/' . implode('/', $parts);
+		} else {
+			$real_file = $this->root_dir . $file;
+		}
+
+		return file_exists($this->modification($real_file));
+	}
+
+
 	protected function getStores() {
 		
 		$stores = array();
@@ -776,6 +804,45 @@ SMTXT;
 
 					$this->generateTwigChain($file, $fdata);		
 				}
+			}
+
+			$this->generateInheritedTwigChains($file, $fdata, $stores);
+		}
+	}
+
+
+	/*
+		A template changed in the theme editor for a theme without its own copy of the template is the base of
+		the default template for that theme (theme.kamod/<store>/inherited/<theme>/, see
+		KamodManager::getInheritedThemeCacheDir()). Kapatches and child templates of the default template are
+		applied to it, the result is saved to templates.<store>/inherited/<theme>/ and the storefront loader of that
+		theme takes it first.
+	*/
+	protected function generateInheritedTwigChains($file, $fdata, $stores) {
+
+		if (strpos($file, 'catalog/view/theme/default/template/') !== 0 || empty($stores)) {
+			return;
+		}
+
+		foreach ($stores as $store_id) {
+			$theme_dirs = glob($this->theme_cache_dir . $store_id . '/inherited/*', GLOB_ONLYDIR);
+			if (empty($theme_dirs)) {
+				continue;
+			}
+
+			foreach ($theme_dirs as $theme_dir) {
+				$theme_dir = $theme_dir . '/';
+				if (!file_exists($theme_dir . $file)) {
+					continue;
+				}
+
+				$inherited_cache_dir = $this->ka_cache_dir . $this->templates_dir . '.' . $store_id . '/inherited/' . basename($theme_dir) . '/';
+
+				$this->twig_store_cache_dir = $inherited_cache_dir;
+				$this->twig_theme_cache_dir = $theme_dir;
+				$this->ka_twig_cache_dir    = $inherited_cache_dir;
+
+				$this->generateTwigChain($file, $fdata);
 			}
 		}
 	}

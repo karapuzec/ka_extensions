@@ -100,10 +100,17 @@ class Twig extends \Template\Twig {
 				$this->prependPath($fs_mod_loader, $store_cache_dir . 'catalog/view/theme/' . $theme_dir . '/template/extension/ka_extensions/common', 'ka_common');
 			}
 			
-			// templates changed in the theme editor for this theme when it has no own copy of them
-			// (requested from the default theme folder), they win over the default ones
-			if ($theme_dir != 'default') {
-				$this->prependPath($fs_mod_loader, KamodManager::getInheritedThemeCacheDir($store_id, $theme_dir));
+			// templates changed in the theme editor for this theme when it has no own copy of them (requested
+			// from the default theme folder). They are the base of the default template for this theme and win over
+			// the default ones: the copy with OCMOD modifications (refreshed with 'Modify Theme Files' on), above it
+			// the kamod cache built over the copy (kapatches and child templates of the default template)
+			$editor_theme = $theme_dir;
+			if ($editor_theme == 'default' && KaGlobal::getRegistry()->get('config')->get('theme_default_directory')) {
+				$editor_theme = KaGlobal::getRegistry()->get('config')->get('theme_default_directory');
+			}
+			if ($editor_theme != 'default') {
+				$this->prependPath($fs_mod_loader, KamodManager::getInheritedThemeCacheDir($store_id, $editor_theme) . 'catalog/view/theme');
+				$this->prependPath($fs_mod_loader, KamodManager::getInheritedKamodTemplatesDir($store_id, $editor_theme) . 'catalog/view/theme');
 			}
 
 			// add '@ka_common' shortcut: the folder of the theme first, then the folder of the default theme.

@@ -81,11 +81,45 @@ class KamodManager {
 	/*
 		Returns a full path to the copies of templates changed in the theme editor for a theme without
 		its own copy of the template. The storefront requests such a template from the default theme folder
-		('default/template/<route>.twig'), so the copies are kept under that name. Ended with slash.
+		('default/template/<route>.twig'), so the copies are kept under the path of the default template:
+		<dir>catalog/view/theme/default/template/<route>.twig. Ended with slash.
 	*/
 	public static function getInheritedThemeCacheDir($store_id, $theme) {
 
 		return static::getThemeCacheDir($store_id) . 'inherited/' . $theme . '/';
+	}
+
+
+	/*
+		Returns a full path to the kamod cache built over the copies of getInheritedThemeCacheDir(): kapatches
+		and child templates of the default template applied to the theme editor copy of the theme. Ended with slash.
+	*/
+	public static function getInheritedKamodTemplatesDir($store_id, $theme) {
+
+		return static::getKamodTemplatesDir($store_id) . 'inherited/' . $theme . '/';
+	}
+
+
+	/*
+		Returns full paths of the inherited theme editor copies (all themes of the store) of a default template.
+		$file - a template path like 'catalog/view/theme/default/template/<route>.twig'
+	*/
+	public static function getInheritedThemeFiles($store_id, $file) {
+
+		$files = array();
+
+		$theme_dirs = glob(static::getThemeCacheDir($store_id) . 'inherited/*', GLOB_ONLYDIR);
+		if (empty($theme_dirs)) {
+			return $files;
+		}
+
+		foreach ($theme_dirs as $theme_dir) {
+			if (is_file($theme_dir . '/' . $file)) {
+				$files[] = $theme_dir . '/' . $file;
+			}
+		}
+
+		return $files;
 	}
 
 	
@@ -549,11 +583,13 @@ TXT;
 
 	/*
 		Saves a template changed in the theme editor for a theme without its own copy of the template
-		(see getInheritedThemeCacheDir()). Kapatches are not applied to it.
+		(see getInheritedThemeCacheDir()). It is the base of that template for the theme: Modifications > Refresh
+		applies OCMOD modifications of the default template to it ('Modify Theme Files' on), kamod applies
+		kapatches and child templates of the default template.
 	*/
 	public function storeInheritedThemeFile($store_id, $theme, $route, $code) {
 
-		$file = static::getInheritedThemeCacheDir($store_id, $theme) . 'default/template/' . $route . '.twig';
+		$file = static::getInheritedThemeCacheDir($store_id, $theme) . 'catalog/view/theme/default/template/' . $route . '.twig';
 
 		Directory::checkDirectory($file);
 		file_put_contents($file, $code);
