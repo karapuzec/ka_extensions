@@ -37,6 +37,14 @@ abstract class ControllerInstaller extends Controller {
 
 	protected $ini;
 
+	function __construct($registry) {
+		// the codes are set before onLoad(): a module onLoad() without parent::onLoad() must not leave
+		// them empty (all such modules shared the hidden values of the code '', e.g. the installed version)
+		$this->initExtensionCode();
+
+		parent::__construct($registry);
+	}
+
 	protected function onLoad() {
 		$this->load->kamodel('extension/ka_extensions');
 		$this->load->model('setting/setting');
@@ -44,13 +52,7 @@ abstract class ControllerInstaller extends Controller {
 
 		parent::onLoad();
 
-		if (empty($this->ext_code)) {
-			$reflector = new \ReflectionClass($this);
-			$filename = $reflector->getFileName();
-		
-			$this->ext_code = basename($filename, '.php');
-			$this->vendor   = basename(dirname($filename));
-		}
+		$this->initExtensionCode();
 		
 		$this->loadKamodIni();
 		
@@ -199,6 +201,24 @@ abstract class ControllerInstaller extends Controller {
 	protected function hasHiddenSettings() {
 		$model = $this->model_setting_setting;
 		return method_exists($model, 'getConfigHidden') || isset($model->getConfigHidden);
+	}
+
+
+	/*
+		Sets the module code and the vendor from the file of the module class when the module does not set
+		$ext_code: extension/<vendor>/<ext_code>.php.
+	*/
+	protected function initExtensionCode() {
+
+		if (!empty($this->ext_code)) {
+			return;
+		}
+
+		$reflector = new \ReflectionClass($this);
+		$filename = $reflector->getFileName();
+
+		$this->ext_code = basename($filename, '.php');
+		$this->vendor   = basename(dirname($filename));
 	}
 
 

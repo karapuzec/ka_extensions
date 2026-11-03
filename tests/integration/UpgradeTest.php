@@ -94,13 +94,22 @@ class UpgradeTest extends LibraryTestCase {
 		$this->assertStringContainsString('<div class="text-warning" style="white-space: nowrap"><small>Files: 1.0.0.0, installed: 0.9.0.0</small></div>', $output);
 	}
 
-	public function testOldInstallationWithoutVersionIsZero() {
+	public function testOldInstallationWithoutVersionShowsNothing() {
 		$this->install();
 		$this->deleteSettings('ka_lib_test_hidden');
 		$output = $this->listPage();
-		// the button and its tooltip have the hint, nothing is shown under the version
-		$this->assertStringContainsString('title="Refresh: Files: 1.0.0.0, installed: 0.0.0.0"', $output);
-		$this->assertStringNotContainsString('<small>Files: 1.0.0.0, installed: 0.0.0.0</small>', $output);
+		// the installed version is not known (0.0.0.0): no yellow button, no hint (4.1.1.32)
+		$this->assertStringNotContainsString('onKaRefresh(event, this)', $output);
+		$this->assertStringNotContainsString('installed: 0.0.0.0', $output);
+		$this->assertStringContainsString('route=extension/extension/ka_extensions/uninstall', $output);
+	}
+
+	public function testNotInstalledModuleHasTheInstallButton() {
+		$this->allowExtensionsPage();
+		$output = $this->listPage();
+		$this->assertMatchesRegularExpression('#route=extension/extension/ka_extensions/install[^"]*extension=ka_lib_test#', $output);
+		$this->assertStringNotContainsString('onKaRefresh(event, this)', $output);
+		$this->assertStringNotContainsString('Files: ', $output);
 	}
 
 	public function testRefreshUpgradesAndKeepsSettings() {
