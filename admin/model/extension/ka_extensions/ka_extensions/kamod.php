@@ -29,13 +29,18 @@ class ModelKamod extends \extension\ka_extensions\Model {
 		$this->kamod_manager = \extension\ka_extensions\KamodManager::getInstance();
 		$this->kamod_manager->emptyThemeCache();
 		
-		// all theme editor changes of all stores. The core model getThemes() is the paged list of the theme editor
-		// history (10 rows by default), so the older changes were missing in the cache. The core model saves one row
-		// per store, theme and template; if there are more, the newest one is saved last and wins
-		$themes = $this->db->query("SELECT store_id, theme, route, code FROM `" . DB_PREFIX . "theme` ORDER BY date_added ASC, theme_id ASC")->rows;
+		$this->load->model('design/theme');
+		
+		// all theme editor changes of all stores. getThemes() is the paged list of the theme editor history
+		// (10 rows by default, the same in OpenCart 3.0.0.0 - 3.0.5.1), so the older changes were missing in the cache
+		$themes = $this->model_design_theme->getThemes(0, 999999);
 		if (empty($themes)) {
 			return;
 		}
+		
+		// getThemes() returns the newest changes first. The core model saves one row per store, theme and template;
+		// if there are more, the newest one is saved last and wins
+		$themes = array_reverse($themes);
 	
 		foreach ($themes as $theme) {
 			$code = html_entity_decode($theme['code'], ENT_QUOTES, 'UTF-8');
