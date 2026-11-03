@@ -344,10 +344,10 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 			if ($success) {
 				$extension->saveInstalledVersion($to_version);
 
-				// new kamod files of the module are applied after the cache rebuild
-				if (method_exists($this->model_setting_extension, 'activateKamodForExtension')) {
-					$this->model_setting_extension->activateKamodForExtension($this->vendor, $extension_code);
-				}
+				// new kamod files of the module are applied after the cache rebuild, a module installed by
+				// its older version without kamod gets active.kamod here. No method_exists() check: the model
+				// is an OpenCart Proxy object (the check is always false), the method is a part of the library
+				$this->model_setting_extension->activateKamodForExtension($this->vendor, $extension_code);
 				\extension\ka_extensions\KamodManager::getInstance()->markKamodCacheInvalid();
 
 				$this->addExtensionPermissions($extension_code);
