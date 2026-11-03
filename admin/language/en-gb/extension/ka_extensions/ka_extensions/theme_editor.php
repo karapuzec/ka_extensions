@@ -8,4 +8,3 @@
 
 // the warning on the Design > Theme Editor page
 $_['txt_ka_theme_editor_refresh']       = 'After making any changes in the theme editor, you have to refresh the modifications cache (Extensions > Modifications > Refresh), otherwise OCMOD modifications will not be applied to the edited templates.';
-$_['txt_ka_theme_editor_default_store'] = 'The modifications are applied to the default store only. Avoid using the theme editor for additional stores.';

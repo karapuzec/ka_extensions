@@ -4,7 +4,7 @@ namespace KaExtensionsTests\Integration;
 
 /**
  * The setting 'Modify Theme Files' of Ka Extensions: OCMOD modifications are applied to the templates
- * changed by the administrator in Design > Theme Editor (table oc_theme, the default store only).
+ * changed by the administrator in Design > Theme Editor (table oc_theme, all stores: see TemplateLayeringTest).
  *
  * The test modification changes the fixture templates extension/ka_lib_test/theme_file*.twig of all
  * themes (the default theme and ka_lib_theme2, which has its own copy of theme_file.twig; ka_lib_theme
@@ -210,7 +210,7 @@ class ThemeFilesTest extends LibraryTestCase {
 	}
 
 	protected function inheritedFile($theme, $route) {
-		return \extension\ka_extensions\KamodManager::getInheritedThemeCacheDir(0, $theme) . 'default/template/' . $route . '.twig';
+		return \extension\ka_extensions\KamodManager::getInheritedThemeCacheDir(0, $theme) . 'catalog/view/theme/default/template/' . $route . '.twig';
 	}
 
 	/*
@@ -260,11 +260,12 @@ class ThemeFilesTest extends LibraryTestCase {
 	}
 
 	/*
-		With 'Modify Theme Files' the OCMOD modification is applied to the change of the default theme only:
-		the change of a theme without its own copy is shown as it is (OCMOD changes existing files only),
-		and so is a kapatch of the default template (not applied to such a change).
+		With 'Modify Theme Files' the change of a theme without its own copy of the template is the base of the
+		default template for that theme: after the refresh it gets the OCMOD modification of the default template and
+		the kapatch of the default template on top of it (before 4.1.1.32 it was shown as it is). The default theme
+		shows its own change with the modification.
 	*/
-	public function testInheritedChangeWithOptionOnHasNoModifications() {
+	public function testInheritedChangeWithOptionOnHasModifications() {
 		$this->setOption(1);
 		$this->addOcmod();
 		$this->editTheme('default', static::ROUTE, 'ka-lib-theme-file: theme-editor file-end');
@@ -272,9 +273,23 @@ class ThemeFilesTest extends LibraryTestCase {
 		$this->editTheme('ka_lib_theme', static::KAMOD_ROUTE, 'ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end');
 		$this->refreshModifications();
 
-		$this->assertSame('ka-lib-theme-file: ka_lib_theme theme-editor file-end', $this->render(static::ROUTE, 'ka_lib_theme'));
+		$this->assertSame('ka-lib-theme-file: ka_lib_theme theme-editor file-end [ka-lib-ocmod]', $this->render(static::ROUTE, 'ka_lib_theme'));
 		$this->assertSame('ka-lib-theme-file: theme-editor file-end [ka-lib-ocmod]', $this->render(static::ROUTE));
-		$this->assertSame('ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end', $this->stripKamodComment($this->render(static::KAMOD_ROUTE, 'ka_lib_theme')));
+		$this->assertSame('ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end [ka-lib-kamod] [ka-lib-ocmod]', $this->stripKamodComment($this->render(static::KAMOD_ROUTE, 'ka_lib_theme')));
+		$this->assertSame('ka-lib-theme-file-kamod: original file-end [ka-lib-kamod] [ka-lib-ocmod]', $this->stripKamodComment($this->render(static::KAMOD_ROUTE)));
+	}
+
+	/*
+		With 'Modify Theme Files' off the change of a theme without its own copy gets the kapatch of the default
+		template, not the OCMOD modification (as the changes of the other templates).
+	*/
+	public function testInheritedChangeWithOptionOffHasKapatchOnly() {
+		$this->setOption(0);
+		$this->addOcmod();
+		$this->editTheme('ka_lib_theme', static::KAMOD_ROUTE, 'ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end');
+		$this->refreshModifications();
+
+		$this->assertSame('ka-lib-theme-file-kamod: ka_lib_theme theme-editor file-end [ka-lib-kamod]', $this->stripKamodComment($this->render(static::KAMOD_ROUTE, 'ka_lib_theme')));
 		$this->assertSame('ka-lib-theme-file-kamod: original file-end [ka-lib-kamod] [ka-lib-ocmod]', $this->stripKamodComment($this->render(static::KAMOD_ROUTE)));
 	}
 

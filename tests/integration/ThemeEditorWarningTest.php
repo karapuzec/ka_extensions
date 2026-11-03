@@ -25,27 +25,33 @@ class ThemeEditorWarningTest extends LibraryTestCase {
 		return $result['output'];
 	}
 
+	/*
+		The warning has one paragraph: since 4.1.1.32 the modifications are applied to the theme editor changes of
+		all stores, the paragraph 'applied to the default store only' is removed.
+	*/
 	protected function warning($output) {
-		$this->assertMatchesRegularExpression('#<div class="alert alert-warning">\s*<p><b>Ka Extensions</b>: (.*?)</p>\s*<p>(.*?)</p>\s*</div>#s', $output);
-		preg_match('#<div class="alert alert-warning">\s*<p><b>Ka Extensions</b>: (.*?)</p>\s*<p>(.*?)</p>\s*</div>#s', $output, $matches);
+		$this->assertMatchesRegularExpression('#<div class="alert alert-warning">\s*<p><b>Ka Extensions</b>: (.*?)</p>\s*</div>#s', $output);
+		preg_match('#<div class="alert alert-warning">\s*<p><b>Ka Extensions</b>: (.*?)</p>\s*</div>#s', $output, $matches);
 
-		return array($matches[1], $matches[2]);
+		return $matches[1];
 	}
 
 	public function testEnglish() {
-		list($refresh, $store) = $this->warning($this->renderPage('en-gb'));
+		$output = $this->renderPage('en-gb');
+		$refresh = $this->warning($output);
 
 		$this->assertStringStartsWith('After making any changes in the theme editor', $refresh);
 		$this->assertStringContainsString('Extensions > Modifications > Refresh', $refresh);
-		$this->assertSame('The modifications are applied to the default store only. Avoid using the theme editor for additional stores.', $store);
+		$this->assertStringNotContainsString('default store only', $output);
 	}
 
 	public function testRussian() {
 		$this->assertFileExists(DIR_LANGUAGE . 'ru-ru/extension/ka_extensions/ka_extensions/theme_editor.php');
 
-		list($refresh, $store) = $this->warning($this->renderPage('ru-ru'));
+		$output = $this->renderPage('ru-ru');
+		$refresh = $this->warning($output);
 
 		$this->assertStringStartsWith('После любых изменений в редакторе шаблона', $refresh);
-		$this->assertSame('Модификации применяются только к основному магазину. Не используйте редактор шаблона для дополнительных магазинов.', $store);
+		$this->assertStringNotContainsString('только к основному магазину', $output);
 	}
 }
