@@ -3,88 +3,9 @@
 	$Author$
 
 	$Version$ ($Revision$)
+
+	The object ka_extensions of the library. The class KaExtensions is in kaextensions.js, it is added to
+	the page before this file.
 */
 
-var ka_extensions = new function () {
-
-	this.labels = {
-		'txt_info'   : 'Info',
-		'txt_success': 'Success',
-		'txt_warning': 'Warning',
-		'txt_error'  : 'Error'
-	};
-
-	/*
-		Returns a label: the language value from ka_js_labels (filled by the footer of the page), these
-		English defaults when it is not there
-	*/
-	this.getLabel = (key) => {
-		if (typeof ka_js_labels !== 'undefined' && ka_js_labels && typeof ka_js_labels[key] === 'string' && ka_js_labels[key].length) {
-			return ka_js_labels[key];
-		}
-		return this.labels[key];
-	}
-
-	
-	this.resetForm = (id) => {
-		$('#' + id + ' input, #' + id + ' select').val('');
-		location = $('#' + id).attr('action');
-	}
-	
-
-    this.showMessage =(text, type = 'I', delay = 5000) => {
-	
-    	var labels = this.labels;
-    
-		var style = 'info';
-		var title = this.getLabel('txt_info');
-		var icon  = 'fa-info-circle';
-
-		if (type) {
-			if (type == 'D' || type == 'E') {
-				style = 'danger';
-				title = this.getLabel('txt_error');
-				icon  = 'fa-exclamation-circle';
-			} else if (type == 'S') {
-				style = 'success';
-				title = this.getLabel('txt_success');
-				icon  = 'fa-check-circle';
-				
-			} else if (type == 'W') {
-				style = 'warning';
-				title = this.getLabel('txt_warning');
-				icon  = 'fa-exclamation-triangle';
-			}
-		}
-
-		// add the alert container when it is not available
-		//
-		if ($('#ka-alert').length == 0) {
-			$('body').prepend(`
-				<div id="ka-alert"></div>
-			`);
-		}
-
-		// add the message
-		//
-		var str = `
-	    	<div class="alert alert-${style} alert-dismissible" role="alert">
-	    		<i class="fa ${icon}"></i>
-	    		<div class="l-alert-content">${text}</div>
-	    		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-	    			<span aria-hidden="true">&times;</span>
-	    		</button>
-	    	</div>
-	    `;
-	    	
-		$('#ka-alert').prepend(str);
-
-		if (delay) {
-			window.setTimeout(function() {
-				$('.alert-dismissible').fadeTo(1000, 0, function() {
-					$(this).remove();
-				});
-			}, delay);
-		}
-	}	
-}
+var ka_extensions = new KaExtensions();

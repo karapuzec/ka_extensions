@@ -6,7 +6,10 @@
 
 	{% for k,v in ka_js_labels %}
 	ka_js_labels['{{ k|e('js') }}'] = "{{ v|e('js') }}";
-	{% endfor %}	
+	{% endfor %}
+	if (typeof ka_extensions !== 'undefined' && ka_extensions.setLabels) {
+		ka_extensions.setLabels(ka_js_labels);
+	}	
 
 {% endif %}
 

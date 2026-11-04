@@ -60,6 +60,17 @@ class JsLabelsTest extends LibraryTestCase {
 		$this->assertStandard($labels);
 		$this->checkTestLabel($output);
 		$this->assertStringContainsString("ka_js_labels['txt_field_validation_error']", $output);
+		$this->assertScripts($output, 'view/javascript/extension/ka_extensions/');
+	}
+
+	// the class file before common.js, the footer applies the labels to the object
+	protected function assertScripts($output, $dir) {
+		$class  = strpos($output, $dir . 'kaextensions.js');
+		$common = strpos($output, $dir . 'common.js');
+		$this->assertNotFalse($class);
+		$this->assertNotFalse($common);
+		$this->assertLessThan($common, $class);
+		$this->assertStringContainsString('ka_extensions.setLabels(ka_js_labels);', $output);
 	}
 
 	public function testCatalogFooter() {
@@ -68,6 +79,7 @@ class JsLabelsTest extends LibraryTestCase {
 		$output = $this->oc->request('common/home')['output'];
 		$this->assertStandard($this->labels($output));
 		$this->checkTestLabel($output);
+		$this->assertScripts($output, 'catalog/view/javascript/extension/ka_extensions/');
 	}
 
 	public function testLabelsWithoutFormValidation() {

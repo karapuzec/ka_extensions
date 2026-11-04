@@ -16,9 +16,10 @@ const port = 8299;
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ka-common-js-'));
 fs.copyFileSync(jquery, path.join(dir, 'jquery.js'));
+fs.copyFileSync(path.join(root, 'admin/view/javascript/extension/ka_extensions/kaextensions.js'), path.join(dir, 'kaextensions.js'));
 fs.copyFileSync(path.join(root, 'admin/view/javascript/extension/ka_extensions/common.js'), path.join(dir, 'common.js'));
 fs.writeFileSync(path.join(dir, 'echo.php'), '<?php echo $_SERVER["REQUEST_METHOD"], " ", $_SERVER["QUERY_STRING"];');
-fs.writeFileSync(path.join(dir, 'index.html'), `<html><body><script src="jquery.js"></script><script src="common.js"></script>
+fs.writeFileSync(path.join(dir, 'index.html'), `<html><body><script src="jquery.js"></script><script src="kaextensions.js"></script><script src="common.js"></script>
 <a id="post" href="echo.php?route=x/deleteRecord&amp;id=1" data-ka-post="1" data-confirm="Sure?">1</a>
 <a id="post-noconfirm" href="echo.php?id=2" data-ka-post="1">2</a>
 <a id="legacy" class="btn btn-danger" href="echo.php?route=x/deleteRecord&amp;id=3">3</a>
