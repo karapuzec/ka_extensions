@@ -102,13 +102,13 @@ class DefaultListTest extends LibraryTestCase {
 		// the filter value is kept in the field and in the sort links
 		$output = $this->page(array('filter_name' => 'apple'));
 		$this->assertMatchesRegularExpression('/name="filter_name"\s+value="apple"/', $output);
-		$this->assertMatchesRegularExpression('/sort=t\.name[^"]*filter_name=apple/', $output);
+		$this->assertMatchesRegularExpression('/href="[^"]*filter_name=apple[^"]*sort=t\.name/', $output);
 	}
 
 	public function testInjectionInFilters() {
 		$this->addItem('A');
 		$this->assertSame(array(), $this->names($this->page(array('filter_name' => "' OR '1'='1"))));
-		$this->assertSame(array(), $this->names($this->page(array('filter_status' => "1' OR '1'='1"))));
+		$this->assertSame(array(), $this->names($this->page(array('filter_status' => "0' OR '1'='1"))));
 		$this->assertSame(array('A'), $this->names($this->page(array('filter_name' => array('x')))));
 	}
 

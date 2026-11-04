@@ -33,6 +33,12 @@ abstract class ControllerForm extends ControllerPage {
 	
 	protected function onLoad() {
 
+		// a child class may set the recordset before or after parent::onLoad()
+		//
+		if (empty($this->recordset) && !empty(static::TABLE_CLASS)) {
+			$this->recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
+		}
+
 		parent::onLoad();
 
 		if (empty(static::PAGE_ROUTE)) {
@@ -43,10 +49,6 @@ abstract class ControllerForm extends ControllerPage {
 			$this->load->language($route);
 		}
 		
-		if (empty($this->recordset) && !empty(static::TABLE_CLASS)) {
-			$this->recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
-		}
-
 		$fields = $this->getFields();
 		if (empty($fields)) {
 			$fields = $this->getTableFormFields();
