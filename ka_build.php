@@ -3,10 +3,42 @@
 	Module  : Extension Package Builder
 	Author  : Karapuz <karapuz@ka-station.com>
 
-	Version : 3.3.1.0
+	Version : 3.3.2.2
 
-	$Revision: 268 $
-	
+	$Revision: 275 $
+
+USAGE:
+	php ka_build.php [manifest.ini] [--release=true] [--set-keywords] [--out=<dir>] [--build_dir=<dir>]
+
+	--set-keywords   sets svn:keywords on all module files in the working copy and stops. It never commits:
+	                 commit the listed files yourself (svn writes the new values into the files on commit).
+	--release=true   builds a release. The version is written to the version file first. When the version
+	                 file was changed or svn:keywords of the module files are wrong or not committed, they are
+	                 set and COMMITTED in one commit ("Release X: ..."), then the package is built.
+	                 It stops when the module files have other uncommitted changes.
+	without --release a wrong svn:keywords value gives a warning only, nothing is set or committed.
+
+CHANGES 3.3.2.2:
+	- manifest_version 2: the built-in exclude masks ('*.txt', '*.sql', '*.bat', 'builds/*', 'xml/*', 'sql/*')
+	  keep their version 1 meaning (they are converted to '**' masks); before, files like 'dir/info.txt'
+	  were packed with manifest_version 2. Masks of the manifest are not changed.
+
+CHANGES 3.3.2.1:
+	- the version is written to the version file before svn:keywords are processed;
+	- --release=true commits the version file changed by the build together with the svn:keywords
+	  changes in one commit. Other uncommitted changes of the module files (including earlier
+	  changes of the version file) still stop the release;
+	- --set-keywords lists the changed version file among the files to commit.
+
+CHANGES 3.3.2.0:
+	- svn:keywords of the module files (packed files and include_files, without excluded files) are checked:
+	  "Revision Version=<version> Project=<keywords_project> Author=<keywords_author>" from manifest.ini
+	  (keywords_project defaults to 'name', keywords_author to "karapuz team <support@ka-station.com>",
+	  spaces are written as '%_'); manifest 'svn_keywords = "N"' turns the check off;
+	- --set-keywords option, --release=true commits svn:keywords property changes (see USAGE);
+	- svn is called without a shell for these commands (argument arrays, values and file lists in files),
+	  so spaces, '%' and '<>' work on Windows too; requires PHP 7.4 or newer.
+
 CHANGES 3.3.1.0:
 	- version control abstraction (ka_Vcs) with svn and git implementations;
 	- manifest 'vcs' option: "svn" (default) or "git";
@@ -133,6 +165,26 @@ function getoptEx($arg_options) {
 }
 
 
+/*
+	returns true when the option is given as '--name' or '--name=<not empty, not false/0/no>'
+*/
+function hasOption($name) {
+	global $argv;
+
+	foreach ($argv as $arg) {
+		if ($arg === '--' . $name) {
+			return true;
+		}
+		if (strpos($arg, '--' . $name . '=') === 0) {
+			$value = strtolower(substr($arg, strlen($name) + 3));
+			return !in_array($value, array('', '0', 'false', 'no', 'n'));
+		}
+	}
+
+	return false;
+}
+
+
 function fnmatchEx($patterns, $string, $flags = 0) {
 
 	if (empty($patterns)) {
@@ -209,6 +261,282 @@ function rmdir_ex($dir) {
     }
   }
 }
+
+/*
+	Runs a command given as an array of arguments without a shell (no quoting problems with spaces,
+	'%', '<', '>' on Windows and Linux). Returns the exit code, stdout and stderr are returned in
+	$output and $errors.
+*/
+function runCommand(array $cmd, &$output = null, &$errors = null) {
+
+	$out_file = tempnam(sys_get_temp_dir(), 'kab');
+	$err_file = tempnam(sys_get_temp_dir(), 'kab');
+	$descriptors = array(
+		0 => array('pipe', 'r'),
+		1 => array('file', $out_file, 'w'),
+		2 => array('file', $err_file, 'w'),
+	);
+
+	if (PHP_VERSION_ID < 70400) {
+		fail("PHP 7.4 or newer is required for svn:keywords (proc_open with an argument array)");
+	}
+
+	$process = proc_open($cmd, $descriptors, $pipes);
+	if (!is_resource($process)) {
+		@unlink($out_file);
+		@unlink($err_file);
+		$output = '';
+		$errors = 'cannot start: ' . implode(' ', $cmd);
+		return -1;
+	}
+	fclose($pipes[0]);
+	$result = proc_close($process);
+
+	$output = file_get_contents($out_file);
+	$errors = file_get_contents($err_file);
+	@unlink($out_file);
+	@unlink($err_file);
+
+	return $result;
+}
+
+
+/*
+	svn:keywords of the module files. The property value is built from manifest.ini:
+	"Revision Version=<version> Project=<keywords_project> Author=<keywords_author>".
+	Spaces are written as '%_' and '%' as '%%' (svn custom keyword format).
+*/
+class ka_SvnKeywords {
+
+	const PROPERTY = 'svn:keywords';
+
+	protected $cfg;
+
+	// file => true for the module files under version control
+	protected $files = array();
+
+	function __construct($cfg, $files) {
+		$this->cfg = $cfg;
+		$this->files = $files;
+	}
+
+	static function encode($value) {
+		return str_replace(array('%', ' '), array('%%', '%_'), trim($value));
+	}
+
+	function getValue() {
+		$project = $this->cfg['keywords_project'] ?? '';
+		if (!strlen(trim($project))) {
+			$project = $this->cfg['name'];
+		}
+		$author = $this->cfg['keywords_author'] ?? '';
+		if (!strlen(trim($author))) {
+			$author = 'karapuz team <support@ka-station.com>';
+		}
+
+		return 'Revision Version=' . self::encode($this->cfg['version'])
+			. ' Project=' . self::encode($project)
+			. ' Author=' . self::encode($author);
+	}
+
+	/*
+		svn command as an array: KA_BUILD_SVN may be a path to the svn binary or wrapper
+		(spaces are allowed when the file exists) or a command with arguments
+	*/
+	static function getSvn() {
+		$svn = getenv('KA_BUILD_SVN');
+		if (empty($svn)) {
+			return array('svn');
+		}
+		if (is_file($svn)) {
+			// batch wrappers are run by cmd on Windows (values are passed in files, not on the command line)
+			if (isWindows() && preg_match('/\.(bat|cmd)$/i', $svn)) {
+				return array('cmd', '/c', $svn);
+			}
+			return array($svn);
+		}
+		return preg_split('/\s+/', trim($svn));
+	}
+
+	/*
+		runs svn with the module files passed in a --targets file (propset, commit)
+	*/
+	protected function svn(array $args, $files, &$output = null) {
+
+		$targets_file = tempnam(sys_get_temp_dir(), 'kat');
+		file_put_contents($targets_file, implode("\n", $files) . "\n");
+
+		$cmd = array_merge(self::getSvn(), $args, array('--targets', $targets_file));
+		$errors = '';
+		$result = runCommand($cmd, $output, $errors);
+		@unlink($targets_file);
+
+		if ($result != 0) {
+			fail("svn " . $args[0] . " failed with exit code " . $result . ":\n" . trim($errors));
+		}
+
+		return true;
+	}
+
+	/*
+		runs svn for commands without the --targets option (status, proplist): the files are
+		passed in small groups to keep the command line short (Windows limit). Returns outputs.
+	*/
+	protected function svnChunks(array $args, $files) {
+
+		$outputs = array();
+		foreach (array_chunk($files, 50) as $chunk) {
+			$cmd = array_merge(self::getSvn(), $args, $chunk);
+			$output = '';
+			$errors = '';
+			$result = runCommand($cmd, $output, $errors);
+			if ($result != 0) {
+				fail("svn " . $args[0] . " failed with exit code " . $result . ":\n" . trim($errors));
+			}
+			$outputs[] = $output;
+		}
+
+		return $outputs;
+	}
+
+	protected function loadXml($xml) {
+		$doc = @simplexml_load_string($xml);
+		if ($doc === false) {
+			fail("svn returned wrong xml:\n" . $xml);
+		}
+		return $doc;
+	}
+
+	/*
+		returns [file => [status, props status]] for the files. status: normal, modified,
+		added, unversioned... props: none, normal, modified, conflicted
+	*/
+	function getStatus($files) {
+
+		$result = array();
+		foreach ($this->svnChunks(array('status', '--xml', '-v', '--depth', 'empty'), $files) as $output) {
+			foreach ($this->loadXml($output)->xpath('//entry') as $entry) {
+				$status = $entry->{'wc-status'};
+				$result[normalizeFilename((string)$entry['path'])] = array(
+					'item'  => (string)$status['item'],
+					'props' => (string)$status['props'],
+				);
+			}
+		}
+		return $result;
+	}
+
+	/*
+		returns [file => [property => value]] of the working copy or the BASE revision
+	*/
+	function getProperties($files, $base = false) {
+		$args = array('proplist', '--xml', '-v');
+		if ($base) {
+			$args[] = '-r';
+			$args[] = 'BASE';
+		}
+		$result = array();
+		foreach ($this->svnChunks($args, $files) as $output) {
+			foreach ($this->loadXml($output)->xpath('//target') as $target) {
+				$props = array();
+				foreach ($target->property as $property) {
+					$props[(string)$property['name']] = (string)$property;
+				}
+				$result[normalizeFilename((string)$target['path'])] = $props;
+			}
+		}
+		return $result;
+	}
+
+	/*
+		Checks the module files. Returns an array:
+			'files'       - versioned module files
+			'unversioned' - module files that are not under version control
+			'wrong'       - files with a wrong or missing svn:keywords in the working copy
+			'uncommitted' - files with a correct svn:keywords that is not committed yet
+			'other'       - files with other uncommitted changes: file => description
+	*/
+	function check() {
+
+		$value = $this->getValue();
+		$result = array('files' => array(), 'unversioned' => array(), 'wrong' => array(), 'uncommitted' => array(), 'other' => array());
+
+		if (empty($this->files)) {
+			return $result;
+		}
+
+		$status = $this->getStatus($this->files);
+		foreach ($this->files as $file) {
+			$item = $status[$file]['item'] ?? 'unversioned';
+			if (in_array($item, array('unversioned', 'ignored', 'none', 'external'))) {
+				$result['unversioned'][] = $file;
+				continue;
+			}
+			$result['files'][] = $file;
+			if ($item != 'normal') {
+				$result['other'][$file] = $item;
+			}
+		}
+		if (empty($result['files'])) {
+			return $result;
+		}
+
+		$working = $this->getProperties($result['files']);
+		$modified = array();
+		foreach ($result['files'] as $file) {
+			if (($status[$file]['props'] ?? '') == 'modified' || ($status[$file]['props'] ?? '') == 'conflicted') {
+				$modified[] = $file;
+			}
+			if (($working[$file][self::PROPERTY] ?? null) !== $value) {
+				$result['wrong'][] = $file;
+			}
+		}
+
+		// property changes other than svn:keywords are not committed by ka_build
+		if (!empty($modified)) {
+			$base = $this->getProperties($modified, true);
+			foreach ($modified as $file) {
+				if ($status[$file]['props'] == 'conflicted') {
+					$result['other'][$file] = 'property conflict';
+					continue;
+				}
+				$w = $working[$file] ?? array();
+				$b = $base[$file] ?? array();
+				$keywords_changed = (($w[self::PROPERTY] ?? null) !== ($b[self::PROPERTY] ?? null));
+				unset($w[self::PROPERTY], $b[self::PROPERTY]);
+				ksort($w);
+				ksort($b);
+				if ($w !== $b) {
+					$result['other'][$file] = (isset($result['other'][$file]) ? $result['other'][$file] . ', ' : '') . 'other properties modified';
+				}
+				if ($keywords_changed && !in_array($file, $result['wrong'])) {
+					$result['uncommitted'][] = $file;
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	/*
+		sets svn:keywords on the files in the working copy
+	*/
+	function set($files) {
+		$value_file = tempnam(sys_get_temp_dir(), 'kav');
+		file_put_contents($value_file, $this->getValue());
+		$this->svn(array('propset', self::PROPERTY, '-F', $value_file), $files);
+		@unlink($value_file);
+	}
+
+	/*
+		commits the files (property changes only, the caller checks that there are no other changes)
+	*/
+	function commit($files, $message) {
+		$this->svn(array('commit', '-q', '--depth', 'empty', '-m', $message), $files, $output);
+		return trim($output);
+	}
+}
+
 
 class ka_Object {
 	var $db = null;
@@ -438,19 +766,10 @@ class ka_App extends ka_Object {
 	}
 
 
-	function copyPackFiles($tmp_file, $pack_dir) {
-
-		rmdir_ex($pack_dir);
-		
-		if (!file_exists($pack_dir)) {
-			mkdir($pack_dir);
-		}
-
-		if (!empty($this->cfg['target_oc_version'])) {
-	        if (version_compare($this->cfg['target_oc_version'], '2.0.0.0', '>=')) {
-	    		$pack_dir = $pack_dir. "/upload";
-	        }
-		}
+	/*
+		returns lines "<status> <path>" of the changed files list with src_files added as new files
+	*/
+	protected function getPackFileLines($tmp_file) {
 
 		$file_lines = array();
 		if (file_exists($tmp_file)) {
@@ -467,66 +786,102 @@ class ka_App extends ka_Object {
 			}
 		}
 
+		return $file_lines;
+	}
+
+
+	/*
+		returns the path of a file to pack for a line of the changed files list or an empty string
+		when the file is not packed
+	*/
+	protected function getPackFileName($line) {
+
+		if (empty($line)) {
+			return '';
+		}
+		$matches = array();
+		if (!preg_match("/([\w]*)[\s]*(.*)$/", $line, $matches)) {
+			fail("Wrong file format");
+		}
+
+		$filename = trim(str_replace('\\', '/', $matches[2]));
+		
+		// exclude files excplicitely defined
+		if (fnmatchEx($this->cfg['exclude_files'], $filename)) {
+			return '';
+		}
+		
+		$is_allowed = false;
+		if (fnmatchEx($this->cfg['upload_files'], $filename, FNM_PATHNAME)) {
+			$is_allowed = true;				
+		} else {
+			if (empty($this->cfg['upload_dirs'])) {
+				$is_allowed = true;
+			} else {
+				foreach ($this->cfg['upload_dirs'] as $dir) {
+					if (strpos($filename, $dir) !== false) {
+						$is_allowed = true;
+						break;
+					}
+				}
+			}
+		}
+		if (!$is_allowed) {
+			return '';
+		}
+		
+		
+		if ($matches[1] == 'A' && !fnmatchEx($this->cfg['added_later_files'], $filename)) {
+			// ok
+		} elseif (fnmatchEx($this->cfg['src_files'], $filename)) {
+			// ok
+		} elseif ($matches[1] =='M' && $this->cfg['include_modified_files']) {
+			// ok
+		} else {
+			return '';
+		}
+		
+		if (!empty($this->cfg['working_dir'])) {
+			$filename = substr($filename, strlen($this->cfg['working_dir']));
+		}
+		if (empty($filename)) {
+			return '';
+		}	
+		
+		if (fnmatchEx(self::$exclude_files, $filename)) {
+			return '';
+		}
+
+		return $filename;
+	}
+
+
+	function copyPackFiles($tmp_file, $pack_dir) {
+
+		rmdir_ex($pack_dir);
+		
+		if (!file_exists($pack_dir)) {
+			mkdir($pack_dir);
+		}
+
+		if (!empty($this->cfg['target_oc_version'])) {
+	        if (version_compare($this->cfg['target_oc_version'], '2.0.0.0', '>=')) {
+	    		$pack_dir = $pack_dir. "/upload";
+	        }
+		}
+
+		$file_lines = $this->getPackFileLines($tmp_file);
+
 		$packed_files = array();
 
 		foreach ($file_lines as $line) {
 		
-			if (empty($line)) {
+			$filename = $this->getPackFileName($line);
+			if ($filename === '') {
 				continue;
 			}
-			$matches = array();
-			if (!preg_match("/([\w]*)[\s]*(.*)$/", $line, $matches)) {
-				fail("Wrong file format");
-			}
-
-			$filename = trim(str_replace('\\', '/', $matches[2]));
-			
-			// exclude files excplicitely defined
-			if (fnmatchEx($this->cfg['exclude_files'], $filename)) {
-				continue;
-			}
-			
-			$is_allowed = false;
-			if (fnmatchEx($this->cfg['upload_files'], $filename, FNM_PATHNAME)) {
-				$is_allowed = true;				
-			} else {
-				if (empty($this->cfg['upload_dirs'])) {
-					$is_allowed = true;
-				} else {
-					foreach ($this->cfg['upload_dirs'] as $dir) {
-						if (strpos($filename, $dir) !== false) {
-							$is_allowed = true;
-							break;
-						}
-					}
-				}
-			}
-			if (!$is_allowed) {
-				continue;
-			}
-			
-			
-			if ($matches[1] == 'A' && !fnmatchEx($this->cfg['added_later_files'], $filename)) {
-				// ok
-			} elseif (fnmatchEx($this->cfg['src_files'], $filename)) {
-				// ok
-			} elseif ($matches[1] =='M' && $this->cfg['include_modified_files']) {
-				// ok
-			} else {
-				continue;
-			}
-			
-			if (!empty($this->cfg['working_dir'])) {
-				$filename = substr($filename, strlen($this->cfg['working_dir']));
-			}
-			if (empty($filename)) {
-				continue;
-			}	
 			
 			$path_info = pathinfo($filename);
-			if (fnmatchEx(self::$exclude_files, $filename)) {
-				continue;
-			}
 			
 			$file_dir = $path_info['dirname'];
 			
@@ -776,6 +1131,13 @@ class ka_App extends ka_Object {
 			self::$src_files = array_unique(array_merge(self::$src_files, $this->cfg['src_files']));
 		}
 		
+		// the built-in masks are written for manifest_version 1 ('*' matches '/'), keep their meaning in version 2
+		if (!empty($this->cfg['manifest_version']) && (int)$this->cfg['manifest_version'] >= 2) {
+			self::$exclude_files = array_map(function($mask) {
+				return str_replace('*', '**', $mask);
+			}, self::$exclude_files);
+		}
+
 		if (!empty($this->cfg['exclude_files'])) {
 			self::$exclude_files = array_unique(array_merge(self::$exclude_files, $this->cfg['exclude_files']));
 		}
@@ -988,8 +1350,11 @@ class ka_App extends ka_Object {
 	}
 	
 
-	protected function updateModuleVersion() {
-	
+	/*
+		returns the version file path (store root + relative path) or '' when it is not defined
+	*/
+	protected function getVersionFile() {
+
 		$version_file = '';
 		if (!empty($this->cfg['version_file'])) {
 			$version_file = self::$store_root_dir . $this->cfg['version_file'];
@@ -1002,8 +1367,18 @@ class ka_App extends ka_Object {
 				$version_file = self::$store_root_dir . 'admin/controller/extension/ka_extensions/' . $code . '.php';
 			}			
 		}
-		
-		if (!file_exists($version_file)) {
+
+		return $version_file;
+	}
+
+
+	/*
+		writes the manifest version to the version file.
+		Returns true when the file was changed.
+	*/
+	protected function updateModuleVersion($version_file) {
+
+		if (empty($version_file) || !file_exists($version_file)) {
 			show('version file was not found', 'W');
 			return false;
 		}
@@ -1019,7 +1394,7 @@ class ka_App extends ka_Object {
 		
 		if ($matches[1] == $this->cfg['version']) {
 			show("version is correct");
-			return true;
+			return false;
 		}
 		
 		$file_data = preg_replace(
@@ -1036,6 +1411,226 @@ class ka_App extends ka_Object {
 	}
 	
 	
+	/*
+		module files for svn:keywords: the packed files (upload_dirs, upload_files, src_files
+		without excluded files) and include_files
+	*/
+	function getModuleFiles($tmp_file) {
+
+		$files = array();
+		foreach ($this->getPackFileLines($tmp_file) as $line) {
+			$filename = $this->getPackFileName($line);
+			if ($filename !== '' && is_file($filename)) {
+				$files[$filename] = true;
+			}
+		}
+
+		$root = normalizeFilename(self::$store_root_dir);
+		foreach (self::$include_files as $file) {
+			if (empty($file)) {
+				continue;
+			}
+			$path = normalizeFilename(self::$build_dir . $file);
+			if (!is_file($path)) {
+				$path = normalizeFilename($file);
+			}
+			if (!is_file($path)) {
+				continue;
+			}
+			if (strpos($path, $root) === 0) {
+				$path = substr($path, strlen($root));
+			}
+			$files[$path] = true;
+		}
+
+		$files = array_keys($files);
+		sort($files);
+
+		return $files;
+	}
+
+
+	protected function showFiles($files) {
+		foreach ($files as $key => $value) {
+			show("    " . (is_int($key) ? $value : "$key ($value)"));
+		}
+	}
+
+
+	/*
+		svn:keywords of the module files (svn only, manifest 'svn_keywords' is not "N"):
+		- a normal build shows a warning when a file has a wrong or uncommitted value;
+		- --set-keywords sets the value in the working copy and stops, the files have to be committed;
+		- --release=true sets the value and COMMITS the property changes of the module files together
+		  with the version file changed by the build, then builds the package. It stops when the module
+		  files have other uncommitted changes.
+		$version_file - relative path of the version file when the build changed it and it had no
+		other local changes before, '' otherwise
+	*/
+	function processSvnKeywords($tmp_file, $version_file = '') {
+
+		$set_mode = hasOption('set-keywords');
+
+		if ($this->cfg['vcs'] != 'svn') {
+			if ($set_mode) {
+				fail("--set-keywords works with svn only");
+			}
+			return true;
+		}
+		if (isset($this->cfg['svn_keywords']) && strtoupper($this->cfg['svn_keywords']) == 'N') {
+			if ($set_mode) {
+				fail("svn_keywords = \"N\" in manifest.ini, svn:keywords are not managed by ka_build");
+			}
+			return true;
+		}
+
+		$keywords = new ka_SvnKeywords($this->cfg, $this->getModuleFiles($tmp_file));
+		$check = $this->checkSvnKeywords($keywords, $version_file);
+		$value = $keywords->getValue();
+
+		show("- svn:keywords of " . count($check['files']) . " module files: " . $value);
+		if (!empty($check['unversioned'])) {
+			show("WARNING: module files not under version control (svn:keywords cannot be set):", 'W');
+			$this->showFiles($check['unversioned']);
+		}
+
+		$to_commit = array_merge($check['wrong'], $check['uncommitted']);
+		if (!empty($version_file)) {
+			$to_commit[] = $version_file;
+		}
+		$to_commit = array_values(array_unique($to_commit));
+		sort($to_commit);
+
+		// normal build: a warning only
+		//
+		if (!$set_mode && !self::$release) {
+			if (!empty($check['wrong'])) {
+				show("WARNING: " . count($check['wrong']) . " module files have a wrong or missing svn:keywords:", 'W');
+				$this->showFiles($check['wrong']);
+			}
+			if (!empty($check['uncommitted'])) {
+				show("WARNING: svn:keywords of " . count($check['uncommitted']) . " module files are not committed:", 'W');
+				$this->showFiles($check['uncommitted']);
+			}
+			if (!empty($check['wrong'])) {
+				show("Run 'php ka_build.php <manifest> --set-keywords' and commit the files, or build with --release=true"
+					. " which sets and commits them. Versions in this package are not correct.", 'W');
+			} elseif (!empty($check['uncommitted'])) {
+				show("Commit these files, or build with --release=true which commits them."
+					. " Versions in this package are not correct.", 'W');
+			}
+			return true;
+		}
+
+		// --set-keywords without --release: set in the working copy, never commit
+		//
+		if ($set_mode && !self::$release) {
+			if (!empty($check['wrong'])) {
+				$keywords->set($check['wrong']);
+				show("svn:keywords set on " . count($check['wrong']) . " files:");
+				$this->showFiles($check['wrong']);
+			}
+			if (empty($to_commit)) {
+				show("svn:keywords and the version are correct and committed. Nothing to do.");
+			} else {
+				show("\r\nCOMMIT these " . count($to_commit) . " files now (ka_build does not commit without --release=true)."
+					. " svn writes the new values into the files on commit:");
+				$this->showFiles($to_commit);
+			}
+			exit(0);
+		}
+
+		// --release=true: set and commit the property changes of the module files
+		//
+		if (!empty($check['other'])) {
+			show("WARNING: module files have uncommitted changes, the package is built from the working copy:", 'W');
+			$this->showFiles($check['other']);
+		}
+		if (empty($to_commit)) {
+			show("- svn:keywords and the version are correct and committed");
+			return true;
+		}
+
+		if (!empty($check['other'])) {
+			fail(count($to_commit) . " files have to be committed for the release, but the module files"
+				. " have other uncommitted changes (listed above). ka_build commits only svn:keywords and the version"
+				. " it writes itself. Commit or revert these changes, or run --set-keywords and commit everything yourself.");
+		}
+
+		show("RELEASE: these " . count($to_commit) . " module files will be COMMITTED (svn:keywords"
+			. (empty($version_file) ? '' : ' and the version in ' . $version_file) . "):");
+		$this->showFiles($to_commit);
+
+		if (!empty($check['wrong'])) {
+			$keywords->set($check['wrong']);
+		}
+
+		$check = $this->checkSvnKeywords($keywords, $version_file);
+		if (!empty($check['wrong']) || !empty($check['other'])) {
+			fail("svn:keywords could not be set correctly, nothing was committed. Check 'svn status'.");
+		}
+
+		$parts = array();
+		if (!empty($version_file)) {
+			$parts[] = "version";
+		}
+		if (!empty($check['uncommitted'])) {
+			$parts[] = "svn:keywords";
+		}
+		$message = "Release " . $this->cfg['version'] . ": set " . implode(' and ', $parts);
+		show($keywords->commit($to_commit, $message));
+		show("- committed: " . $message);
+
+		$check = $keywords->check();
+		if (!empty($check['wrong']) || !empty($check['uncommitted'])
+			|| (!empty($version_file) && isset($check['other'][$version_file]))
+		) {
+			fail("the release changes are still not committed. Check 'svn status'.");
+		}
+
+		return true;
+	}
+
+
+	/*
+		ka_SvnKeywords::check() where the content change of the version file written by the build
+		is expected (it is committed together with svn:keywords on release)
+	*/
+	protected function checkSvnKeywords($keywords, $version_file) {
+		$check = $keywords->check();
+		if (!empty($version_file) && ($check['other'][$version_file] ?? '') == 'modified') {
+			unset($check['other'][$version_file]);
+		}
+		return $check;
+	}
+
+
+	/*
+		returns the relative path of the version file when it is under svn and has no local changes,
+		'' otherwise
+	*/
+	protected function getCleanVersionFile($version_file) {
+
+		if ($this->cfg['vcs'] != 'svn' || empty($version_file) || !file_exists($version_file)) {
+			return '';
+		}
+
+		$file = normalizeFilename($version_file);
+		$root = normalizeFilename(self::$store_root_dir);
+		if (strpos($file, $root) === 0) {
+			$file = substr($file, strlen($root));
+		}
+
+		$keywords = new ka_SvnKeywords($this->cfg, array($file));
+		$status = $keywords->getStatus(array($file));
+		if (($status[$file]['item'] ?? '') != 'normal' || !in_array($status[$file]['props'] ?? '', array('none', 'normal', ''))) {
+			return '';
+		}
+
+		return $file;
+	}
+
+
 	function run() {
 
 		// init settings and read config from manifest.ini
@@ -1048,18 +1643,28 @@ class ka_App extends ka_Object {
 		$this->cfg['upload_dirs']   = array_map('normalizeFilename', $this->cfg['upload_dirs']);
 		$this->cfg['upload_files']  = array_map('normalizeFilename', $this->cfg['upload_files']);
 		
-		// updating the version in the controller
-		//
-		if (!empty($this->cfg['target_oc_version'])) {
-			$this->updateModuleVersion();
-		}
-		
 		// generate a list with changed files from the repository
 		//
 		if (!$this->makeVcsFilesList()) {
 			fail($this->cfg['vcs'] . ' diff failed');
 		}
 		show("- " . $this->cfg['vcs'] . " diff file generated");
+
+		// updating the version in the controller. It is done before svn:keywords, so --release=true
+		// commits the version file together with svn:keywords
+		//
+		$changed_version_file = '';
+		if (!empty($this->cfg['target_oc_version'])) {
+			$version_file = $this->getVersionFile();
+			$clean_version_file = $this->getCleanVersionFile($version_file);
+			if ($this->updateModuleVersion($version_file)) {
+				$changed_version_file = $clean_version_file;
+			}
+		}
+
+		// svn:keywords of the module files (--set-keywords stops here)
+		//
+		$this->processSvnKeywords(self::$tmp_file, $changed_version_file);
 
 		if (filesize(self::$tmp_file) == 0) {
 			show('No files were modified');
