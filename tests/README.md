@@ -9,9 +9,10 @@ Tests of the Ka Extensions library for OpenCart 3 (tested on OpenCart 3.0.5.1, P
 | `fixtures/store/` | test modules copied into the test store before the integration tests: `ka_lib_test` (settings page, installer with an `upgradeExtension()` migration, list, form, recordset) and `ka_lib_kamod` (kamod child class and kapatches), `ka_lib_lite` (a Lite module, `isLite()` true), `ka_lib_vendor/vtest` (settings page of a vendor other than `ka_extensions`) |
 | `e2e/` | `package.json`: Playwright used by the platform to install the package in the store admin; `common_js_post_links.js`: a check of the admin `kaextensions.js` link handler (`data-ka-post` links and legacy `a.btn-danger` delete links are posted, other links stay GET), run `node tests/e2e/common_js_post_links.js` (`KA_TEST_JQUERY` - jquery file of an OpenCart 3 store) |
 
-The shared platform https://svn.ka-station.com/ka_oc3_testing gives PHPUnit, the store setup and the
-integration base classes. git has no `svn:externals`, so `run.sh` exports it into `tests/platform`
-(pinned revision, `KA_TEST_PLATFORM_REV`) on the first run; `KA_TEST_PLATFORM_DIR` points to another copy.
+The shared platform https://github.com/karapuzec/ka_oc3_testing (GPL-3.0) gives PHPUnit, the store setup and
+the integration base classes. `run.sh` clones it into `tests/platform` on the first run (pinned tag,
+`KA_TEST_PLATFORM_REF`, default `v1.0.0`; `KA_TEST_PLATFORM_GIT` for another url); `KA_TEST_PLATFORM_DIR`
+points to another copy.
 The `tests/` folder is not packed (`exclude_files[] = 'tests/**'` in `manifest.ini`) and is closed for web
 access by `tests/.htaccess`.
 
