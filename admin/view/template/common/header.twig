@@ -29,6 +29,9 @@
 {% for script in scripts %}
 <script type="text/javascript" src="{{ script }}"></script>
 {% endfor %}
+{# //karapuz: before:</head> #}
+<script type="text/javascript">if (typeof ka_extensions === 'undefined' && typeof KaExtensions !== 'undefined') { var ka_extensions = new KaExtensions(); }</script>
+{# ///karapuz #}
 </head>
 <body>
 <div id="container">

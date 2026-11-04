@@ -27,7 +27,7 @@
 
 {#
 	A delete button of a list row: the link is posted (deleteRecord() accepts POST only) after the
-	confirmation, see the data-ka-post handler in common.js. 'href' - the 'delete' action of ControllerList::fillRecord()
+	confirmation, see the data-ka-post handler in kaextensions.js. 'href' - the 'delete' action of ControllerList::fillRecord()
 #}
 {% macro button_row_delete(href, title = '') %}
 	<a href="{{ href }}" data-ka-post="1" data-confirm="{{ t('Are you sure?')|ka_escape }}" data-toggle="tooltip" title="{{ title ? title : t('button_delete') }}" class="btn btn-danger btn-xs l-button-row-delete"><i class="fa fa-trash-o"></i></a>

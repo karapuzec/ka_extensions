@@ -21,7 +21,8 @@ class ControllerCommonHeader extends \ControllerCommonHeader {
 		parent::index();
 		$this->enableRender();
 	
-		$this->document->addScript('view/javascript/extension/ka_extensions/common.js');
+		// the class KaExtensions, the object ka_extensions is created in the header template
+		$this->document->addScript('view/javascript/extension/ka_extensions/kaextensions.js');
 		$this->document->addStyle('view/stylesheet/extension/ka_extensions/stylesheet.css');
 
 		$data     = $this->getRenderData();

@@ -13,7 +13,8 @@ class ControllerCommonHeader extends Controller {
 		$data['keywords'] = $this->document->getKeywords();
 //karapuz: after:$data['keywords'] = $this->document->getKeywords
 		if (class_exists('\KaGlobal')) {
-			$this->document->addScript('view/javascript/extension/ka_extensions/common.js');
+			// the class KaExtensions, the object ka_extensions is created in the header template
+			$this->document->addScript('view/javascript/extension/ka_extensions/kaextensions.js');
 			$this->document->addStyle('view/stylesheet/extension/ka_extensions/stylesheet.css');
 		}
 ///karapuz

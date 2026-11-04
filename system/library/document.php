@@ -67,7 +67,7 @@ class Document {
 		return $this->ka_meta;
 	}
 
-	public function addKaJsLables($data) {
+	public function addKaJsLabels($data) {
 		$this->ka_labels = array_merge($this->ka_labels, $data);
 	}
 	
