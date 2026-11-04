@@ -84,7 +84,7 @@ trait TraitControllerForm {
 			$f['value'] = '';
 		}
 		
-		if (!empty($f['value']) && !empty($f['format'])) {
+		if (is_scalar($f['value']) && strlen((string)$f['value']) && !empty($f['format'])) {
 			if ($f['format'] == 'price') {
 				$f['value'] = $this->currency->formatValue($f['value'], $this->config->get('config_currency'));
 			}

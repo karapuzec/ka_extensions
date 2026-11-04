@@ -262,9 +262,11 @@ class Response {
 class Loader {
 	public $models = array();
 	public $views = array();
+	public $languages = array();
 	protected $render_disabled = false;
 
 	public function language($route) {
+		$this->languages[] = $route;
 		return array();
 	}
 

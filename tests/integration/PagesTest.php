@@ -99,6 +99,33 @@ class PagesTest extends LibraryTestCase {
 		$this->assertStringContainsString('user_token=' . $this->oc->getUserToken(), $output);
 	}
 
+	protected function selectedStatus($output) {
+		preg_match_all('/<option value="([^"]*)"\s*selected="selected"/', $output, $matches);
+		return $matches[1];
+	}
+
+	/**
+	 * A filter value '0' is shown as the selected option, an empty value selects the empty option only
+	 * (PHP 7.4 compared '' == 0 and selected the option 0 too).
+	 */
+	public function testSelectFilterWithZero() {
+		$this->assertSame(array('0'), $this->selectedStatus($this->listPage(array('filter_status' => '0'))));
+		$this->assertSame(array(''), $this->selectedStatus($this->listPage(array())));
+		$this->assertSame(array('1'), $this->selectedStatus($this->listPage(array('filter_status' => '1'))));
+	}
+
+	public function testSortedColumnIsHighlighted() {
+		$output = $this->listPage(array('sort' => 'date', 'order' => 'DESC'));
+		$this->assertMatchesRegularExpression('/<p class="sort-date-link"><a\s+href="[^"]*"\s+class="desc"/', $output);
+		$this->assertDoesNotMatchRegularExpression('/<p class="sort-name-link"><a\s+href="[^"]*"\s+class=/', $output);
+	}
+
+	public function testRowDeleteButtonIsPosted() {
+		$ids = $this->addItems(1);
+		$output = $this->listPage();
+		$this->assertMatchesRegularExpression('/<a href="[^"]*items\/deleteRecord[^"]*item_id=' . $ids[0] . '[^"]*" data-ka-post="1" data-confirm="Are you sure\?"/', $output);
+	}
+
 	public function testDeleteSelected() {
 		$ids = $this->addItems(3);
 		$result = $this->oc->request(static::ITEMS_ROUTE . '/delete', array('page' => '2'), array('selected' => array($ids[0], $ids[2])));
@@ -140,6 +167,14 @@ class PagesTest extends LibraryTestCase {
 		$output = $this->oc->request(static::ITEM_ROUTE)['output'];
 		$this->assertMatchesRegularExpression('/name="name"/', $output);
 		$this->assertMatchesRegularExpression('/name="status"\s+value="1"\s+checked/', $output);
+	}
+
+	public function testFormOfAMissingItem() {
+		$this->oc->get('session')->data['ka_top_messages'] = null;
+		$result = $this->oc->request(static::ITEM_ROUTE, array('item_id' => 999999));
+		$this->assertStringContainsString('route=extension/ka_extensions/ka_lib_test/items', $result['redirect']);
+		$this->assertSame(array('The record is not found. It may have been deleted.'), array_column($this->topMessages(), 'content'));
+		$this->assertSame(array('E'), array_column($this->topMessages(), 'type'));
 	}
 
 	public function testFormOfAnItem() {
