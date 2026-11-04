@@ -3,9 +3,11 @@
 namespace KaExtensionsTests\Integration;
 
 /**
- * The labels of common.js (ka_js_labels) printed by the admin and storefront footers: the standard
- * labels with txt_confirm always (also with KA_DISABLE_FORM_VALIDATION), labels of a module added by
- * Document::addKaJsLabels(), JS escaping of the values.
+ * The library JS on the admin and storefront pages: the header adds kaextensions.js (not common.js)
+ * and creates the object ka_extensions; the footer passes the labels of the document
+ * (Document::addKaJsLabels(), the standard labels with txt_confirm always, also with
+ * KA_DISABLE_FORM_VALIDATION) as ka_extensions.setLabels({...}), JSON safe in an inline script.
+ * No global ka_js_labels.
  *
  * @group smoke
  */
@@ -20,15 +22,13 @@ class JsLabelsTest extends LibraryTestCase {
 		'txt_field_validation_error' => 'Some data is not filled in. Please check the form fields: ',
 	);
 
+	const TEST_LABEL = "a \"b\" 'c' \\ d\r\ne </script> &amp; <b>";
+
 	protected function labels($output) {
-		$this->assertStringContainsString('var ka_js_labels = [];', $output);
-		preg_match_all('/ka_js_labels\[\'([^\']*)\'\] = "((?:[^"\\\\]|\\\\.)*)";/', $output, $m, PREG_SET_ORDER);
-		$labels = array();
-		foreach ($m as $row) {
-			// the JS string as Twig escapes it (\xHH, \uHHHH) decoded as a JSON string
-			$json = preg_replace('/\\\\x([0-9A-Fa-f]{2})/', '\\\\u00$1', $row[2]);
-			$labels[$row[1]] = json_decode('"' . $json . '"');
-		}
+		$this->assertStringNotContainsString('var ka_js_labels', $output);
+		$this->assertSame(1, preg_match_all('/ka_extensions\.setLabels\((\{.*\})\);/', $output, $m));
+		$labels = json_decode($m[1][0], true);
+		$this->assertIsArray($labels, $m[1][0]);
 		return $labels;
 	}
 
@@ -40,40 +40,40 @@ class JsLabelsTest extends LibraryTestCase {
 	}
 
 	protected function addTestLabel() {
-		$this->oc->get('document')->addKaJsLabels(array(
-			'txt_test' => "a \"b\" 'c' \\ </script> &amp; <b>",
-		));
+		$this->oc->get('document')->addKaJsLabels(array('txt_test' => self::TEST_LABEL));
 	}
 
 	protected function checkTestLabel($output) {
-		// no raw quote, backslash or closing tag in the JS string
+		// no raw quote, tag, ampersand or line break of the value in the script
 		$this->assertStringNotContainsString('</script> &amp;', $output);
-		$this->assertStringNotContainsString('&quot;b&quot;', $output);
-		$this->assertSame("a \"b\" 'c' \\ </script> &amp; <b>", $this->labels($output)['txt_test']);
+		$this->assertStringNotContainsString('"b"', $output);
+		$this->assertStringNotContainsString("d\r\ne", $output);
+		$this->assertSame(self::TEST_LABEL, $this->labels($output)['txt_test']);
 	}
 
-	public function testAdminFooter() {
+	// kaextensions.js, then the object is created in the head; common.js is not included
+	protected function assertScripts($output, $dir) {
+		$class  = strpos($output, $dir . 'kaextensions.js');
+		$object = strpos($output, 'var ka_extensions = new KaExtensions();');
+		$this->assertNotFalse($class);
+		$this->assertNotFalse($object);
+		$this->assertLessThan($object, $class);
+		$this->assertLessThan(strpos($output, '</head>'), $object);
+		$this->assertStringNotContainsString($dir . 'common.js', $output);
+		$this->assertLessThan(strpos($output, 'ka_extensions.setLabels('), $object);
+	}
+
+	public function testAdminPage() {
 		$this->bootAdmin();
 		$this->addTestLabel();
 		$output = $this->oc->request('common/dashboard')['output'];
-		$labels = $this->labels($output);
-		$this->assertStandard($labels);
+		$this->assertStandard($this->labels($output));
 		$this->checkTestLabel($output);
-		$this->assertStringContainsString("ka_js_labels['txt_field_validation_error']", $output);
+		$this->assertStringContainsString("ka_extensions.getLabel('txt_field_validation_error')", $output);
 		$this->assertScripts($output, 'view/javascript/extension/ka_extensions/');
 	}
 
-	// the class file before common.js, the footer applies the labels to the object
-	protected function assertScripts($output, $dir) {
-		$class  = strpos($output, $dir . 'kaextensions.js');
-		$common = strpos($output, $dir . 'common.js');
-		$this->assertNotFalse($class);
-		$this->assertNotFalse($common);
-		$this->assertLessThan($common, $class);
-		$this->assertStringContainsString('ka_extensions.setLabels(ka_js_labels);', $output);
-	}
-
-	public function testCatalogFooter() {
+	public function testCatalogPage() {
 		$this->bootCatalog();
 		$this->addTestLabel();
 		$output = $this->oc->request('common/home')['output'];
@@ -88,6 +88,6 @@ class JsLabelsTest extends LibraryTestCase {
 		$output = $this->oc->request('common/dashboard')['output'];
 		$this->assertStandard($this->labels($output));
 		// the validation script is not printed
-		$this->assertStringNotContainsString("ka_js_labels['txt_field_validation_error'] + error", $output);
+		$this->assertStringNotContainsString("getLabel('txt_field_validation_error') + error", $output);
 	}
 }

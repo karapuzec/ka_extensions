@@ -5,7 +5,7 @@
 	$Version$ ($Revision$)
 
 	The class of the library object ka_extensions (created in common.js): messages, labels. The labels
-	are the English defaults; the language values come from ka_js_labels of the footer (setLabels(),
+	are the English defaults; the language values come from the footer (setLabels(),
 	getLabel()).
 */
 
@@ -17,18 +17,17 @@ class KaExtensions {
 			'txt_info'   : 'Info',
 			'txt_success': 'Success',
 			'txt_warning': 'Warning',
-			'txt_error'  : 'Error'
+			'txt_error'  : 'Error',
+			'txt_confirm': 'Are you sure?',
+			'txt_field_validation_error': 'Some data is not filled in. Please check the form fields: '
 		};
 
 		/*
-			Returns a label: the language value from ka_js_labels (filled by the footer of the page), these
-			English defaults when it is not there
+			Returns a label: the language value set by setLabels() (the footer of the page), the English
+			default of this.labels, the key itself for an unknown label
 		*/
 		this.getLabel = (key) => {
-			if (typeof ka_js_labels !== 'undefined' && ka_js_labels && typeof ka_js_labels[key] === 'string' && ka_js_labels[key].length) {
-				return ka_js_labels[key];
-			}
-			return this.labels[key];
+			return this.labels[key] ?? key;
 		}
 
 	
@@ -95,17 +94,21 @@ class KaExtensions {
 		}
 
 		/*
-			Merges the language labels (key => text) into this.labels, e.g. ka_js_labels of the footer
+			Merges language labels (key => text) into this.labels, later calls override earlier values
+			(like array_merge). The footer of the page calls it with the labels of Document::addKaJsLabels(),
+			a module can call it with its own labels.
 		*/
 		this.setLabels = (labels) => {
-			if (labels && typeof labels === 'object') {
-				$.extend(this.labels, labels);
-			}
+			Object.assign(this.labels, labels);
 		}
 
-		// the labels printed before this object is created
-		if (typeof window.ka_js_labels !== 'undefined') {
-			this.setLabels(window.ka_js_labels);
+		// $.ka.alert(text, type) - a short form of showMessage()
+		//
+		if (!$.ka) {
+			$.ka = {};
+		}
+		$.ka.alert = (text, type) => {
+			this.showMessage(text, type);
 		}
 	}
 }

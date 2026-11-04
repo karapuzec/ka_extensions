@@ -5,8 +5,8 @@
 	$Version$ ($Revision$)
 
 	The class of the library object ka_extensions (created in common.js): messages, labels, overlays,
-	posting of urls. The labels are the English defaults; the language values come from ka_js_labels of
-	the footer (setLabels(), getLabel()).
+	posting of urls. The labels are the English defaults; the language values come from the footer
+	(setLabels(), getLabel()).
 */
 
 class KaExtensions {
@@ -19,18 +19,16 @@ class KaExtensions {
 			'txt_warning': 'Warning',
 			'txt_error'  : 'Error',
 			// the confirmation of legacy delete links (the same text as the macro button_row_delete)
-			'txt_confirm': 'Are you sure?'
+			'txt_confirm': 'Are you sure?',
+			'txt_field_validation_error': 'Some data is not filled in. Please check the form fields: '
 		};
 
 		/*
-			Returns a label: the language value from ka_js_labels (filled by the footer of the page), these
-			English defaults when it is not there
+			Returns a label: the language value set by setLabels() (the footer of the page), the English
+			default of this.labels, the key itself for an unknown label
 		*/
 		this.getLabel = (key) => {
-			if (typeof ka_js_labels !== 'undefined' && ka_js_labels && typeof ka_js_labels[key] === 'string' && ka_js_labels[key].length) {
-				return ka_js_labels[key];
-			}
-			return this.labels[key];
+			return this.labels[key] ?? key;
 		}
 
 	
@@ -153,17 +151,48 @@ class KaExtensions {
 		}
 
 		/*
-			Merges the language labels (key => text) into this.labels, e.g. ka_js_labels of the footer
+			Merges language labels (key => text) into this.labels, later calls override earlier values
+			(like array_merge). The footer of the page calls it with the labels of Document::addKaJsLabels(),
+			a module can call it with its own labels.
 		*/
 		this.setLabels = (labels) => {
-			if (labels && typeof labels === 'object') {
-				$.extend(this.labels, labels);
-			}
+			Object.assign(this.labels, labels);
 		}
 
-		// the labels printed before this object is created
-		if (typeof window.ka_js_labels !== 'undefined') {
-			this.setLabels(window.ka_js_labels);
+		// $.ka.alert(text, type) - a short form of showMessage()
+		//
+		if (!$.ka) {
+			$.ka = {};
 		}
+		$.ka.alert = (text, type) => {
+			this.showMessage(text, type);
+		}
+
+		/*
+			Links with the data-ka-post attribute are posted (after the data-confirm question when it is set)
+			instead of opening them.
+
+			<a href="..." data-ka-post="1" data-confirm="Are you sure?">Delete</a>
+
+			Legacy row delete links of list templates (a.btn-danger to .../deleteRecord without onclick and
+			data-ka-post) are posted too after the default question: deleteRecord() accepts POST only since
+			4.1.1.29. Other links are not changed. The handler is delegated to the document, so it works for
+			links added later and when the object is created in the head of the page.
+		*/
+		var self = this;
+		$(document).on('click', 'a[data-ka-post], a.btn-danger[href*="/deleteRecord"]:not([onclick])', function(event) {
+
+			event.preventDefault();
+
+			var confirm_text = $(this).attr('data-confirm');
+			if (typeof $(this).attr('data-ka-post') == 'undefined') {
+				confirm_text = self.getLabel('txt_confirm');
+			}
+			if (confirm_text && !confirm(confirm_text)) {
+				return;
+			}
+
+			self.postUrl($(this).attr('href'));
+		});
 	}
 }

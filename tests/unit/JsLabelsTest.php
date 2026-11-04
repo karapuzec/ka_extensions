@@ -3,7 +3,7 @@
 namespace KaExtensionsTests\Unit;
 
 /**
- * The language files of the library have the labels passed to common.js (ka_js_labels) by the
+ * The language files of the library have the labels passed to the library JS (ka_extensions.setLabels()) by the
  * admin and storefront footers, in en-gb and ru-ru; the footers pass them all.
  *
  * @group smoke

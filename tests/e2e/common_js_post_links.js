@@ -1,6 +1,7 @@
 /*
 	Check of the admin common.js click handler (data-ka-post links and legacy delete links) and of
-	the confirmation text taken from ka_js_labels['txt_confirm'] of the footer.
+	the confirmation text set by ka_extensions.setLabels() of the footer, and of the deprecated common.js
+	included by third-party code (no second handler).
 	Run: node tests/e2e/common_js_post_links.js  (needs php and the jquery file of an OpenCart 3 store,
 	KA_TEST_JQUERY=/path/to/admin/view/javascript/jquery/jquery-2.1.1.min.js)
 */
@@ -19,17 +20,24 @@ fs.copyFileSync(jquery, path.join(dir, 'jquery.js'));
 fs.copyFileSync(path.join(root, 'admin/view/javascript/extension/ka_extensions/kaextensions.js'), path.join(dir, 'kaextensions.js'));
 fs.copyFileSync(path.join(root, 'admin/view/javascript/extension/ka_extensions/common.js'), path.join(dir, 'common.js'));
 fs.writeFileSync(path.join(dir, 'echo.php'), '<?php echo $_SERVER["REQUEST_METHOD"], " ", $_SERVER["QUERY_STRING"];');
-fs.writeFileSync(path.join(dir, 'index.html'), `<html><body><script src="jquery.js"></script><script src="kaextensions.js"></script><script src="common.js"></script>
-<a id="post" href="echo.php?route=x/deleteRecord&amp;id=1" data-ka-post="1" data-confirm="Sure?">1</a>
+const links = `<a id="post" href="echo.php?route=x/deleteRecord&amp;id=1" data-ka-post="1" data-confirm="Sure?">1</a>
 <a id="post-noconfirm" href="echo.php?id=2" data-ka-post="1">2</a>
 <a id="legacy" class="btn btn-danger" href="echo.php?route=x/deleteRecord&amp;id=3">3</a>
 <a id="no-danger" class="btn btn-primary" href="echo.php?route=x/deleteRecord&amp;id=4">4</a>
 <a id="no-delete" class="btn btn-danger" href="echo.php?route=x/edit&amp;id=5">5</a>
 <a id="onclick" class="btn btn-danger" href="echo.php?route=x/deleteRecord&amp;id=6" onclick="window.location='echo.php?own=6'; return false;">6</a>
-</body></html>`);
-// the page with the labels of the footer (ka_js_labels, escaped as footer.twig does with |e('js'))
-fs.writeFileSync(path.join(dir, 'labels.html'), fs.readFileSync(path.join(dir, 'index.html'), 'utf8').replace('</body>',
-	`<script>var ka_js_labels = []; ka_js_labels['txt_confirm'] = "\\u0412\\u044B \\x22\\u0443\\u0432\\u0435\\u0440\\u0435\\u043D\\u044B\\x22\\x3F";</script></body>`));
+`;
+const page = (scripts) => `<html><head><script src="jquery.js"></script>${scripts}</head><body>\n${links}</body></html>`;
+const create = `<script>if (typeof ka_extensions === 'undefined' && typeof KaExtensions !== 'undefined') { var ka_extensions = new KaExtensions(); }</script>`;
+// the library header: the class and the object in the head
+fs.writeFileSync(path.join(dir, 'index.html'), page('<script src="kaextensions.js"></script>' + create));
+// the footer labels: JSON as the footer prints it (json_encode with JSON_HEX_*)
+fs.writeFileSync(path.join(dir, 'labels.html'), page('<script src="kaextensions.js"></script>' + create).replace('</body>',
+	String.raw`<script>ka_extensions.setLabels({"txt_confirm":"\u0412\u044b \u0022\u0443\u0432\u0435\u0440\u0435\u043d\u044b\u0022? \\ \n\u003C\/script\u003E"});</script></body>`));
+// third-party code including the deprecated common.js after the object of the header (no second handler)
+fs.writeFileSync(path.join(dir, 'compat.html'), page('<script src="kaextensions.js"></script>' + create + '<script src="common.js"></script>'));
+// only kaextensions.js + common.js (old style include): common.js creates the object
+fs.writeFileSync(path.join(dir, 'common_only.html'), page('<script src="kaextensions.js"></script><script src="common.js"></script>'));
 
 const cases = [
 	// id, confirm answer, expected result, expected dialog text
@@ -42,7 +50,10 @@ const cases = [
 	['no-delete', true, 'GET route=x/edit&id=5', null],
 	['onclick', true, 'GET own=6', null],
 	// txt_confirm of ka_js_labels instead of the English default
-	['legacy', true, 'POST route=x/deleteRecord&id=3', 'Вы "уверены"?', 'labels.html'],
+	['legacy', true, 'POST route=x/deleteRecord&id=3', 'Вы "уверены"? \\ \n</script>', 'labels.html'],
+	['legacy', true, 'POST route=x/deleteRecord&id=3', 'Are you sure?', 'compat.html'],
+	['post', true, 'POST route=x/deleteRecord&id=1', 'Sure?', 'compat.html'],
+	['legacy', true, 'POST route=x/deleteRecord&id=3', 'Are you sure?', 'common_only.html'],
 	['post', false, 'stayed', 'Sure?', 'labels.html'],
 ];
 
@@ -50,20 +61,22 @@ const cases = [
 	const server = spawn('php', ['-S', 'localhost:' + port, '-t', dir], { stdio: 'ignore' });
 	await new Promise(r => setTimeout(r, 700));
 	const browser = await chromium.launch();
-	const page = await browser.newPage();
+	const bpage = await browser.newPage();
 	let failed = 0;
 	try {
 		for (const [id, accept, expected, dialog_text, file = 'index.html'] of cases) {
-			await page.goto(`http://localhost:${port}/${file}`);
+			await bpage.goto(`http://localhost:${port}/${file}`);
 			let dialog = null;
-			page.removeAllListeners('dialog');
-			page.on('dialog', d => { dialog = d.message(); accept ? d.accept() : d.dismiss(); });
-			await page.click('#' + id);
-			await page.waitForTimeout(500);
-			const result = page.url().includes('echo.php') ? (await page.textContent('body')).trim() : 'stayed';
-			const ok = result === expected && dialog === dialog_text;
+			bpage.removeAllListeners('dialog');
+			let dialogs = 0;
+			bpage.on('dialog', d => { dialogs++; dialog = d.message(); accept ? d.accept() : d.dismiss(); });
+			await bpage.click('#' + id);
+			await bpage.waitForTimeout(500);
+			const result = bpage.url().includes('echo.php') ? (await bpage.textContent('body')).trim() : 'stayed';
+			// one question per click (one handler)
+			const ok = result === expected && dialog === dialog_text && dialogs <= 1;
 			if (!ok) failed++;
-			console.log((ok ? 'ok   ' : 'FAIL ') + id + (accept ? '' : ' (cancel)') + ': ' + result + ', dialog: ' + dialog);
+			console.log((ok ? 'ok   ' : 'FAIL ') + id + (accept ? '' : ' (cancel)') + ': ' + result + ', dialog: ' + JSON.stringify(dialog) + ', dialogs: ' + dialogs);
 		}
 	} finally {
 		await browser.close();

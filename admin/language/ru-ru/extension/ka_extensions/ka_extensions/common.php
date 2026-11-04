@@ -24,7 +24,7 @@ $_['txt_filter_from']  = '%s с';
 $_['txt_filter_to']    = '%s по';
 $_['txt_clear_filter'] = 'Сбросить';
 
-// the labels of common.js (ka_js_labels)
+// the labels of the library JS (ka_extensions.setLabels() in the footer)
 $_['txt_warning'] = 'Внимание';
 $_['txt_error']   = 'Ошибка';
 $_['txt_success'] = 'Успешно';

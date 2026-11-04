@@ -17,7 +17,7 @@ $_['Minimum value is %s']        = 'Минимальное значение: %s'
 $_['Maximum value is %s']        = 'Максимальное значение: %s';
 $_['The field %s was not found'] = 'Поле %s не найдено';
 
-// the labels of common.js (ka_js_labels)
+// the labels of the library JS (ka_extensions.setLabels() in the footer)
 $_['txt_warning'] = 'Внимание';
 $_['txt_error']   = 'Ошибка';
 $_['txt_success'] = 'Успешно';
