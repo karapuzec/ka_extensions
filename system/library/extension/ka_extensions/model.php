@@ -17,7 +17,7 @@ use extension\ka_extensions\Tables;
 */
 abstract class Model extends \Model {
 
-	use TraitSession;
+	use TraitSession, TraitQB;
 
 	protected $lastError;
 	
@@ -32,6 +32,7 @@ abstract class Model extends \Model {
 	public function getLastError() {
 		return $this->lastError;
 	}
+
 
 	/**
 		All required models can be loaded here

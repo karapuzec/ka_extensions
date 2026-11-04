@@ -16,7 +16,8 @@ namespace extension\ka_extensions;
 */
 abstract class Controller extends \Controller {
 
-	use TraitSession, TraitController;
+
+	use TraitSession, TraitController, TraitQB;
 
 	/**
 		Earlier it was used as alternative to the standard db class. Latest 'Ka Extensions' library intends to
@@ -42,6 +43,7 @@ abstract class Controller extends \Controller {
 	protected function onLoad() {
 		return true;
 	}
+
 
 	
 	/**

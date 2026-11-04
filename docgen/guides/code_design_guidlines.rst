@@ -47,6 +47,35 @@ You can create a model class with the following methods:
 With this approach, other developers can modify the behavior of your module
 by altering the QB object returned by the ``getCustomersQB`` method.
 
+In models and controllers create the QB object with ``$this->getQB($table, $alias)``
+instead of ``new QB()``: it sets ``from($table, $alias)`` and passes the callbacks
+subscribed with ``onQB()`` to the object. The functions come from the trait
+``TraitQB`` used by the base Model and Controller of the library; other classes can
+use it too, e.g. ``use \extension\ka_extensions\TraitQB;`` in a kamod child of a
+standard OpenCart model. The table key is the table of the first ``from()`` call. Another module extends the queries in a
+kamod child of the class (or overrides ``getQB()`` there):
+
+.. code-block:: php
+
+    public function getRecords($filter) {
+        $id = $this->onQB('product', function($qb) {
+            $qb->where('p.ka_hidden', 0);
+        });
+        $result = parent::getRecords($filter);
+        $this->offQB($id);
+        return $result;
+    }
+
+``onQB()`` returns the subscription id, ``offQB($id)`` removes the callback. ``getQB()``
+copies the current callbacks into the QB object it creates: a QB made while the
+subscription was active keeps the callback after ``offQB()``, later ones do not get it.
+
+The callbacks of the table go first, then those of ``'*'`` (all queries of the
+object), by ``$sort_order``. A callback is called at the start of every
+``getSql()`` call (``query()``, subqueries, the total count of a recordset), so it
+may run several times for one QB object; keep a flag in the callback when a
+condition must be added once, and do not call ``getSql()`` of that object inside it.
+
 
 4. Avoid Direct File Inclusion
 -----------------------------
