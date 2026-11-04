@@ -18,3 +18,8 @@ $_['The value must be a number'] = 'Значение должно быть чи�
 $_['Minimum value is %s']        = 'Минимальное значение: %s';
 $_['Maximum value is %s']        = 'Максимальное значение: %s';
 $_['The field %s was not found'] = 'Поле %s не найдено';
+
+// the default list page (pages/list.twig)
+$_['txt_filter_from']  = '%s с';
+$_['txt_filter_to']    = '%s по';
+$_['txt_clear_filter'] = 'Сбросить';

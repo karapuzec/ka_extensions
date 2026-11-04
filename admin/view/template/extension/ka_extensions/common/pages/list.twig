@@ -1,0 +1,30 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+{#
+	The default list page of ControllerList ($use_default_list = true). The filter and the table are
+	included from filter_template / table_template (ControllerList::FILTER_TEMPLATE, TABLE_TEMPLATE),
+	a module can replace one of them or extend this template and override the blocks list_filter, list_table.
+#}
+{% import '@ka_common/macros/table.twig' as table %}
+
+{% extends '@ka_common/pages/page.twig' %}
+
+{% block page_buttons %}
+	{% if action_add %}{{ table.button_add(action_add) }}{% endif %}
+	{% if enable_delete %}{{ table.button_delete(action_delete, 'frm-ka-list') }}{% endif %}
+{% endblock %}
+
+{% block page_contents %}
+	{% block list_filter %}
+		{% if filter_fields %}
+			{% include filter_template %}
+		{% endif %}
+	{% endblock %}
+
+	{% block list_table %}
+		{% include table_template %}
+	{% endblock %}
+{% endblock %}

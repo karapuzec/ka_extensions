@@ -31,7 +31,7 @@ abstract class ModelRecordset extends Model {
 
 	protected function onLoad() {
 		
-		$tbl = new $this->table_class();
+		$tbl = $this->getTable();
 
 		// init the primary field
 		$keys = $tbl->getPrimaryKeys();
@@ -42,6 +42,24 @@ abstract class ModelRecordset extends Model {
 	}
 	
 	
+	/*
+		Returns a new object of the table class (field metadata: ADBTable::getListFields() etc.).
+	*/
+	public function getTable() {
+		$tbl = new $this->table_class();
+		return $tbl;
+	}
+
+
+	/*
+		Returns a recordset of the table without a model file of its own (see ControllerList::TABLE_CLASS).
+	*/
+	public static function forTable($registry, $table_class) {
+		$recordset = new ModelTableRecordset($registry, $table_class);
+		return $recordset;
+	}
+
+
 	public function getPrimaryFields() {
 		return $this->primary_fields;
 	}
@@ -174,7 +192,20 @@ abstract class ModelRecordset extends Model {
 			}
 	*/
 	protected function getSortWhitelist() {
-		return null;
+
+		// the fields with the 'sort' metadata of the table
+		//
+		$tbl = $this->getTable();
+		if (!$tbl->hasFieldMeta('sort')) {
+			return null;
+		}
+
+		$whitelist = array();
+		foreach ($tbl->getSortFields() as $code) {
+			$whitelist[$code] = static::TABLE_ALIAS . '.' . $code;
+		}
+
+		return $whitelist;
 	}
 
 
@@ -187,8 +218,50 @@ abstract class ModelRecordset extends Model {
 		
 		$qb->select(static::TABLE_ALIAS . '.*', $this->table_name, static::TABLE_ALIAS);
 		
+		$this->applyMetaFilters($qb, $data);
+		
 		return $qb;
 	}	
+
+
+	/*
+		Applies the filters of the table fields with the 'filter' metadata (ADBTable::getFilterFields()).
+		Parameters: 'filter_<field>' ('like', 'eq', 'select'), 'filter_<field>_from' / 'filter_<field>_to'
+		('date_range', dates Y-m-d). Empty values are skipped, '0' is a value. Tables without the metadata
+		are not filtered here.
+	*/
+	protected function applyMetaFilters($qb, $data) {
+
+		$tbl = $this->getTable();
+		foreach ($tbl->getFilterFields() as $code => $field) {
+
+			$column = static::TABLE_ALIAS . '.`' . $code . '`';
+			$name   = 'filter_' . $code;
+
+			if ($field['filter'] == 'date_range') {
+				foreach (array('_from' => '>=', '_to' => '<=') as $suffix => $op) {
+					$value = isset($data[$name . $suffix]) && is_scalar($data[$name . $suffix]) ? (string)$data[$name . $suffix] : '';
+					$time  = strlen($value) ? strtotime($value) : false;
+					if ($time !== false) {
+						$date = date('Y-m-d', $time) . ($suffix == '_from' ? ' 00:00:00' : ' 23:59:59');
+						$qb->where($column . ' ' . $op . " '" . $this->db->escape($date) . "'");
+					}
+				}
+				continue;
+			}
+
+			if (!isset($data[$name]) || !is_scalar($data[$name]) || !strlen((string)$data[$name])) {
+				continue;
+			}
+			$value = (string)$data[$name];
+
+			if ($field['filter'] == 'like') {
+				$qb->where($column . " LIKE '%" . $this->db->escape(addcslashes($value, '%_\\')) . "%'");
+			} else {
+				$qb->where($column, $value);
+			}
+		}
+	}
 
 	
 	/*

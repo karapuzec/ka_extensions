@@ -25,8 +25,26 @@ abstract class ControllerList extends ControllerPage {
 	//                  set it when getRecordsQB() already selects all fields used by fillRecord() and the template
 	//
 	protected $complete_records = true;
+
+	// true - the default list page of the library (pages/list.twig) built from the field metadata of the table
+	//        (ADBTable::getListFields(), getFilterFields(), getSortFields()). false (default) - the template
+	//        PAGE_ROUTE . '_list' of the module
+	//
+	protected $use_default_list = false;
+
+	// columns of the default list, see getListColumns()
+	protected $list_columns = array();
+
 	const PAGE_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
 	const FORM_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
+
+	// an ADBTable class used without a model file: a plain ModelRecordset of the table is the recordset
+	// (by default the model PAGE_ROUTE is loaded)
+	const TABLE_CLASS = ''; // = '\\extension\\ka_extensions\\ka_seo\\dbtable\\KaSeoRedirect';
+
+	// templates of the filter and of the table of the default list page, a module can replace one of them
+	const FILTER_TEMPLATE = '@ka_common/pages/list/filter.twig';
+	const TABLE_TEMPLATE  = '@ka_common/pages/list/table.twig';
 	
 	protected function onLoad() {
 
@@ -39,9 +57,109 @@ abstract class ControllerList extends ControllerPage {
 		foreach ($this->getLanguageRoutes() as $route) {
 			$this->load->language($route);
 		}
-		$this->recordset = $this->load->kamodel(static::PAGE_ROUTE);
+		$this->recordset = $this->getRecordset();
 		
 		parent::onLoad();
+	}
+
+
+	/*
+		Returns the recordset of the page: a plain recordset of TABLE_CLASS or the model PAGE_ROUTE.
+	*/
+	protected function getRecordset() {
+
+		if (!empty(static::TABLE_CLASS)) {
+			$recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
+		} else {
+			$recordset = $this->load->kamodel(static::PAGE_ROUTE);
+		}
+
+		return $recordset;
+	}
+
+
+	/*
+		Returns the table object of the recordset (field metadata) or null.
+	*/
+	protected function getTable() {
+
+		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
+			return null;
+		}
+
+		$tbl = $this->recordset->getTable();
+
+		return $tbl;
+	}
+
+
+	protected function getFieldTitle($field) {
+
+		if (!empty($field['title'])) {
+			return $field['title'];
+		}
+
+		return $this->language->get('txt_title_' . $field['code']);
+	}
+
+
+	/*
+		Returns the columns of the default list from the table metadata: code => [code, title, sort (code or ''),
+		format, width, link].
+	*/
+	protected function getListColumns() {
+
+		$tbl = $this->getTable();
+		if (empty($tbl)) {
+			return array();
+		}
+
+		$sort_fields = $this->getSortFields();
+
+		$columns = array();
+		foreach ($tbl->getListFields() as $code => $field) {
+			$columns[$code] = array(
+				'code'   => $code,
+				'title'  => $this->getFieldTitle($field),
+				'sort'   => isset($sort_fields[$code]) ? $code : '',
+				'format' => isset($field['format']) ? $field['format'] : '',
+				'width'  => isset($field['width']) ? $field['width'] : '',
+				'link'   => isset($field['link']) ? $field['link'] : '',
+			);
+		}
+
+		return $columns;
+	}
+
+
+	/*
+		Returns the value of a list cell formatted by the column 'format'.
+	*/
+	protected function formatListValue($value, $column) {
+
+		if (is_null($value) || !strlen((string)$value)) {
+			return '';
+		}
+
+		if ($column['format'] == 'price') {
+			return $this->currency->format($value, $this->config->get('config_currency'));
+
+		} elseif ($column['format'] == 'date' || $column['format'] == 'datetime') {
+			$time = strtotime($value);
+			if (empty($time) || substr($value, 0, 4) == '0000') {
+				return '';
+			}
+			$format = $this->language->get('date_format_short');
+			if ($column['format'] == 'datetime') {
+				$format .= ' ' . $this->language->get('time_format');
+			}
+			return date($format, $time);
+
+		} elseif ($column['format'] == 'enabled') {
+			return $this->language->get(!empty($value) ? 'text_enabled' : 'text_disabled');
+		}
+
+		return $value;
 	}
 
 	/*
@@ -55,6 +173,18 @@ abstract class ControllerList extends ControllerPage {
 
 
 	protected function getSortFields() {
+
+		// the fields with the 'sort' metadata of the table
+		//
+		$tbl = $this->getTable();
+		if (!empty($tbl) && $tbl->hasFieldMeta('sort')) {
+			$alias = $this->recordset::TABLE_ALIAS;
+			$fields = array();
+			foreach ($tbl->getSortFields() as $code) {
+				$fields[$code] = $alias . '.' . $code;
+			}
+			return $fields;
+		}
 	
 		$fields = array(
 			'date_added'  => 't.date_added',
@@ -73,6 +203,12 @@ abstract class ControllerList extends ControllerPage {
 			'order' => 'ASC',
 			'page'  => 1,
 		));
+
+		// filters of the table metadata
+		//
+		foreach (array_keys($this->getMetaFilterFields()) as $code) {
+			$params[$code] = '';
+		}
 		
 		return $params;
 	}
@@ -87,8 +223,57 @@ abstract class ControllerList extends ControllerPage {
 	}
 	
 	
+	/*
+		Returns the filter fields from the table metadata ('filter' of ADBTable::getFilterFields()).
+		A date range gives two date fields 'filter_<field>_from' and 'filter_<field>_to'.
+	*/
+	protected function getMetaFilterFields() {
+
+		$tbl = $this->getTable();
+		if (empty($tbl)) {
+			return array();
+		}
+
+		$fields = array();
+		foreach ($tbl->getFilterFields() as $code => $field) {
+			$title = $this->getFieldTitle($field);
+
+			if ($field['filter'] == 'date_range') {
+				$fields['filter_' . $code . '_from'] = array('type' => 'date', 'title' => sprintf($this->language->get('txt_filter_from'), $title));
+				$fields['filter_' . $code . '_to']   = array('type' => 'date', 'title' => sprintf($this->language->get('txt_filter_to'), $title));
+
+			} elseif ($field['filter'] == 'select') {
+				if (!empty($field['options'])) {
+					$options = $field['options'];
+				} else {
+					$options = array(1 => $this->language->get('text_enabled'), 0 => $this->language->get('text_disabled'));
+				}
+				$fields['filter_' . $code] = array(
+					'type'            => 'select',
+					'title'           => $title,
+					'hide_first_line' => true,
+					'options'         => array('' => '') + $options,
+				);
+
+			} else {
+				$fields['filter_' . $code] = array('type' => 'text', 'title' => $title);
+			}
+		}
+
+		return $fields;
+	}
+
+
+	/*
+		Returns the filter fields of the page with the values from the url. Without $filter_fields
+		(a child class passes its own) the filters of the table metadata are used.
+	*/
 	protected function getPageFilterFields($filter_fields = array()) {
 	
+		if (empty($filter_fields)) {
+			$filter_fields = $this->getMetaFilterFields();
+		}
+
 		$fields = array();
 	
 		foreach ($filter_fields as $k => $v) {
@@ -142,6 +327,15 @@ abstract class ControllerList extends ControllerPage {
 		}
 		
 		$result['actions'] = $actions;			
+
+		// cells of the default list
+		//
+		if (!empty($this->list_columns)) {
+			$result['cells'] = array();
+			foreach ($this->list_columns as $code => $column) {
+				$result['cells'][$code] = $this->formatListValue(isset($record[$code]) ? $record[$code] : null, $column);
+			}
+		}
 	
 		return $result;	
 	}
@@ -165,6 +359,10 @@ abstract class ControllerList extends ControllerPage {
 		$this->data['params'] = $params;
 
 		$this->data['records'] = [];
+		if ($this->use_default_list) {
+			$this->list_columns = $this->getListColumns();
+			$this->data['list_columns'] = $this->list_columns;
+		}
 		if (!empty($this->recordset)) {
 			$records_total = $this->recordset->getRecordsTotal($params);
 			$records = $this->recordset->getRecords($params);
@@ -219,6 +417,16 @@ abstract class ControllerList extends ControllerPage {
 		//
   		$this->document->setTitle($this->language->get('txt_list_page_title'));
 		
+		if ($this->use_default_list) {
+			$this->data['enable_delete']   = $this->enable_delete;
+			$this->data['primary_field']   = $primary_field;
+			$this->data['action_filter']   = $this->url->linka_js(static::PAGE_ROUTE);
+			$this->data['filter_template'] = static::FILTER_TEMPLATE;
+			$this->data['table_template']  = static::TABLE_TEMPLATE;
+			$this->showPage('extension/ka_extensions/common/pages/list');
+			return;
+		}
+
 		$this->showPage(static::PAGE_ROUTE . '_list');
 	}
 	

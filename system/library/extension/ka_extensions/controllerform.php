@@ -23,6 +23,11 @@ abstract class ControllerForm extends ControllerPage {
 	// example: $this->recordset = $this->load->kamodel('extension/ka_extensions/ka_licenses/licenses');
 	//
 	protected $recordset;
+
+	// an ADBTable class used without a model file: when the recordset is not set by a child class, a plain
+	// ModelRecordset of the table is used. Without getFields() of a child class the form fields come from
+	// the table metadata (ADBTable::getFormFields())
+	const TABLE_CLASS = ''; // = '\\extension\\ka_extensions\\ka_seo\\dbtable\\KaSeoRedirect';
 	
 	use TraitControllerForm;
 	
@@ -38,8 +43,30 @@ abstract class ControllerForm extends ControllerPage {
 			$this->load->language($route);
 		}
 		
+		if (empty($this->recordset) && !empty(static::TABLE_CLASS)) {
+			$this->recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
+		}
+
 		$fields = $this->getFields();
+		if (empty($fields)) {
+			$fields = $this->getTableFormFields();
+		}
 		$this->fields = $this->initFields($fields);
+	}
+
+
+	/*
+		Returns the form fields of the table metadata of the recordset (used when getFields() returns nothing).
+	*/
+	protected function getTableFormFields() {
+
+		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
+			return array();
+		}
+
+		$fields = $this->recordset->getTable()->getFormFields();
+
+		return $fields;
 	}
 
 	
