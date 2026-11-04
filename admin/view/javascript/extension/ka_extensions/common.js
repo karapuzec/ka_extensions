@@ -11,7 +11,9 @@ var ka_extensions = new function () {
 		'txt_info'   : 'Info',
 		'txt_success': 'Success',
 		'txt_warning': 'Warning',
-		'txt_error'  : 'Error'
+		'txt_error'  : 'Error',
+		// the confirmation of legacy delete links (the same text as the macro button_row_delete)
+		'txt_confirm': 'Are you sure?'
 	};
 
 	
@@ -150,15 +152,22 @@ var ka_extensions = new function () {
 
 /*
 	Links with the data-ka-post attribute are posted (after the data-confirm question when it is set)
-	instead of opening them. Other links are not changed.
+	instead of opening them.
 
 	<a href="..." data-ka-post="1" data-confirm="Are you sure?">Delete</a>
+
+	Legacy row delete links of list templates (a.btn-danger to .../deleteRecord without onclick and
+	data-ka-post) are posted too after the default question: deleteRecord() accepts POST only since
+	4.1.1.29. Other links are not changed.
 */
-$(document).on('click', 'a[data-ka-post]', function(event) {
+$(document).on('click', 'a[data-ka-post], a.btn-danger[href*="/deleteRecord"]:not([onclick])', function(event) {
 
 	event.preventDefault();
 
 	var confirm_text = $(this).attr('data-confirm');
+	if (typeof $(this).attr('data-ka-post') == 'undefined') {
+		confirm_text = ka_extensions.labels['txt_confirm'];
+	}
 	if (confirm_text && !confirm(confirm_text)) {
 		return;
 	}
