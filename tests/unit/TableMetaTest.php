@@ -19,6 +19,27 @@ class TestMetaTable extends ADBTable {
 	}
 }
 
+class TestOptionsTable extends ADBTable {
+	const TABLE_NAME = 'ka_test_options';
+	public $calls = 0;
+
+	public function getFields() {
+		return array(
+			'option_id' => array('primary_key' => true),
+			'kind'      => array('type' => 'select', 'options' => array(1 => 'One', 2 => 'Two'), 'list' => true),
+			'store_id'  => array('type' => 'select', 'options' => 'getTestOptions', 'list' => true, 'filter' => 'select'),
+			'color'     => array('type' => 'select', 'options' => function() { return array('r' => 'Red'); }),
+			'name'      => array('list' => true),
+			'bad'       => array('type' => 'select', 'options' => 'noSuchMethod'),
+		);
+	}
+
+	public function getTestOptions() {
+		$this->calls++;
+		return array(0 => 'Default', 5 => 'Second');
+	}
+}
+
 class TestMetaRecordset extends ModelRecordset {
 	protected $table_class = TestMetaTable::class;
 }
@@ -89,5 +110,23 @@ class TableMetaTest extends UnitTestCase {
 
 		// empty values are skipped, a field without 'sort' is not sorted
 		$this->assertSame("SELECT t.* FROM `oc_ka_test_meta` t", $this->recordsSql($rs, array('filter_name' => '', 'filter_status' => array(1), 'sort' => 'status')));
+	}
+
+	/**
+		'options' of the metadata: an array, a method of the table, a closure; resolved once per object.
+	*/
+	public function testOptions() {
+		$tbl = new TestOptionsTable();
+		$this->assertSame(array(1 => 'One', 2 => 'Two'), $tbl->getOptions('kind'));
+		$this->assertSame(array(0 => 'Default', 5 => 'Second'), $tbl->getOptions('store_id'));
+		$tbl->getOptions('store_id');
+		$this->assertSame(1, $tbl->calls);
+		$this->assertSame(array('r' => 'Red'), $tbl->getOptions('color'));
+		$this->assertSame(array(), $tbl->getOptions('name'));
+		$this->assertSame(array(), $tbl->getOptions('bad'));
+		$form = $tbl->getFormFields();
+		$this->assertSame(array(0 => 'Default', 5 => 'Second'), $form['store_id']['options']);
+		$this->assertSame(array('r' => 'Red'), $form['color']['options']);
+		$this->assertArrayNotHasKey('options', $form['name']);
 	}
 }

@@ -106,6 +106,8 @@ abstract class ControllerList extends ControllerPage {
 				'format' => isset($field['format']) ? $field['format'] : '',
 				'width'  => isset($field['width']) ? $field['width'] : '',
 				'link'   => isset($field['link']) ? $field['link'] : '',
+				// value => text of the field options (ADBTable::getOptions()), the cell shows the text
+				'options' => isset($field['options']) ? $tbl->getOptions($code) : array(),
 			);
 		}
 
@@ -120,6 +122,10 @@ abstract class ControllerList extends ControllerPage {
 
 		if (is_null($value) || !strlen((string)$value)) {
 			return '';
+		}
+
+		if (!empty($column['options']) && isset($column['options'][$value])) {
+			return $column['options'][$value];
 		}
 
 		if ($column['format'] == 'price') {
@@ -224,9 +230,8 @@ abstract class ControllerList extends ControllerPage {
 				$fields['filter_' . $code . '_to']   = array('type' => 'date', 'title' => sprintf($this->language->get('txt_filter_to'), $title));
 
 			} elseif ($field['filter'] == 'select') {
-				if (!empty($field['options'])) {
-					$options = $field['options'];
-				} else {
+				$options = isset($field['options']) ? $tbl->getOptions($code) : array();
+				if (empty($options)) {
 					$options = array(1 => $this->language->get('text_enabled'), 0 => $this->language->get('text_disabled'));
 				}
 				$fields['filter_' . $code] = array(

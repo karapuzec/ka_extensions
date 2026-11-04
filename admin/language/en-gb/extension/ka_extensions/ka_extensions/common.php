@@ -33,3 +33,4 @@ $_['The field %s was not found'] = 'The field %s was not found';
 $_['txt_filter_from']  = '%s from';
 $_['txt_filter_to']    = '%s to';
 $_['txt_clear_filter'] = 'Clear';
+$_['column_action'] = 'Action';

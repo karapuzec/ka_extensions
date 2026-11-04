@@ -29,7 +29,10 @@ class Store {
 	
 		// get store information by id
 		//
-		$query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "store WHERE store_id = '" . (int)$store_id . "'");
+		$qb = new QB();
+		$qb->select('DISTINCT *', 'store');
+		$qb->where('store_id', (int)$store_id);
+		$query = $qb->query();
 
 		if (!empty($query->row)) {
 			$this->data['store_name'] = $query->row['name'];
@@ -37,9 +40,11 @@ class Store {
 			$this->data['store_url']  = $query->row['url'];
 			$this->data['store_login_url']  = $query->row['url'] . 'index.php?route=account/login';
 
-			$query =  $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "setting WHERE 
-				store_id = '" . (int)$store_id . "' AND `code` = 'config'"
-			);
+			$qb = new QB();
+			$qb->select('DISTINCT *', 'setting');
+			$qb->where('store_id', (int)$store_id);
+			$qb->where('`code`', 'config');
+			$query = $qb->query();
 			$this->config = new \Config();
 			
 			foreach ($query->rows as $setting) {
