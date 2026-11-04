@@ -62,7 +62,7 @@ abstract class ControllerList extends ControllerPage {
 	/*
 		Returns the table object of the recordset (field metadata) or null.
 	*/
-	protected function getRecordsetTable() {
+	protected function getDBTable() {
 
 		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
 			return null;
@@ -90,7 +90,7 @@ abstract class ControllerList extends ControllerPage {
 	*/
 	protected function getListColumns() {
 
-		$tbl = $this->getRecordsetTable();
+		$tbl = $this->getDBTable();
 		if (empty($tbl)) {
 			return array();
 		}
@@ -157,7 +157,7 @@ abstract class ControllerList extends ControllerPage {
 
 		// the fields with the 'sort' metadata of the table
 		//
-		$tbl = $this->getRecordsetTable();
+		$tbl = $this->getDBTable();
 		if (!empty($tbl) && $tbl->hasFieldMeta('sort')) {
 			$alias = $this->recordset::TABLE_ALIAS;
 			$fields = array();
@@ -210,7 +210,7 @@ abstract class ControllerList extends ControllerPage {
 	*/
 	protected function getMetaFilterFields() {
 
-		$tbl = $this->getRecordsetTable();
+		$tbl = $this->getDBTable();
 		if (empty($tbl)) {
 			return array();
 		}
