@@ -83,7 +83,9 @@ class QB {
 	protected $db = null;
 
 	/**
-		The table key of the query (getQB($table) of Model / Controller), '' for 'new QB()'.
+		The table key of the query: the table of the first from() call ('' without from(), e.g. 'new QB()'
+		with fromUnionAll()). Joins do not change it. Queries of several tables in from() are not supported
+		by the hooks: the first one is the key.
 	*/
 	protected $table = '';
 
@@ -93,16 +95,6 @@ class QB {
 	protected $hooks = array();
 
 
-	/**
-		Sets the table key; with a table name also from($table, $alias). Used by getQB() of Model and Controller.
-	*/
-	public function setTable($table, $alias = '') {
-		$this->table = (string)$table;
-		if ($this->table !== '') {
-			$this->from($this->table, $alias);
-		}
-	}
-
 
 	public function getTable() {
 		return $this->table;
@@ -111,7 +103,7 @@ class QB {
 
 	/**
 		Adds a callback called with this object at the start of every getSql() call (before the SQL is
-		built), in the order of adding. getQB() of Model / Controller adds the callbacks of onQB().
+		built), in the order of adding. getQB() of TraitQB adds the callbacks of onQB().
 	*/
 	public function addHook(callable $callback) {
 		$this->hooks[] = $callback;
@@ -127,6 +119,9 @@ class QB {
 		$from_key - table alias		
 	*/
 	public function from($from, $from_key = '') {
+		if ($this->table === '') {
+			$this->table = (string)$from;
+		}
 		if (!empty($from_key)) {
 			$this->from[$from_key] = $from;
 		} else {

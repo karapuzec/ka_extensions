@@ -49,7 +49,10 @@ by altering the QB object returned by the ``getCustomersQB`` method.
 
 In models and controllers create the QB object with ``$this->getQB($table, $alias)``
 instead of ``new QB()``: it sets ``from($table, $alias)`` and passes the callbacks
-subscribed with ``onQB()`` to the object. Another module extends the queries in a
+subscribed with ``onQB()`` to the object. The functions come from the trait
+``TraitQB`` used by the base Model and Controller of the library; other classes can
+use it too, e.g. ``use \extension\ka_extensions\TraitQB;`` in a kamod child of a
+standard OpenCart model. The table key is the table of the first ``from()`` call. Another module extends the queries in a
 kamod child of the class (or overrides ``getQB()`` there):
 
 .. code-block:: php

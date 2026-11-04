@@ -49,6 +49,16 @@ class TestQBModelChild extends TestQBModel {
 }
 
 /**
+	A standard (non-library) class using the trait, e.g. a kamod child of an OpenCart model.
+*/
+class TestQBPlain {
+	use \extension\ka_extensions\TraitQB;
+
+	public function sub($table, $cb) { $this->onQB($table, $cb); }
+	public function qb($table = '', $alias = '') { return $this->getQB($table, $alias); }
+}
+
+/**
  * getQB() / onQB() of the base Model and the hooks of QB (called on every getSql() call).
  *
  * @group orm
@@ -104,12 +114,59 @@ class QBHooksTest extends UnitTestCase {
 		$qb = new QB();
 		$qb->select('*', 'product', 'p');
 		$qb->where('p.product_id', 5);
-		$this->assertSame('', $qb->getTable());
+		$this->assertSame('product', $qb->getTable());
 		$this->assertSame($this->sql("SELECT * FROM `" . DB_PREFIX . "product` p WHERE (p.product_id = '5')"), $this->sql($qb->getSql()));
 
 		$calls = 0;
 		$qb->addHook(function($q) use (&$calls) { $calls++; });
 		$qb->getSql();
 		$this->assertSame(1, $calls);
+	}
+
+	public function testTableKeyIsTheFirstFrom() {
+		$qb = new QB();
+		$this->assertSame('', $qb->getTable());
+		$qb->from('product', 'p');
+		$qb->from('category', 'c');
+		$qb->innerJoin('product_description', 'pd', 'pd.product_id = p.product_id');
+		$qb->leftJoin('manufacturer', 'm', 'm.manufacturer_id = p.manufacturer_id');
+		$this->assertSame('product', $qb->getTable());
+	}
+
+	public function testTraitInAStandardClass() {
+		$obj = new TestQBPlain();
+		$obj->sub('product', function($qb) { $qb->where('p.status', 1); });
+		$qb = $obj->qb('product', 'p');
+		$qb->select('p.product_id');
+		$this->assertSame('product', $qb->getTable());
+		$this->assertStringContainsString("(p.status = '1')", $qb->getSql());
+	}
+
+	/**
+		fromUnionAll(): the outer QB has no table key (no from()), the QB objects inside the union run
+		their own hooks once per getSql() of the outer QB.
+	*/
+	public function testUnionAll() {
+		$model = new TestQBModelChild($this->registry);
+		$a = $model->qb('product', 'p');
+		$a->select('p.product_id');
+		$b = $model->qb('category', 'c');
+		$b->select('c.category_id AS product_id');
+
+		$union = $model->qb();
+		$union->select('t.*');
+		$union->fromUnionAll($a);
+		$union->fromUnionAll($b, 'u');
+		$this->assertSame('', $union->getTable());
+
+		$model->log = array();
+		$sql = $this->sql($union->getSql());
+		$this->assertSame($this->sql("SELECT t.* FROM (SELECT p.product_id FROM `" . DB_PREFIX . "product` p WHERE (p.status = '1') UNION ALL SELECT c.category_id AS product_id FROM `" . DB_PREFIX . "category` c) AS u"), $sql);
+		// the outer '*', then the inner objects: product (3 callbacks + '*'), category ('*')
+		$this->assertSame(array('all:', 'product-minus', 'product-0', 'product-0b', 'all:product', 'all:category'), $model->log);
+
+		$model->log = array();
+		$union->getSql();
+		$this->assertSame(6, count($model->log));
 	}
 }
