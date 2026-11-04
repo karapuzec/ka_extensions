@@ -4,9 +4,9 @@
     $Version$ ($Revision$)
 #}
 {#
-	The default list page of ControllerList ($use_default_list = true). The filter and the table are
-	included from filter_template / table_template (ControllerList::FILTER_TEMPLATE, TABLE_TEMPLATE),
-	a module can replace one of them or extend this template and override the blocks list_filter, list_table.
+	The default list page of ControllerList ($use_default_list = true, ControllerList::DEFAULT_LIST_TEMPLATE).
+	A module replaces a part of it with its own template that extends '@ka_common/pages/list.twig' and
+	overrides the block list_filter or list_table (and sets DEFAULT_LIST_TEMPLATE in its controller).
 #}
 {% import '@ka_common/macros/table.twig' as table %}
 
@@ -20,11 +20,11 @@
 {% block page_contents %}
 	{% block list_filter %}
 		{% if filter_fields %}
-			{% include filter_template %}
+			{% include '@ka_common/pages/list/filter.twig' %}
 		{% endif %}
 	{% endblock %}
 
 	{% block list_table %}
-		{% include table_template %}
+		{% include '@ka_common/pages/list/table.twig' %}
 	{% endblock %}
 {% endblock %}

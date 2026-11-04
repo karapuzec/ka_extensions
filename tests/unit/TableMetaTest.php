@@ -19,6 +19,10 @@ class TestMetaTable extends ADBTable {
 	}
 }
 
+class TestMetaRecordset extends ModelRecordset {
+	protected $table_class = TestMetaTable::class;
+}
+
 /**
  * Field metadata of ADBTable for the default list and form pages and the filters / sort whitelist of
  * ModelRecordset built from it. Tables without the metadata keep the old behaviour.
@@ -63,7 +67,8 @@ class TableMetaTest extends UnitTestCase {
 	}
 
 	public function testMetaFiltersAndWhitelist() {
-		$rs = ModelRecordset::forTable($this->registry, TestMetaTable::class);
+		$rs = new TestMetaRecordset($this->registry);
+		$rs->onLoadExt();
 		$this->assertSame('meta_id', $rs->getPrimaryField());
 
 		$sql = $this->recordsSql($rs, array(

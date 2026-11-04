@@ -24,20 +24,12 @@ abstract class ControllerForm extends ControllerPage {
 	//
 	protected $recordset;
 
-	// an ADBTable class used without a model file: when the recordset is not set by a child class, a plain
-	// ModelRecordset of the table is used. Without getFields() of a child class the form fields come from
-	// the table metadata (ADBTable::getFormFields())
-	const TABLE_CLASS = ''; // = '\\extension\\ka_extensions\\ka_seo\\dbtable\\KaSeoRedirect';
+	// without getFields() of a child class the form fields come from the table metadata of the recordset
+	// (ADBTable::getFormFields()), the recordset has to be set before parent::onLoad() then
 	
 	use TraitControllerForm;
 	
 	protected function onLoad() {
-
-		// a child class may set the recordset before or after parent::onLoad()
-		//
-		if (empty($this->recordset) && !empty(static::TABLE_CLASS)) {
-			$this->recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
-		}
 
 		parent::onLoad();
 

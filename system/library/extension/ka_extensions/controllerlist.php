@@ -38,13 +38,9 @@ abstract class ControllerList extends ControllerPage {
 	const PAGE_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
 	const FORM_ROUTE = ''; // = 'extension/ka_extensions/ka_licenses/licenses';
 
-	// an ADBTable class used without a model file: a plain ModelRecordset of the table is the recordset
-	// (by default the model PAGE_ROUTE is loaded)
-	const TABLE_CLASS = ''; // = '\\extension\\ka_extensions\\ka_seo\\dbtable\\KaSeoRedirect';
-
-	// templates of the filter and of the table of the default list page, a module can replace one of them
-	const FILTER_TEMPLATE = '@ka_common/pages/list/filter.twig';
-	const TABLE_TEMPLATE  = '@ka_common/pages/list/table.twig';
+	// the template of the default list page ($use_default_list = true), a module can set its own template, e.g.
+	// one extending '@ka_common/pages/list.twig' with the blocks list_filter, list_table overridden
+	const DEFAULT_LIST_TEMPLATE = 'extension/ka_extensions/common/pages/list';
 	
 	protected function onLoad() {
 
@@ -57,31 +53,16 @@ abstract class ControllerList extends ControllerPage {
 		foreach ($this->getLanguageRoutes() as $route) {
 			$this->load->language($route);
 		}
-		$this->recordset = $this->getRecordset();
+		$this->recordset = $this->load->kamodel(static::PAGE_ROUTE);
 		
 		parent::onLoad();
 	}
 
 
 	/*
-		Returns the recordset of the page: a plain recordset of TABLE_CLASS or the model PAGE_ROUTE.
-	*/
-	protected function getRecordset() {
-
-		if (!empty(static::TABLE_CLASS)) {
-			$recordset = ModelRecordset::forTable($this->registry, static::TABLE_CLASS);
-		} else {
-			$recordset = $this->load->kamodel(static::PAGE_ROUTE);
-		}
-
-		return $recordset;
-	}
-
-
-	/*
 		Returns the table object of the recordset (field metadata) or null.
 	*/
-	protected function getTable() {
+	protected function getRecordsetTable() {
 
 		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
 			return null;
@@ -109,7 +90,7 @@ abstract class ControllerList extends ControllerPage {
 	*/
 	protected function getListColumns() {
 
-		$tbl = $this->getTable();
+		$tbl = $this->getRecordsetTable();
 		if (empty($tbl)) {
 			return array();
 		}
@@ -176,7 +157,7 @@ abstract class ControllerList extends ControllerPage {
 
 		// the fields with the 'sort' metadata of the table
 		//
-		$tbl = $this->getTable();
+		$tbl = $this->getRecordsetTable();
 		if (!empty($tbl) && $tbl->hasFieldMeta('sort')) {
 			$alias = $this->recordset::TABLE_ALIAS;
 			$fields = array();
@@ -229,7 +210,7 @@ abstract class ControllerList extends ControllerPage {
 	*/
 	protected function getMetaFilterFields() {
 
-		$tbl = $this->getTable();
+		$tbl = $this->getRecordsetTable();
 		if (empty($tbl)) {
 			return array();
 		}
@@ -421,9 +402,7 @@ abstract class ControllerList extends ControllerPage {
 			$this->data['enable_delete']   = $this->enable_delete;
 			$this->data['primary_field']   = $primary_field;
 			$this->data['action_filter']   = $this->url->linka_js(static::PAGE_ROUTE);
-			$this->data['filter_template'] = static::FILTER_TEMPLATE;
-			$this->data['table_template']  = static::TABLE_TEMPLATE;
-			$this->showPage('extension/ka_extensions/common/pages/list');
+			$this->showPage(static::DEFAULT_LIST_TEMPLATE);
 			return;
 		}
 

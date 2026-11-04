@@ -51,15 +51,6 @@ abstract class ModelRecordset extends Model {
 	}
 
 
-	/*
-		Returns a recordset of the table without a model file of its own (see ControllerList::TABLE_CLASS).
-	*/
-	public static function forTable($registry, $table_class) {
-		$recordset = new ModelTableRecordset($registry, $table_class);
-		return $recordset;
-	}
-
-
 	public function getPrimaryFields() {
 		return $this->primary_fields;
 	}
