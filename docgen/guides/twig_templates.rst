@@ -78,25 +78,14 @@ The order of the modules can be set by ``install_before`` / ``install_after`` of
 (see :doc:`kamod_ini`), but these fields change the order of all classes and templates the modules
 override together, not of one template.
 
-Template Text Set in a ``view/*/before`` Event
+Template Code Set in a ``view/*/before`` Event
 ----------------------------------------------
 
-In OpenCart a handler of the event ``view/<route>/before`` can replace the text of a template
-through the third argument ``$code``: Template\Twig renders ``$code`` instead of the file.
-
-With Ka Extensions the storefront loader looks for the template in its folders first: the kamod
-cache (kapatches and child templates of modules), the theme editor copies
-(``system/storage/theme.kamod``) and the OCMOD modification files (``system/storage/modification``).
-When one of these files exists for the template, it is shown and **the text of** ``$code`` **is
-ignored**. ``$code`` is used only for a template without such files. With ka_speedup (one Twig
-environment for all templates of the request) ``$code`` is ignored for every template but the first.
-
-Changes made in the Design > Theme Editor do not come in ``$code`` either: Ka Extensions takes them
-from ``system/storage/theme.kamod``, the core event ``event/theme`` gets nothing from the database.
-
-To change a template, use a kapatch or a child template of kamod (see :doc:`overriding_core_files`),
-they are applied together with the changes of other modules. To change the result of a template,
-use the event ``view/<route>/after`` (``$output``).
+Ka Extensions library does not support replacing Twig template code via the ``view/*/before`` event
+(the ``$code`` argument). Such changes may be ignored, and the standard template (including OCMOD,
+kamod and theme editor changes) is used instead. This is a bad practice anyway, because it prevents
+Twig cache deployment. If you need to modify the HTML via events (we strictly discourage using events),
+use the ``view/*/after`` event.
 
 The ``t()`` Function
 --------------------
