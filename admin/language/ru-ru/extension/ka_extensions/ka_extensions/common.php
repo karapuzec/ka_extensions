@@ -11,6 +11,7 @@
 $_['error_permission'] = 'Внимание: у вас нет прав на выполнение этого действия!';
 $_['error_field_too_long'] = 'Слишком длинное значение, максимум %s символов.';
 $_['error_field_is_empty'] = 'Поле не заполнено';
+$_['error_record_not_found'] = 'Запись не найдена. Возможно, она удалена.';
 
 // validation of 'number' fields (TraitControllerForm::validateField())
 $_['The value must be a number'] = 'Значение должно быть числом';

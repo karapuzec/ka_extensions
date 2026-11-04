@@ -20,6 +20,7 @@ $_['error_field_is_empty'] = 'Field is empty';
 $_['error_field_too_long'] = 'The value is too long, the maximum is %s characters.';
 
 $_['error_permission'] = 'Warning: You do not have permission to perform this action!';
+$_['error_record_not_found'] = 'The record is not found. It may have been deleted.';
 
 // validation of 'number' fields (TraitControllerForm::validateField())
 $_['The value must be a number'] = 'The value must be a number';

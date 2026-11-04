@@ -36,11 +36,23 @@ abstract class ControllerList extends ControllerPage {
 	
 		$this->load->language('extension/ka_extensions/common');
 
-		$this->load->language(static::PAGE_ROUTE);
+		foreach ($this->getLanguageRoutes() as $route) {
+			$this->load->language($route);
+		}
 		$this->recordset = $this->load->kamodel(static::PAGE_ROUTE);
 		
 		parent::onLoad();
 	}
+
+	/*
+		Returns language files of the page, they are loaded in onLoad() after the library common file.
+		A module adds its own files, e.g. its common file:
+			return array_merge(parent::getLanguageRoutes(), ['extension/ka_extensions/my_module/common']);
+	*/
+	protected function getLanguageRoutes() {
+		return array(static::PAGE_ROUTE);
+	}
+
 
 	protected function getSortFields() {
 	
@@ -84,8 +96,12 @@ abstract class ControllerList extends ControllerPage {
 				$v['code'] = $k;
 			}
 			
-			if (!empty($this->request->get[$v['code']])) {
-				$v['value'] = $this->request->get[$v['code']];
+			// '0' is a value (e.g. store 0, status 0), an empty string is not
+			if (isset($this->request->get[$v['code']])) {
+				$value = $this->request->get[$v['code']];
+				if (is_array($value) ? !empty($value) : strlen((string)$value)) {
+					$v['value'] = $value;
+				}
 			}
 			
 			$fields[$k] = $v;
@@ -115,8 +131,10 @@ abstract class ControllerList extends ControllerPage {
 		
 		if ($this->enable_delete) {
 			$actions[] = array(
-				'type' => 'delete',
-				'text' => $this->language->get('button_delete'),
+				'type'   => 'delete',
+				'text'   => $this->language->get('button_delete'),
+				// deleteRecord() accepts POST only: the link is posted by the macro button_row_delete()
+				'method' => 'post',
 				'href' => $this->url->link(static::PAGE_ROUTE . '/deleteRecord', 
 					$this->url_params->getUrl([$primary_field => $record[$primary_field]])
 				)
@@ -184,6 +202,17 @@ abstract class ControllerList extends ControllerPage {
 			foreach ($sort_fields as $sfk => $sfv) {
 				$this->data['sort_' . $sfk] = $this->url->linka(static::PAGE_ROUTE, $this->url_params->getUrlSortParams($sfv));
 			}
+		}
+
+		// the current sort as a column code of getSortFields() (the url keeps the SQL value like 't.name')
+		// for the macro sort_url(). Values set by a child class are kept
+		//
+		if (!isset($this->data['sort'])) {
+			$sort_code = !empty($sort_fields) ? array_search($params['sort'], $sort_fields, true) : false;
+			$this->data['sort'] = ($sort_code !== false) ? $sort_code : $params['sort'];
+		}
+		if (!isset($this->data['order'])) {
+			$this->data['order'] = $params['order'];
 		}
 		
 		// set title

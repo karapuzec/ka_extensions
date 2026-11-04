@@ -77,7 +77,15 @@ var ka_extensions = new function () {
 		}
 	}	
 	
-	this.overlays = new Array();
+	/*
+		Sends a POST request to the url as a hidden form (the page is reloaded with the answer).
+		Used for links which change data, e.g. the delete buttons of list rows.
+	*/
+	this.postUrl = (url) => {
+		$('<form method="post" style="display: none"></form>').attr('action', url).appendTo(document.body).submit();
+	}
+
+		this.overlays = new Array();
 	
 	this.showOverlay = (selector) => {
 	
@@ -138,3 +146,22 @@ var ka_extensions = new function () {
     }
     
 }(jQuery));
+
+
+/*
+	Links with the data-ka-post attribute are posted (after the data-confirm question when it is set)
+	instead of opening them. Other links are not changed.
+
+	<a href="..." data-ka-post="1" data-confirm="Are you sure?">Delete</a>
+*/
+$(document).on('click', 'a[data-ka-post]', function(event) {
+
+	event.preventDefault();
+
+	var confirm_text = $(this).attr('data-confirm');
+	if (confirm_text && !confirm(confirm_text)) {
+		return;
+	}
+
+	ka_extensions.postUrl($(this).attr('href'));
+});
