@@ -82,6 +82,41 @@ class QB {
 	*/
 	protected $db = null;
 
+	/**
+		The table key of the query (getQB($table) of Model / Controller), '' for 'new QB()'.
+	*/
+	protected $table = '';
+
+	/**
+		@internal callbacks called at the start of every getSql() call, see addHook()
+	*/
+	protected $hooks = array();
+
+
+	/**
+		Sets the table key; with a table name also from($table, $alias). Used by getQB() of Model and Controller.
+	*/
+	public function setTable($table, $alias = '') {
+		$this->table = (string)$table;
+		if ($this->table !== '') {
+			$this->from($this->table, $alias);
+		}
+	}
+
+
+	public function getTable() {
+		return $this->table;
+	}
+
+
+	/**
+		Adds a callback called with this object at the start of every getSql() call (before the SQL is
+		built), in the order of adding. getQB() of Model / Controller adds the callbacks of onQB().
+	*/
+	public function addHook(callable $callback) {
+		$this->hooks[] = $callback;
+	}
+
 	public function __construct() {
 		$this->db = \KaGlobal::getRegistry()->get('db');
 	}
@@ -253,6 +288,10 @@ class QB {
 		Returns a raw SQL request string basing on the QB data.
 	*/
 	public function getSql() {
+
+		foreach ($this->hooks as $callback) {
+			$callback($this);
+		}
 
 		$sql = '';
 		

@@ -47,6 +47,26 @@ You can create a model class with the following methods:
 With this approach, other developers can modify the behavior of your module
 by altering the QB object returned by the ``getCustomersQB`` method.
 
+In models and controllers create the QB object with ``$this->getQB($table, $alias)``
+instead of ``new QB()``: it sets ``from($table, $alias)`` and passes the callbacks
+subscribed with ``onQB()`` to the object. Another module extends the queries in a
+kamod child of the class (or overrides ``getQB()`` there):
+
+.. code-block:: php
+
+    protected function onLoad() {
+        $this->onQB('customer', function($qb) {
+            $qb->where('c.status', 1);
+        });
+        return parent::onLoad();
+    }
+
+The callbacks of the table go first, then those of ``'*'`` (all queries of the
+object), by ``$sort_order``. A callback is called at the start of every
+``getSql()`` call (``query()``, subqueries, the total count of a recordset), so it
+may run several times for one QB object; keep a flag in the callback when a
+condition must be added once, and do not call ``getSql()`` of that object inside it.
+
 
 4. Avoid Direct File Inclusion
 -----------------------------
