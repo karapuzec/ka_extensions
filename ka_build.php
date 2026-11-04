@@ -3,7 +3,7 @@
 	Module  : Extension Package Builder
 	Author  : Karapuz <karapuz@ka-station.com>
 
-	Version : 3.3.2.2
+	Version : 3.3.3.0
 
 	$Revision: 275 $
 
@@ -17,6 +17,19 @@ USAGE:
 	                 set and COMMITTED in one commit ("Release X: ..."), then the package is built.
 	                 It stops when the module files have other uncommitted changes.
 	without --release a wrong svn:keywords value gives a warning only, nothing is set or committed.
+
+CHANGES 3.3.3.0:
+	- the header keywords $Project$, $Author$, $Version$, $Revision$ are written into the package copies
+	  of the packed files (copyPackFiles(), the source files are not changed): '$Project: <keywords_project> $',
+	  '$Author: <keywords_author> $', '$Version: <version> $', '$Revision: <revision> $'. Defaults as for
+	  svn:keywords (keywords_project = name, keywords_author = "karapuz team <support@ka-station.com>").
+	  The revision: git - the number of commits of HEAD (git rev-list --count HEAD), svn - the revision of
+	  the working copy (svnversion -c, the highest one).
+	  git: bare and already expanded keywords (e.g. stale values copied from svn) are written again;
+	  svn: only bare keywords are written, values expanded by svn are kept (the file revision of svn);
+	  text files only (php, tpl, twig, js, css, scss, less, xml, txt, ini, html, htm, json, md), not files
+	  in vendor/ and node_modules/ folders, not files with a zero byte; only these four keyword names;
+	  manifest 'expand_keywords = "N"' turns it off.
 
 CHANGES 3.3.2.2:
 	- manifest_version 2: the built-in exclude masks ('*.txt', '*.sql', '*.bat', 'builds/*', 'xml/*', 'sql/*')
@@ -553,6 +566,102 @@ class ka_Object {
 	the start revision and the head to a file. Each line is "<status> <path>"
 	where status is A (added), M (modified) or D (deleted).
 */
+/*
+	Header keywords of the package copies: $Project$, $Author$, $Version$, $Revision$ (see CHANGES 3.3.3.0).
+*/
+class ka_Keywords {
+
+	const NAMES = array('Project', 'Author', 'Version', 'Revision');
+
+	const EXTENSIONS = array('php', 'tpl', 'twig', 'js', 'css', 'scss', 'less', 'xml', 'txt', 'ini', 'html', 'htm', 'json', 'md');
+
+	// name => value
+	protected $values = array();
+
+	// true - expanded keywords are written again too, false - only bare ones ($Name$)
+	protected $overwrite = true;
+
+	function __construct($values, $overwrite = true) {
+		$this->values    = $values;
+		$this->overwrite = $overwrite;
+	}
+
+	/*
+		Returns the values of the keywords from the manifest config and the revision
+	*/
+	static function getValues($cfg, $revision) {
+		$project = $cfg['keywords_project'] ?? '';
+		if (!strlen(trim($project))) {
+			$project = $cfg['name'] ?? '';
+		}
+		$author = $cfg['keywords_author'] ?? '';
+		if (!strlen(trim($author))) {
+			$author = 'karapuz team <support@ka-station.com>';
+		}
+
+		return array(
+			'Project'  => trim($project),
+			'Author'   => trim($author),
+			'Version'  => trim($cfg['version'] ?? ''),
+			'Revision' => trim((string)$revision),
+		);
+	}
+
+	static function isTextFile($filename) {
+		$filename = str_replace('\\', '/', $filename);
+		if (preg_match('#(^|/)(vendor|node_modules)/#i', $filename)) {
+			return false;
+		}
+		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+		return in_array($ext, self::EXTENSIONS);
+	}
+
+	/*
+		Returns the text with the keywords written
+	*/
+	function expand($text) {
+		if (strpos($text, "\0") !== false) {
+			return $text;
+		}
+
+		$values = $this->values;
+		$overwrite = $this->overwrite;
+
+		return preg_replace_callback('/\$(' . implode('|', self::NAMES) . ')(:[^$\r\n]*)?\$/', function($m) use ($values, $overwrite) {
+			if (!empty($m[2]) && !$overwrite) {
+				return $m[0];
+			}
+			if (!isset($values[$m[1]]) || !strlen($values[$m[1]])) {
+				return $m[0];
+			}
+			return '$' . $m[1] . ': ' . $values[$m[1]] . ' $';
+		}, $text);
+	}
+
+	/*
+		Writes the keywords into a file (a package copy). $source - the path in the working copy for the
+		file type check. Returns true when the file was changed.
+	*/
+	function expandFile($filename, $source = '') {
+		if (!self::isTextFile(strlen($source) ? $source : $filename) || !is_file($filename)) {
+			return false;
+		}
+		$text = file_get_contents($filename);
+		if ($text === false) {
+			return false;
+		}
+		$result = $this->expand($text);
+		if ($result === $text) {
+			return false;
+		}
+		if (file_put_contents($filename, $result) === false) {
+			fail("Cannot write keywords to $filename");
+		}
+		return true;
+	}
+}
+
+
 abstract class ka_Vcs {
 	protected $cfg;
 
@@ -571,6 +680,14 @@ abstract class ka_Vcs {
 	}
 
 	abstract function makeFilesList($tmp_file);
+
+	// the revision written to the $Revision$ keyword of the package copies
+	abstract function getRevision();
+
+	// true - keywords already expanded in the files are written again (svn expands them itself)
+	function overwriteKeywords() {
+		return true;
+	}
 
 	protected function execToFile($cmd, $tmp_file) {
 		$output = array();
@@ -594,6 +711,22 @@ class ka_VcsSvn extends ka_Vcs {
 		$cmd = $svn . " diff -r " . $this->cfg['start_revision'] . ":head --summarize";
 		return $this->execToFile($cmd, $tmp_file);
 	}
+
+	// the highest revision of the working copy (svnversion -c '100:123M' gives 123)
+	function getRevision() {
+		$output = array();
+		$result = 0;
+		exec('svnversion -c . 2>&1', $output, $result);
+		if ($result == 0 && !empty($output[0]) && preg_match('/(\d+)[MSP]*$/', trim($output[0]), $m)) {
+			return $m[1];
+		}
+		return '';
+	}
+
+	// svn writes the values into the files (the file revision), only bare keywords are expanded
+	function overwriteKeywords() {
+		return false;
+	}
 }
 
 class ka_VcsGit extends ka_Vcs {
@@ -614,6 +747,21 @@ class ka_VcsGit extends ka_Vcs {
 		$cmd = $git . " -c core.quotepath=off diff --name-status --no-renames --relative "
 			. escapeshellarg($start) . " HEAD";
 		return $this->execToFile($cmd, $tmp_file);
+	}
+
+	// the number of commits of HEAD (git has no revision numbers)
+	function getRevision() {
+		$git = getenv('KA_BUILD_GIT');
+		if (empty($git)) {
+			$git = 'git';
+		}
+		$output = array();
+		$result = 0;
+		exec($git . ' rev-list --count HEAD 2>&1', $output, $result);
+		if ($result == 0 && !empty($output[0]) && ctype_digit(trim($output[0]))) {
+			return trim($output[0]);
+		}
+		return '';
 	}
 }
 
@@ -874,6 +1022,9 @@ class ka_App extends ka_Object {
 
 		$packed_files = array();
 
+		$keywords = $this->getKeywords();
+		$keywords_files = 0;
+
 		foreach ($file_lines as $line) {
 		
 			$filename = $this->getPackFileName($line);
@@ -902,6 +1053,8 @@ class ka_App extends ka_Object {
 				}
 			} elseif (!copy($filename, $dest_file)) {
 				fail("Copy operation failed. from=$filename to $dest_file");
+			} elseif (!empty($keywords) && $keywords->expandFile($dest_file, $filename)) {
+				$keywords_files++;
 			}
 
 			if (!is_dir(__DIR__ . '/' . $filename)) {
@@ -916,8 +1069,34 @@ class ka_App extends ka_Object {
 		file_put_contents($packed_list_file, $packed_files);
 
 		show("Number of packed files: " . count($packed_files));
+		if (!empty($keywords)) {
+			show("Keywords written to $keywords_files files");
+		}
 		
 		return true;
+	}
+
+
+	/*
+		Returns the keywords of the package copies or null (manifest 'expand_keywords = "N"')
+	*/
+	protected function getKeywords() {
+
+		if (isset($this->cfg['expand_keywords']) && strtoupper(trim($this->cfg['expand_keywords'])) == 'N') {
+			return null;
+		}
+
+		$vcs = ka_Vcs::create($this->cfg);
+		if (empty($vcs)) {
+			return null;
+		}
+
+		$revision = $vcs->getRevision();
+		if (!strlen($revision)) {
+			show("the revision for the \$Revision\$ keyword is not known", 'W');
+		}
+
+		return new ka_Keywords(ka_Keywords::getValues($this->cfg, $revision), $vcs->overwriteKeywords());
 	}
 	
 	
