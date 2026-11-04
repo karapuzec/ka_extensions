@@ -4,7 +4,7 @@
 
 	$Version$ ($Revision$)
 
-	The class of the library object ka_extensions (created in common.js): messages, labels. The labels
+	The class of the library object ka_extensions (created in the header of the page): messages, labels. The labels
 	are the English defaults; the language values come from the footer (setLabels(),
 	getLabel()).
 */
@@ -24,10 +24,23 @@ class KaExtensions {
 
 		/*
 			Returns a label: the language value set by setLabels() (the footer of the page), the English
-			default of this.labels, the key itself for an unknown label
+			default of this.labels, the key itself for an unknown label.
+			params - optional substitutions like the PHP Language::getka($key, $params) of the library
+			(str_replace): every key of the object is replaced with its value in the text, in the order
+			of the keys, all occurrences, e.g.
+				getLabel('txt_deleted', {'%count%': 5})   // 'Deleted: %count%' -> 'Deleted: 5'
 		*/
-		this.getLabel = (key) => {
-			return this.labels[key] ?? key;
+		this.getLabel = (key, params) => {
+			let text = this.labels[key] ?? key;
+			if (params && typeof params === 'object') {
+				text = String(text);
+				for (const [search, value] of Object.entries(params)) {
+					if (search !== '') {
+						text = text.split(search).join(String(value));
+					}
+				}
+			}
+			return text;
 		}
 
 	

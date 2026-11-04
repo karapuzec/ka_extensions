@@ -3,7 +3,7 @@
 namespace KaExtensionsTests\Integration;
 
 /**
- * The library JS on the admin and storefront pages: the header adds kaextensions.js (not common.js)
+ * The library JS on the admin and storefront pages: the header adds kaextensions.js
  * and creates the object ka_extensions; the footer passes the labels of the document
  * (Document::addKaJsLabels(), the standard labels with txt_confirm always, also with
  * KA_DISABLE_FORM_VALIDATION) as ka_extensions.setLabels({...}), JSON safe in an inline script.
@@ -51,7 +51,7 @@ class JsLabelsTest extends LibraryTestCase {
 		$this->assertSame(self::TEST_LABEL, $this->labels($output)['txt_test']);
 	}
 
-	// kaextensions.js, then the object is created in the head; common.js is not included
+	// kaextensions.js, then the object is created in the head; the removed common.js is not included
 	protected function assertScripts($output, $dir) {
 		$class  = strpos($output, $dir . 'kaextensions.js');
 		$object = strpos($output, 'var ka_extensions = new KaExtensions();');

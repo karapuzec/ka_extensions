@@ -15,7 +15,6 @@ class ControllerCommonHeader extends Controller {
 		if (class_exists('\KaGlobal')) {
 			// the class KaExtensions, the object ka_extensions is created in the header template
 			$this->document->addScript('view/javascript/extension/ka_extensions/kaextensions.js');
-			$data['ka_js_object'] = true;
 			$this->document->addStyle('view/stylesheet/extension/ka_extensions/stylesheet.css');
 		}
 ///karapuz
