@@ -1,5 +1,6 @@
 /*
-	Check of the admin common.js click handler (data-ka-post links and legacy delete links).
+	Check of the admin common.js click handler (data-ka-post links and legacy delete links) and of
+	the confirmation text taken from ka_js_labels['txt_confirm'] of the footer.
 	Run: node tests/e2e/common_js_post_links.js  (needs php and the jquery file of an OpenCart 3 store,
 	KA_TEST_JQUERY=/path/to/admin/view/javascript/jquery/jquery-2.1.1.min.js)
 */
@@ -25,6 +26,9 @@ fs.writeFileSync(path.join(dir, 'index.html'), `<html><body><script src="jquery.
 <a id="no-delete" class="btn btn-danger" href="echo.php?route=x/edit&amp;id=5">5</a>
 <a id="onclick" class="btn btn-danger" href="echo.php?route=x/deleteRecord&amp;id=6" onclick="window.location='echo.php?own=6'; return false;">6</a>
 </body></html>`);
+// the page with the labels of the footer (ka_js_labels, escaped as footer.twig does with |e('js'))
+fs.writeFileSync(path.join(dir, 'labels.html'), fs.readFileSync(path.join(dir, 'index.html'), 'utf8').replace('</body>',
+	`<script>var ka_js_labels = []; ka_js_labels['txt_confirm'] = "\\u0412\\u044B \\x22\\u0443\\u0432\\u0435\\u0440\\u0435\\u043D\\u044B\\x22\\x3F";</script></body>`));
 
 const cases = [
 	// id, confirm answer, expected result, expected dialog text
@@ -36,6 +40,9 @@ const cases = [
 	['no-danger', true, 'GET route=x/deleteRecord&id=4', null],
 	['no-delete', true, 'GET route=x/edit&id=5', null],
 	['onclick', true, 'GET own=6', null],
+	// txt_confirm of ka_js_labels instead of the English default
+	['legacy', true, 'POST route=x/deleteRecord&id=3', 'Вы "уверены"?', 'labels.html'],
+	['post', false, 'stayed', 'Sure?', 'labels.html'],
 ];
 
 (async () => {
@@ -45,8 +52,8 @@ const cases = [
 	const page = await browser.newPage();
 	let failed = 0;
 	try {
-		for (const [id, accept, expected, dialog_text] of cases) {
-			await page.goto(`http://localhost:${port}/index.html`);
+		for (const [id, accept, expected, dialog_text, file = 'index.html'] of cases) {
+			await page.goto(`http://localhost:${port}/${file}`);
 			let dialog = null;
 			page.removeAllListeners('dialog');
 			page.on('dialog', d => { dialog = d.message(); accept ? d.accept() : d.dismiss(); });
