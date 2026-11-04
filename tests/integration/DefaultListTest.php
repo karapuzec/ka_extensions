@@ -162,4 +162,60 @@ class DefaultListTest extends LibraryTestCase {
 		$this->assertSame('Saved', $item['name']);
 		$this->assertSame('1', (string)$item['status']);
 	}
+
+	protected function removeModify($route) {
+		$group_id = $this->getUserGroupId();
+		$permissions = $this->getPermissions($group_id);
+		$permissions['modify'] = array_values(array_diff($permissions['modify'], array($route)));
+		$this->setPermissions($group_id, $permissions);
+		$this->oc->loginUser((int)$this->oc->get('session')->data['user_id']);
+	}
+
+	/**
+		ControllerAdminList: the default list and deletion without settings in the child class, the texts
+		of the 'options' of the metadata (a method of the table), the column_action string of the library.
+	*/
+	public function testAdminListDefaults() {
+		$a = $this->addItem('A', 1);
+		$b = $this->addItem('B', 0);
+		$output = $this->page(array(), static::DADMIN_ROUTE);
+		$this->assertStringContainsString('id="ka-list-table"', $output);
+		$this->assertSame(array('A', 'B'), $this->names($output));
+		$this->assertMatchesRegularExpression('/data-column="status">\s*Status On\s*</', $output);
+		$this->assertMatchesRegularExpression('/data-column="status">\s*Status Off\s*</', $output);
+		// the select filter takes the options of the table method
+		$this->assertMatchesRegularExpression('/<option value="0"[^>]*>\s*Status Off\s*<\/option>/', $output);
+		$this->assertStringContainsString('>Action</td>', $output);
+		$this->assertStringNotContainsString('column_action', $output);
+		$this->assertStringContainsString('data-ka-post', $output);
+
+		$this->oc->request(static::DADMIN_ROUTE . '/deleteRecord', array('item_id' => $a), array('item_id' => $a));
+		$this->assertEmpty($this->getItem($a));
+	}
+
+	public function testAdminListDeleteNeedsModify() {
+		$a = $this->addItem('A');
+		$b = $this->addItem('B');
+		$this->removeModify(static::DADMIN_ROUTE);
+
+		$this->oc->request(static::DADMIN_ROUTE . '/deleteRecord', array('item_id' => $a), array('item_id' => $a));
+		$this->oc->request(static::DADMIN_ROUTE . '/delete', array(), array('selected' => array($a, $b)));
+		$this->assertNotEmpty($this->getItem($a));
+		$this->assertNotEmpty($this->getItem($b));
+		$this->assertStringContainsString($this->oc->get('language')->get('error_permission'), json_encode($this->topMessages(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+		// ControllerList itself is not changed: no permission check
+		$this->removeModify(static::DLIST_ROUTE);
+		$this->oc->request(static::DLIST_ROUTE . '/delete', array(), array('selected' => array($a)));
+		$this->assertEmpty($this->getItem($a));
+	}
+
+	public function testStoreAndLanguageOptions() {
+		$tbl = new \extension\ka_extensions\ka_lib_test\dbtable\MetaItem();
+		$stores = $tbl->getStoreOptions();
+		$this->assertSame($this->oc->get('config')->get('config_name'), $stores[0]);
+		$languages = $tbl->getLanguageOptions();
+		$row = $this->db()->query("SELECT language_id, name FROM `" . DB_PREFIX . "language` WHERE code = 'en-gb'")->row;
+		$this->assertSame($row['name'], $languages[$row['language_id']]);
+	}
 }

@@ -31,9 +31,10 @@ class Language {
 		$this->registry = \KaGlobal::getRegistry();
 		$this->db = $this->registry->get('db');
 
-		$qry = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language`
-		 	WHERE language_id = '" . intval($language_id) . "'"
-		);
+		$qb = new QB();
+		$qb->select('*', 'language');
+		$qb->where('language_id', intval($language_id));
+		$qry = $qb->query();
 
 		if (empty($qry->row)) {
 			return false;
@@ -66,12 +67,10 @@ class Language {
 	*/
 	static public function getLanguageIdByCode($code) {
 	
-		$registry = \KaGlobal::getRegistry();
-		$db = $registry->get('db');
-	
-		$language = $db->query("SELECT * FROM " . DB_PREFIX . "language WHERE 
-			code = '" . $db->escape($code) . "'
-		")->row;
+		$qb = new QB();
+		$qb->select('*', 'language');
+		$qb->where('code', (string)$code);
+		$language = $qb->query()->row;
 		if (empty($language)) {
 			return false;
 		}

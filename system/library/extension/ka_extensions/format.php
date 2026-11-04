@@ -458,9 +458,10 @@ class Format {
 		if (preg_match("/([\d\.\,]*)([\D]*)$/", $weight, $matches)) {
 			$pair['value'] = $matches[1];
 		
-			$qry = $this->db->query("SELECT * FROM " . DB_PREFIX . "weight_class_description
-				WHERE unit = '" . $this->db->escape($matches[2]) . "'"
-			);
+			$qb = new QB();
+			$qb->select('*', 'weight_class_description');
+			$qb->where('unit', $matches[2]);
+			$qry = $qb->query();
 	
 			if (!empty($qry->row)) {
 				$pair['weight_class_id'] = $qry->row['weight_class_id'];
@@ -482,9 +483,10 @@ class Format {
 		if (preg_match("/(.*)([\D]*)$/U", $length, $matches)) {
 			$pair['value'] = $matches[1];
 		
-			$qry = $this->db->query("SELECT * FROM " . DB_PREFIX . "length_class_description
-				WHERE unit = '" . $this->db->escape($matches[2]) . "'"
-			);
+			$qb = new QB();
+			$qb->select('*', 'length_class_description');
+			$qb->where('unit', $matches[2]);
+			$qry = $qb->query();
 
 			if (!empty($qry->row)) {
 				$pair['length_class_id'] = $qry->row['length_class_id'];
@@ -509,10 +511,11 @@ class Format {
 		static $weights;
 				
 		if (empty($weights[$class_id])) {
-			$qry = $this->db->query("SELECT * FROM " . DB_PREFIX . "weight_class_description
-				WHERE weight_class_id = '$class_id' 
-					AND language_id = '" . $this->language_id. "'"
-			);
+			$qb = new QB();
+			$qb->select('*', 'weight_class_description');
+			$qb->where('weight_class_id', (int)$class_id);
+			$qb->where('language_id', (int)$this->language_id);
+			$qry = $qb->query();
 						
 			if (!empty($qry->row)) {
 				$weights[$class_id] = $qry->row;
@@ -540,10 +543,11 @@ class Format {
 		static $lengths;
 	
 		if (empty($lengths[$class_id])) {
-			$qry = $this->db->query("SELECT * FROM " . DB_PREFIX . "length_class_description
-				WHERE length_class_id = '$class_id'
-				AND language_id = '" . $this->language_id. "'"
-			);
+			$qb = new QB();
+			$qb->select('*', 'length_class_description');
+			$qb->where('length_class_id', (int)$class_id);
+			$qb->where('language_id', (int)$this->language_id);
+			$qry = $qb->query();
 
 			if (!empty($qry->row)) {
 				$lengths[$class_id] = $qry->row;

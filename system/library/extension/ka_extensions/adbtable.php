@@ -82,6 +82,10 @@ abstract class ADBTable {
 		@internal
 	*/
 	protected $_primary_keys = null;
+	/**
+		@internal options of the fields resolved by getOptions()
+	*/
+	protected $_options = array();
 	
 	public function __construct() {
 
@@ -351,6 +355,10 @@ abstract class ADBTable {
 		- 'width'  => css width of the column, 'link' => 'edit' - the value links to the form
 		- 'type', 'required', 'max_length', 'options', 'default_value' - form field keys (TraitControllerForm),
 		  'type' is 'text' by default
+		- 'options' => value => text: the options of a select field in the form and of a 'select' filter, the
+		  list shows the text of the value. Options from the database: the name of a method of the table
+		  class or a closure, called when the options are needed (getOptions()), e.g.
+		  'store_id' => ['type' => 'select', 'options' => 'getStoreOptions', 'list' => true]
 
 		Example:
 			'name'       => ['type' => 'text', 'required' => true, 'list' => true, 'sort' => true, 'filter' => 'like', 'link' => 'edit'],
@@ -436,6 +444,69 @@ abstract class ADBTable {
 
 
 	/**
+		Returns the options (value => text) of a field: the 'options' array of the metadata, the result of
+		the method of the table named in 'options' or of the closure. An empty array without options.
+		The result is kept for the object.
+	*/
+	public function getOptions($code) {
+
+		if (isset($this->_options[$code])) {
+			return $this->_options[$code];
+		}
+
+		$fields = $this->getFields();
+		$options = isset($fields[$code]['options']) ? $fields[$code]['options'] : array();
+
+		if ($options instanceof \Closure) {
+			$options = $options();
+		} elseif (is_string($options) && method_exists($this, $options)) {
+			$options = $this->$options();
+		}
+		if (!is_array($options)) {
+			$options = array();
+		}
+
+		$this->_options[$code] = $options;
+
+		return $options;
+	}
+
+
+	/**
+		Options of the stores: store_id => name, the default store (0) first. For 'options' => 'getStoreOptions'.
+	*/
+	public function getStoreOptions() {
+
+		$options = array(0 => $this->_registry->get('config')->get('config_name'));
+
+		$qb = new QB();
+		$qb->select('store_id, name', 'store');
+		$qb->orderBy('store_id');
+		foreach ($qb->query()->rows as $row) {
+			$options[$row['store_id']] = $row['name'];
+		}
+
+		return $options;
+	}
+
+
+	/**
+		Options of the languages: language_id => name in the order of the languages. For 'options' => 'getLanguageOptions'.
+	*/
+	public function getLanguageOptions() {
+
+		$qb = new QB();
+		$qb->select('language_id, name', 'language');
+		$qb->orderBy('sort_order');
+		$qb->orderBy('name');
+
+		$options = array_column($qb->query()->rows, 'name', 'language_id');
+
+		return $options;
+	}
+
+
+	/**
 		Returns form fields: all fields except primary keys and fields with 'form' => false, 'type' is 'text'
 		by default. The list keys are removed.
 	*/
@@ -449,6 +520,9 @@ abstract class ADBTable {
 			unset($field['list'], $field['sort'], $field['filter'], $field['form'], $field['format'], $field['width'], $field['link']);
 			if (empty($field['type'])) {
 				$field['type'] = 'text';
+			}
+			if (isset($field['options'])) {
+				$field['options'] = $this->getOptions($code);
 			}
 			$result[$code] = $field;
 		}
