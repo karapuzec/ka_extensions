@@ -38,6 +38,8 @@ class QbHooksTest extends LibraryTestCase {
 		$this->addItem('B', 1);
 		$this->addItem('A', 0);
 
+		// the fixture file with the child classes
+		$this->oc->get('load')->kamodel('extension/ka_extensions/ka_lib_test/qbitems');
 		$model = new \extension\ka_extensions\ka_lib_test\ModelQbitemsTemporary($this->oc->getRegistry());
 		$model->onLoadExt();
 		$this->assertSame(array('B'), $model->getNames());
