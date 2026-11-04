@@ -29,4 +29,28 @@ class ModelQbitemsEnabled extends ModelQbitems {
 	}
 }
 
+/**
+	The temporary subscription of a kamod child method: onQB() before the parent method, offQB() after it.
+*/
+class ModelQbitemsTemporary extends ModelQbitems {
+
+	public $qb_before;
+
+	public function getNames() {
+		$id = $this->onQB('ka_lib_test_item', function($qb) {
+			$qb->where('i.status', 1);
+		});
+		$this->qb_before = $this->getQB('ka_lib_test_item', 'i');
+		$this->qb_before->select('i.name');
+		$result = parent::getNames();
+		$this->offQB($id);
+		$this->offQB(-1);
+		return $result;
+	}
+
+	public function getNamesAfter() {
+		return parent::getNames();
+	}
+}
+
 class_alias(__NAMESPACE__ . '\ModelQbitems', '\ModelExtensionKaExtensionsKaLibTestQbitems');

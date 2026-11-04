@@ -33,4 +33,17 @@ class QbHooksTest extends LibraryTestCase {
 		$this->assertStringContainsString("(i.status = '1')", $child->last_sql);
 		$this->assertStringContainsString('`' . DB_PREFIX . 'ka_lib_test_item` i', $child->last_sql);
 	}
+
+	public function testTemporarySubscription() {
+		$this->addItem('B', 1);
+		$this->addItem('A', 0);
+
+		$model = new \extension\ka_extensions\ka_lib_test\ModelQbitemsTemporary($this->oc->getRegistry());
+		$model->onLoadExt();
+		$this->assertSame(array('B'), $model->getNames());
+		// after offQB(): new QB objects have no callback, the one made before keeps it
+		$this->assertSame(array('A', 'B'), $model->getNamesAfter());
+		$this->assertStringNotContainsString('status', $model->last_sql);
+		$this->assertSame(array('B'), array_column($model->qb_before->query()->rows, 'name'));
+	}
 }

@@ -54,7 +54,8 @@ class TestQBModelChild extends TestQBModel {
 class TestQBPlain {
 	use \extension\ka_extensions\TraitQB;
 
-	public function sub($table, $cb) { $this->onQB($table, $cb); }
+	public function sub($table, $cb) { return $this->onQB($table, $cb); }
+	public function unsub($id) { $this->offQB($id); }
 	public function qb($table = '', $alias = '') { return $this->getQB($table, $alias); }
 }
 
@@ -168,5 +169,25 @@ class QBHooksTest extends UnitTestCase {
 		$model->log = array();
 		$union->getSql();
 		$this->assertSame(6, count($model->log));
+	}
+
+	public function testOffQB() {
+		$obj = new TestQBPlain();
+		$id = $obj->sub('product', function($qb) { $qb->where('p.status', 1); });
+		$id2 = $obj->sub('product', function($qb) { $qb->where('p.model', 'M'); });
+		$this->assertNotEquals($id, $id2);
+
+		$first = $obj->qb('product', 'p');
+		$first->select('p.product_id');
+		$obj->unsub($id);
+		$obj->unsub(12345);
+		$obj->unsub('no-such-id');
+		$second = $obj->qb('product', 'p');
+		$second->select('p.product_id');
+
+		// the QB made while the subscription was active keeps the callback
+		$this->assertStringContainsString("(p.status = '1')", $first->getSql());
+		$this->assertStringNotContainsString('p.status', $second->getSql());
+		$this->assertStringContainsString("(p.model = 'M')", $second->getSql());
 	}
 }

@@ -57,12 +57,18 @@ kamod child of the class (or overrides ``getQB()`` there):
 
 .. code-block:: php
 
-    protected function onLoad() {
-        $this->onQB('customer', function($qb) {
-            $qb->where('c.status', 1);
+    public function getRecords($filter) {
+        $id = $this->onQB('product', function($qb) {
+            $qb->where('p.ka_hidden', 0);
         });
-        return parent::onLoad();
+        $result = parent::getRecords($filter);
+        $this->offQB($id);
+        return $result;
     }
+
+``onQB()`` returns the subscription id, ``offQB($id)`` removes the callback. ``getQB()``
+copies the current callbacks into the QB object it creates: a QB made while the
+subscription was active keeps the callback after ``offQB()``, later ones do not get it.
 
 The callbacks of the table go first, then those of ``'*'`` (all queries of the
 object), by ``$sort_order``. A callback is called at the start of every
