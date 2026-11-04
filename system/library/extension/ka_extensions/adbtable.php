@@ -336,4 +336,123 @@ abstract class ADBTable {
 	public function getValues() {
 	 	return $this->_values;
 	}
+
+
+	/**
+		Field metadata for the default list and form pages (ControllerList, ControllerForm). All keys are
+		optional, a table without them works as before:
+
+		- 'list'   => true / false  - a column of the list (no field with 'list': all fields except primary keys)
+		- 'sort'   => true          - a sortable column (no field with 'sort': all list columns)
+		- 'filter' => 'like' | 'eq' | 'select' | 'date_range' - a filter of the list (none by default)
+		- 'form'   => false         - the field is not in the form
+		- 'title'  => text          - the title (default: the language string 'txt_title_<field>')
+		- 'format' => 'price' | 'date' | 'datetime' | 'enabled' - the value format in the list
+		- 'width'  => css width of the column, 'link' => 'edit' - the value links to the form
+		- 'type', 'required', 'max_length', 'options', 'default_value' - form field keys (TraitControllerForm),
+		  'type' is 'text' by default
+
+		Example:
+			'name'       => ['type' => 'text', 'required' => true, 'list' => true, 'sort' => true, 'filter' => 'like', 'link' => 'edit'],
+			'status'     => ['type' => 'checkbox', 'default_value' => 1, 'list' => true, 'filter' => 'select', 'format' => 'enabled'],
+			'date_added' => ['form' => false, 'list' => true, 'sort' => true, 'format' => 'datetime', 'filter' => 'date_range'],
+	*/
+	protected function getMetaFields() {
+
+		$fields = $this->getFields();
+		if (empty($fields)) {
+			return array();
+		}
+
+		$result = array();
+		foreach ($fields as $code => $field) {
+			if (!empty($field['primary_key'])) {
+				continue;
+			}
+			$field['code'] = $code;
+			$result[$code] = $field;
+		}
+
+		return $result;
+	}
+
+
+	/**
+		Returns true when a field declares the metadata key (e.g. 'sort', 'filter').
+	*/
+	public function hasFieldMeta($key) {
+
+		foreach ($this->getMetaFields() as $field) {
+			if (isset($field[$key])) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+		Returns the columns of the list: fields with 'list' => true, without such fields all fields except
+		primary keys.
+	*/
+	public function getListFields() {
+
+		$fields = $this->getMetaFields();
+		if (!$this->hasFieldMeta('list')) {
+			return $fields;
+		}
+
+		return array_filter($fields, function($field) {
+			return !empty($field['list']);
+		});
+	}
+
+
+	/**
+		Returns the codes of sortable fields: fields with 'sort' => true, without such fields all list columns.
+	*/
+	public function getSortFields() {
+
+		if (!$this->hasFieldMeta('sort')) {
+			return array_keys($this->getListFields());
+		}
+
+		return array_keys(array_filter($this->getMetaFields(), function($field) {
+			return !empty($field['sort']);
+		}));
+	}
+
+
+	/**
+		Returns the fields with a 'filter' type (none by default).
+	*/
+	public function getFilterFields() {
+
+		return array_filter($this->getMetaFields(), function($field) {
+			return !empty($field['filter']);
+		});
+	}
+
+
+	/**
+		Returns form fields: all fields except primary keys and fields with 'form' => false, 'type' is 'text'
+		by default. The list keys are removed.
+	*/
+	public function getFormFields() {
+
+		$result = array();
+		foreach ($this->getMetaFields() as $code => $field) {
+			if (isset($field['form']) && !$field['form']) {
+				continue;
+			}
+			unset($field['list'], $field['sort'], $field['filter'], $field['form'], $field['format'], $field['width'], $field['link']);
+			if (empty($field['type'])) {
+				$field['type'] = 'text';
+			}
+			$result[$code] = $field;
+		}
+
+		return $result;
+	}
 }

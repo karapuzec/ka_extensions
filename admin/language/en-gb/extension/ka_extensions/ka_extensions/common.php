@@ -27,3 +27,8 @@ $_['The value must be a number'] = 'The value must be a number';
 $_['Minimum value is %s']        = 'Minimum value is %s';
 $_['Maximum value is %s']        = 'Maximum value is %s';
 $_['The field %s was not found'] = 'The field %s was not found';
+
+// the default list page (pages/list.twig)
+$_['txt_filter_from']  = '%s from';
+$_['txt_filter_to']    = '%s to';
+$_['txt_clear_filter'] = 'Clear';

@@ -1,0 +1,30 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+{#
+	The default list page of ControllerList ($use_default_list = true, ControllerList::DEFAULT_LIST_TEMPLATE).
+	A module replaces a part of it with its own template that extends '@ka_common/pages/list.twig' and
+	overrides the block list_filter or list_table (and sets DEFAULT_LIST_TEMPLATE in its controller).
+#}
+{% import '@ka_common/macros/table.twig' as table %}
+
+{% extends '@ka_common/pages/page.twig' %}
+
+{% block page_buttons %}
+	{% if action_add %}{{ table.button_add(action_add) }}{% endif %}
+	{% if enable_delete %}{{ table.button_delete(action_delete, 'frm-ka-list') }}{% endif %}
+{% endblock %}
+
+{% block page_contents %}
+	{% block list_filter %}
+		{% if filter_fields %}
+			{% include '@ka_common/pages/list/filter.twig' %}
+		{% endif %}
+	{% endblock %}
+
+	{% block list_table %}
+		{% include '@ka_common/pages/list/table.twig' %}
+	{% endblock %}
+{% endblock %}

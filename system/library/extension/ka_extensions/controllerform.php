@@ -23,6 +23,9 @@ abstract class ControllerForm extends ControllerPage {
 	// example: $this->recordset = $this->load->kamodel('extension/ka_extensions/ka_licenses/licenses');
 	//
 	protected $recordset;
+
+	// without getFields() of a child class the form fields come from the table metadata of the recordset
+	// (ADBTable::getFormFields()), the recordset has to be set before parent::onLoad() then
 	
 	use TraitControllerForm;
 	
@@ -39,7 +42,25 @@ abstract class ControllerForm extends ControllerPage {
 		}
 		
 		$fields = $this->getFields();
+		if (empty($fields)) {
+			$fields = $this->getTableFormFields();
+		}
 		$this->fields = $this->initFields($fields);
+	}
+
+
+	/*
+		Returns the form fields of the table metadata of the recordset (used when getFields() returns nothing).
+	*/
+	protected function getTableFormFields() {
+
+		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
+			return array();
+		}
+
+		$fields = $this->recordset->getTable()->getFormFields();
+
+		return $fields;
 	}
 
 	

@@ -1,0 +1,56 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+{#
+	The filter panel of the default list page: filter_fields of ControllerList::getPageFilterFields().
+	The filter url is action_filter with non-empty field values.
+#}
+<div class="panel panel-default" id="ka-list-filter">
+	<div class="panel-heading">
+		<h3 class="panel-title"><i class="fa fa-filter"></i> {{ t('button_filter') }}</h3>
+	</div>
+	<div class="panel-body">
+		<form id="frm-ka-filter" onsubmit="return false;">
+			<div class="row">
+				{% for k, f in filter_fields %}
+					<div class="col-sm-3">
+						{% include '@ka_common/fields/' ~ (f.type ? f.type : 'text') ~ '.twig' with {'field': f, 'template': 'filter'} %}
+					</div>
+				{% endfor %}
+			</div>
+			<div class="text-right">
+				<button type="button" id="ka-list-filter-reset" class="btn btn-default"><i class="fa fa-eraser"></i> {{ t('txt_clear_filter') }}</button>
+				<button type="submit" id="ka-list-filter-apply" class="btn btn-primary"><i class="fa fa-filter"></i> {{ t('button_filter') }}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$(function() {
+	var action = '{{ action_filter }}';
+	var $form  = $('#frm-ka-filter');
+
+	var applyFilter = function() {
+		var url = action;
+		$form.find('input[name], select[name]').each(function() {
+			var value = $(this).val();
+			if (value !== null && value !== '') {
+				url += '&' + encodeURIComponent(this.name) + '=' + encodeURIComponent(value);
+			}
+		});
+		location = url;
+	};
+
+	$('#ka-list-filter-apply').on('click', applyFilter);
+	$form.on('keydown', 'input', function(e) {
+		if (e.keyCode == 13) {
+			applyFilter();
+		}
+	});
+	$('#ka-list-filter-reset').on('click', function() {
+		location = action;
+	});
+});
+//--></script>

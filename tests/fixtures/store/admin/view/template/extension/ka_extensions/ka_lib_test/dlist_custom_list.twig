@@ -1,0 +1,4 @@
+{# the default list page with the filter of the module only (the table of the library stays) #}
+{% extends '@ka_common/pages/list.twig' %}
+
+{% block list_filter %}<div id="custom-filter">Custom filter {{ filter_fields|length }}</div>{% endblock %}
