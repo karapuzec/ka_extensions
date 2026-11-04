@@ -82,6 +82,33 @@ class QB {
 	*/
 	protected $db = null;
 
+	/**
+		The table key of the query: the table of the first from() call ('' without from(), e.g. 'new QB()'
+		with fromUnionAll()). Joins do not change it. Queries of several tables in from() are not supported
+		by the hooks: the first one is the key.
+	*/
+	protected $table = '';
+
+	/**
+		@internal callbacks called at the start of every getSql() call, see addHook()
+	*/
+	protected $hooks = array();
+
+
+
+	public function getTable() {
+		return $this->table;
+	}
+
+
+	/**
+		Adds a callback called with this object at the start of every getSql() call (before the SQL is
+		built), in the order of adding. getQB() of TraitQB adds the callbacks of onQB().
+	*/
+	public function addHook(callable $callback) {
+		$this->hooks[] = $callback;
+	}
+
 	public function __construct() {
 		$this->db = \KaGlobal::getRegistry()->get('db');
 	}
@@ -92,6 +119,9 @@ class QB {
 		$from_key - table alias		
 	*/
 	public function from($from, $from_key = '') {
+		if ($this->table === '') {
+			$this->table = (string)$from;
+		}
 		if (!empty($from_key)) {
 			$this->from[$from_key] = $from;
 		} else {
@@ -253,6 +283,10 @@ class QB {
 		Returns a raw SQL request string basing on the QB data.
 	*/
 	public function getSql() {
+
+		foreach ($this->hooks as $callback) {
+			$callback($this);
+		}
 
 		$sql = '';
 		
