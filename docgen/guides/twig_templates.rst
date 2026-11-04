@@ -78,6 +78,15 @@ The order of the modules can be set by ``install_before`` / ``install_after`` of
 (see :doc:`kamod_ini`), but these fields change the order of all classes and templates the modules
 override together, not of one template.
 
+Template Code Set in a ``view/*/before`` Event
+----------------------------------------------
+
+Ka Extensions library does not support replacing Twig template code via the ``view/*/before`` event
+(the ``$code`` argument). Such changes may be ignored, and the standard template (including OCMOD,
+kamod and theme editor changes) is used instead. This is a bad practice anyway, because it prevents
+Twig cache deployment. If you need to modify the HTML via events (we strictly discourage using events),
+use the ``view/*/after`` event.
+
 The ``t()`` Function
 --------------------
 
