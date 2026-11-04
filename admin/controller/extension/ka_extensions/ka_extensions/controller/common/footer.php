@@ -24,20 +24,22 @@ class ControllerCommonFooter extends \ControllerCommonFooter {
 		$data     = $this->getRenderData();
 		$template = $this->getRenderTemplate();
 	
+		// the standard labels of common.js (ka_js_labels) are passed always, form validation can be turned off
+		//
+		$this->load->language('extension/ka_extensions/common');
+		
+		$labels = array(
+			'txt_warning' => $this->language->get('txt_warning'),
+			'txt_error'   => $this->language->get('txt_error'),
+			'txt_success' => $this->language->get('txt_success'),
+			'txt_info'    => $this->language->get('txt_info'),
+			'txt_confirm' => $this->language->get('txt_confirm'),
+			'txt_field_validation_error' => $this->language->get('txt_field_validation_error'),
+		);
+		$this->document->addKaJsLabels($labels);
+
 		if (!defined('KA_DISABLE_FORM_VALIDATION')) {
 			$data['ka_enable_form_validation'] = true;
-			
-			$this->load->language('extension/ka_extensions/common');
-			
-			$labels = array(
-				'txt_warning' => $this->language->get('txt_warning'),
-				'txt_error'   => $this->language->get('txt_error'),
-				'txt_success' => $this->language->get('txt_success'),
-				'txt_info'    => $this->language->get('txt_info'),
-				'txt_field_validation_error' => $this->language->get('txt_field_validation_error'),
-			);
-				
-			$this->document->addKaJsLables($labels);
 		}
 		
 		$data['ka_js_labels'] = $this->document->getKaJsLabels();

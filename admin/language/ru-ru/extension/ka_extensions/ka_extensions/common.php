@@ -23,3 +23,11 @@ $_['The field %s was not found'] = 'Поле %s не найдено';
 $_['txt_filter_from']  = '%s с';
 $_['txt_filter_to']    = '%s по';
 $_['txt_clear_filter'] = 'Сбросить';
+
+// the labels of common.js (ka_js_labels)
+$_['txt_warning'] = 'Внимание';
+$_['txt_error']   = 'Ошибка';
+$_['txt_success'] = 'Успешно';
+$_['txt_info']    = 'Информация';
+$_['txt_confirm'] = 'Вы уверены?';
+$_['txt_field_validation_error'] = 'Некоторые данные не заполнены. Проверьте поля формы: ';

@@ -14,6 +14,17 @@ var ka_extensions = new function () {
 		'txt_error'  : 'Error'
 	};
 
+	/*
+		Returns a label: the language value from ka_js_labels (filled by the footer of the page), these
+		English defaults when it is not there
+	*/
+	this.getLabel = (key) => {
+		if (typeof ka_js_labels !== 'undefined' && ka_js_labels && typeof ka_js_labels[key] === 'string' && ka_js_labels[key].length) {
+			return ka_js_labels[key];
+		}
+		return this.labels[key];
+	}
+
 	
 	this.resetForm = (id) => {
 		$('#' + id + ' input, #' + id + ' select').val('');
@@ -26,22 +37,22 @@ var ka_extensions = new function () {
     	var labels = this.labels;
     
 		var style = 'info';
-		var title = labels['txt_info'];
+		var title = this.getLabel('txt_info');
 		var icon  = 'fa-info-circle';
 
 		if (type) {
 			if (type == 'D' || type == 'E') {
 				style = 'danger';
-				title = labels['txt_error'];
+				title = this.getLabel('txt_error');
 				icon  = 'fa-exclamation-circle';
 			} else if (type == 'S') {
 				style = 'success';
-				title = labels['txt_success'];
+				title = this.getLabel('txt_success');
 				icon  = 'fa-check-circle';
 				
 			} else if (type == 'W') {
 				style = 'warning';
-				title = labels['txt_warning'];
+				title = this.getLabel('txt_warning');
 				icon  = 'fa-exclamation-triangle';
 			}
 		}

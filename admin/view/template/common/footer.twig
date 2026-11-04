@@ -5,7 +5,7 @@
 	var ka_js_labels = [];
 
 	{% for k,v in ka_js_labels %}
-	ka_js_labels['{{ k }}'] = "{{ v|e }}";
+	ka_js_labels['{{ k|e('js') }}'] = "{{ v|e('js') }}";
 	{% endfor %}	
 
 {% endif %}

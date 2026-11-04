@@ -16,3 +16,11 @@ $_['The value must be a number'] = 'Значение должно быть чи�
 $_['Minimum value is %s']        = 'Минимальное значение: %s';
 $_['Maximum value is %s']        = 'Максимальное значение: %s';
 $_['The field %s was not found'] = 'Поле %s не найдено';
+
+// the labels of common.js (ka_js_labels)
+$_['txt_warning'] = 'Внимание';
+$_['txt_error']   = 'Ошибка';
+$_['txt_success'] = 'Успешно';
+$_['txt_info']    = 'Информация';
+$_['txt_confirm'] = 'Вы уверены?';
+$_['txt_field_validation_error'] = 'Некоторые данные не заполнены. Проверьте поля формы: ';
