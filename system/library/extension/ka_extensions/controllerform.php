@@ -23,6 +23,9 @@ abstract class ControllerForm extends ControllerPage {
 	// example: $this->recordset = $this->load->kamodel('extension/ka_extensions/ka_licenses/licenses');
 	//
 	protected $recordset;
+
+	// without getFields() of a child class the form fields come from the table metadata of the recordset
+	// (ADBTable::getFormFields()), the recordset has to be set before parent::onLoad() then
 	
 	use TraitControllerForm;
 	
@@ -34,15 +37,53 @@ abstract class ControllerForm extends ControllerPage {
 			throw new \Exception("Page route is not defined in a child class");
 		}
 	
-		if (!empty(static::PARENT_ROUTE)) {
-			$this->load->language(static::PARENT_ROUTE);
+		foreach ($this->getLanguageRoutes() as $route) {
+			$this->load->language($route);
 		}
 		
 		$fields = $this->getFields();
+		if (empty($fields)) {
+			$fields = $this->getTableFormFields();
+		}
 		$this->fields = $this->initFields($fields);
 	}
 
+
+	/*
+		Returns the form fields of the table metadata of the recordset (used when getFields() returns nothing).
+	*/
+	protected function getTableFormFields() {
+
+		if (empty($this->recordset) || !method_exists($this->recordset, 'getTable')) {
+			return array();
+		}
+
+		$fields = $this->recordset->getTable()->getFormFields();
+
+		return $fields;
+	}
+
 	
+	/*
+		Returns language files of the page, they are loaded in onLoad() after the library common file.
+		The list page file (PARENT_ROUTE) by default. A module adds its own files, e.g. its common file:
+			return array_merge(parent::getLanguageRoutes(), ['extension/ka_extensions/my_module/common']);
+	*/
+	protected function getLanguageRoutes() {
+		return !empty(static::PARENT_ROUTE) ? array(static::PARENT_ROUTE) : array();
+	}
+
+
+	/*
+		Returns true when the record of the url exists. A form of a missing record is not shown and
+		not saved: the user is redirected to the list (see index()).
+	*/
+	protected function isRecordFound($record_id) {
+		$record = $this->recordset->getRecord($record_id);
+		return !empty($record);
+	}
+
+
 	protected function validate() {
 	
 		if (!$this->validateModify()) {
@@ -66,6 +107,15 @@ abstract class ControllerForm extends ControllerPage {
   	public function index() {
   	
   		$primary_field = $this->recordset->getPrimaryField();
+
+  		// a deleted or wrong record
+  		//
+  		if (!empty($this->request->get[$primary_field]) && !$this->isRecordFound($this->request->get[$primary_field])) {
+  			$this->addTopMessage($this->language->get('error_record_not_found'), 'E');
+  			$route = !empty(static::PARENT_ROUTE) ? static::PARENT_ROUTE : static::PAGE_ROUTE;
+  			$this->response->redirect($this->url->link($route, $this->url_params->getUrl([$primary_field => null])));
+  			return;
+  		}
   	
   		// save the data
   		//

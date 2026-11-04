@@ -1,0 +1,81 @@
+{#
+    $Project$
+    $Author$
+    $Version$ ($Revision$)
+#}
+{#
+	The table of the default list page: list_columns (ControllerList::getListColumns()), records with
+	'cells' and 'actions' (ControllerList::fillRecord()), sort links, bulk delete by POST selected[].
+#}
+{% import '@ka_common/macros/table.twig' as table %}
+<div class="panel panel-default" id="ka-list-table">
+	<div class="panel-heading">
+		<h3 class="panel-title"><i class="fa fa-list"></i> {{ t('txt_list_page_title') }}</h3>
+	</div>
+	<div class="panel-body">
+		<form action="{{ action_delete }}" method="post" enctype="multipart/form-data" id="frm-ka-list">
+			<div class="table-responsive">
+				<table class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							{% if enable_delete %}
+								<td style="width: 1px;" class="text-center"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" /></td>
+							{% endif %}
+							{% for code, column in list_columns %}
+								<td class="text-left"{% if column.width %} style="width: {{ column.width|ka_escape }}"{% endif %}>
+									{% if column.sort %}
+										<a {{ table.sort_url(code, sort, order, _context) }}>{{ column.title }}</a>
+									{% else %}
+										{{ column.title }}
+									{% endif %}
+								</td>
+							{% endfor %}
+							<td class="text-right">{{ t('column_action') }}</td>
+						</tr>
+					</thead>
+					<tbody>
+						{% if records %}
+							{% for record in records %}
+								{% set edit_href = '' %}
+								{% for action in record.actions %}
+									{% if action.type == 'edit' %}{% set edit_href = action.href %}{% endif %}
+								{% endfor %}
+								<tr>
+									{% if enable_delete %}
+										<td class="text-center"><input type="checkbox" name="selected[]" value="{{ record[primary_field]|ka_escape }}" /></td>
+									{% endif %}
+									{% for code, column in list_columns %}
+										<td class="text-left" data-column="{{ code }}">
+											{% if column.link == 'edit' and edit_href %}
+												<a href="{{ edit_href }}">{{ record.cells[code]|ka_escape }}</a>
+											{% else %}
+												{{ record.cells[code]|ka_escape }}
+											{% endif %}
+										</td>
+									{% endfor %}
+									<td class="text-right" style="white-space: nowrap">
+										{% for action in record.actions %}
+											{% if action.type == 'delete' %}
+												{{ table.button_row_delete(action.href, action.text) }}
+											{% else %}
+												<a href="{{ action.href }}" data-toggle="tooltip" title="{{ action.text|ka_escape }}" class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></a>
+											{% endif %}
+										{% endfor %}
+									</td>
+								</tr>
+							{% endfor %}
+						{% else %}
+							<tr>
+								<td class="text-center" colspan="{{ list_columns|length + (enable_delete ? 2 : 1) }}">{{ t('text_no_results') }}</td>
+							</tr>
+						{% endif %}
+					</tbody>
+				</table>
+			</div>
+		</form>
+		<div class="row">
+			<div class="col-sm-6 text-left">{{ pagination }}</div>
+			<div class="col-sm-6 text-right">{{ results }}</div>
+		</div>
+	</div>
+</div>

@@ -12,6 +12,9 @@ abstract class LibraryTestCase extends \KaTesting\TestCase {
 	const ITEMS_ROUTE  = 'extension/ka_extensions/ka_lib_test/items';
 	const ITEM_ROUTE   = 'extension/ka_extensions/ka_lib_test/item';
 	const ITEM_TABLE   = 'ka_lib_test_item';
+	const DLIST_ROUTE  = 'extension/ka_extensions/ka_lib_test/dlist';
+	const DLIST_CUSTOM_ROUTE = 'extension/ka_extensions/ka_lib_test/dlist_custom';
+	const DITEM_ROUTE  = 'extension/ka_extensions/ka_lib_test/ditem';
 
 	protected function db() {
 		return $this->oc->db();
@@ -97,7 +100,7 @@ abstract class LibraryTestCase extends \KaTesting\TestCase {
 		$group_id = $this->getUserGroupId();
 		$permissions = $this->getPermissions($group_id);
 		foreach (array('access', 'modify') as $type) {
-			foreach (array(static::MODULE_ROUTE, static::ITEMS_ROUTE, static::ITEM_ROUTE) as $route) {
+			foreach (array(static::MODULE_ROUTE, static::ITEMS_ROUTE, static::ITEM_ROUTE, static::DLIST_ROUTE, static::DLIST_CUSTOM_ROUTE, static::DITEM_ROUTE) as $route) {
 				if (empty($permissions[$type]) || !in_array($route, $permissions[$type])) {
 					$permissions[$type][] = $route;
 				}

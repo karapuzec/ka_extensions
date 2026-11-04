@@ -1,10 +1,15 @@
 {# Test list of the library tests: plain markers for the assertions #}
+{% import '@ka_common/macros/table.twig' as table %}
 <div id="ka-lib-test-list">
 {{ ka_top }}
 {% for r in records %}
 <p class="record" data-id="{{ r.item_id }}">{{ r.name }}|{{ r.record_title }}{% for a in r.actions %}|{{ a.type }}={{ a.href }}{% endfor %}</p>
 {% endfor %}
 <p class="sort-name">{{ sort_name }}</p>
+<p class="sort-name-link"><a {{ table.sort_url('name', sort, order, _context) }}>name</a></p>
+<p class="sort-date-link"><a {{ table.sort_url('date', sort, order, _context) }}>date</a></p>
+<div class="filters">{% for f in filter_fields %}{% include '@ka_common/fields/' ~ f.type ~ '.twig' with {'field': f, 'template': 'filter'} %}{% endfor %}</div>
+<div class="row-delete">{% for r in records %}{% for a in r.actions %}{% if a.type == 'delete' %}{{ table.button_row_delete(a.href) }}{% endif %}{% endfor %}{% endfor %}</div>
 <p class="results">{{ results }}</p>
 <div class="pagination">{{ pagination }}</div>
 </div>

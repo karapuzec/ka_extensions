@@ -72,6 +72,21 @@ class TestListController extends ControllerList {
 	}
 }
 
+class TestFilterListController extends TestListController {
+
+	protected function getLanguageRoutes() {
+		return array_merge(parent::getLanguageRoutes(), array('extension/ka_extensions/ka_test/common'));
+	}
+
+	protected function getPageFilterFields($filter_fields = array()) {
+		return parent::getPageFilterFields(array(
+			'filter_status' => array('type' => 'select'),
+			'filter_groups' => array(),
+			'filter_name'   => array(),
+		));
+	}
+}
+
 class TestFormController extends ControllerForm {
 	const PARENT_ROUTE = 'extension/ka_extensions/ka_test/items';
 	const PAGE_ROUTE   = 'extension/ka_extensions/ka_test/item';
@@ -213,6 +228,57 @@ class ControllersTest extends UnitTestCase {
 		$actions = $this->lastView()['data']['records'][0]['actions'];
 		$this->assertSame(array('edit', 'delete'), array_column($actions, 'type'));
 		$this->assertSame('extension/ka_extensions/ka_test/items/deleteRecord?item_id=5', $actions[1]['href']);
+		// the delete link is posted (deleteRecord() accepts POST only), see the macro button_row_delete()
+		$this->assertSame('post', $actions[1]['method']);
+		$this->assertArrayNotHasKey('method', $actions[0]);
+	}
+
+	/**
+	 * A filter value '0' (store 0, status 0) is a value, an empty string is not. Values are not trimmed.
+	 */
+	public function testFilterValues() {
+		$this->request(array('filter_status' => '0', 'filter_groups' => array('2'), 'filter_name' => ' a '));
+		$controller = new TestFilterListController($this->registry);
+		$controller->index();
+		$fields = $this->lastView()['data']['filter_fields'];
+		$this->assertSame('0', $fields['filter_status']['value']);
+		$this->assertSame(array('2'), $fields['filter_groups']['value']);
+		$this->assertSame(' a ', $fields['filter_name']['value']);
+
+		$this->request(array('filter_status' => '', 'filter_groups' => array()));
+		$controller = new TestFilterListController($this->registry);
+		$controller->index();
+		$fields = $this->lastView()['data']['filter_fields'];
+		$this->assertArrayNotHasKey('value', $fields['filter_status']);
+		$this->assertArrayNotHasKey('value', $fields['filter_groups']);
+		$this->assertArrayNotHasKey('value', $fields['filter_name']);
+	}
+
+	public function testLanguageRoutes() {
+		$this->runList();
+		$this->assertContains('extension/ka_extensions/ka_test/items', $this->registry->get('load')->languages);
+
+		$this->registry->get('load')->languages = array();
+		$this->request();
+		$controller = new TestFilterListController($this->registry);
+		// the library common file is loaded before the page files (and by ControllerPage once more)
+		$this->assertSame(array('extension/ka_extensions/common', 'extension/ka_extensions/ka_test/items',
+			'extension/ka_extensions/ka_test/common', 'extension/ka_extensions/common'), $this->registry->get('load')->languages
+		);
+	}
+
+	/**
+	 * The current sort is given to the template as a column code of getSortFields() (the url keeps the SQL value).
+	 */
+	public function testSortCodeAndOrder() {
+		$data = $this->runList(array('sort' => 't.date_added', 'order' => 'DESC'))['data'];
+		$this->assertSame('date', $data['sort']);
+		$this->assertSame('DESC', $data['order']);
+
+		// a value not in getSortFields() is kept as it is
+		$data = $this->runList(array('sort' => 'name'))['data'];
+		$this->assertSame('name', $data['sort']);
+		$this->assertSame('ASC', $data['order']);
 	}
 
 	public function testSortLinks() {
@@ -305,7 +371,15 @@ class ControllersTest extends UnitTestCase {
 
 	// --- form page
 
-	protected function runForm($get, $post = null) {
+	/*
+		$add_record - the record of the url is added to the recordset (the form of a missing record
+		              redirects to the list)
+	*/
+	protected function runForm($get, $post = null, $add_record = true) {
+		if ($add_record && !empty($get['item_id']) && empty($this->rs->getRecord($get['item_id']))) {
+			$this->rs->records[] = array('item_id' => (int)$get['item_id'], 'name' => 'A');
+		}
+		$this->rs->calls = array();
 		$this->request($get, $post);
 		$controller = new TestFormController($this->registry);
 		try {
@@ -327,6 +401,26 @@ class ControllersTest extends UnitTestCase {
 		$this->assertSame('extension/ka_extensions/ka_test/item?item_id=4', $view['data']['action_save']);
 		// the url parameters of the form (including the record id) are kept in the link back to the list
 		$this->assertSame('extension/ka_extensions/ka_test/items?item_id=4', $view['data']['action_back']);
+	}
+
+	/**
+	 * A form of a missing (deleted) record is not shown and not saved: an error and the list.
+	 */
+	public function testMissingRecordRedirectsToTheList() {
+		$result = $this->runForm(array('item_id' => '9', 'page' => '2'), null, false);
+		$this->assertSame('extension/ka_extensions/ka_test/items', $result['redirect']);
+		$this->assertSame(array(array('type' => 'E', 'content' => 'error_record_not_found')), $this->topMessages());
+
+		$result = $this->runForm(array('item_id' => '9'), array('name' => 'B'), false);
+		$this->assertArrayHasKey('redirect', $result);
+		$this->assertSame(array(), $this->rs->saved);
+	}
+
+	public function testFormLanguageRoutes() {
+		$this->registry->get('load')->languages = array();
+		$this->runForm(array());
+		$this->assertContains('extension/ka_extensions/ka_test/items', $this->registry->get('load')->languages);
+		$this->assertNotContains('extension/ka_extensions/ka_test/item', $this->registry->get('load')->languages);
 	}
 
 	public function testFormOfANewRecordUsesDefaults() {
