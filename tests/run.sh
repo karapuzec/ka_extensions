@@ -15,8 +15,9 @@
 #
 # Settings come from the environment or from tests/config.local.sh (see config.local.sh.dist):
 #   KA_TEST_DB_USER, KA_TEST_DB_PASSWORD  database access (default: root, empty password)
-#   KA_TEST_PLATFORM_DIR  the shared platform ka_oc3_testing (default: tests/platform, exported by the setup)
-#   KA_TEST_PLATFORM_REV  platform revision exported into tests/platform (default: 14)
+#   KA_TEST_PLATFORM_DIR  the shared platform ka_oc3_testing (default: tests/platform, cloned by the setup)
+#   KA_TEST_PLATFORM_REF  tag of https://github.com/karapuzec/ka_oc3_testing cloned into tests/platform (default: v1.0.0)
+#   KA_TEST_PLATFORM_GIT  git url of the platform (default: https://github.com/karapuzec/ka_oc3_testing)
 #   KA_TEST_STORE_DIR    store folder            (default: /tmp/ka_extensions_lib_store)
 #   KA_TEST_STORE_URL    store url               (default: http://localhost:8177/)
 #   KA_TEST_DB_NAME      database                (default: kat_ka_extensions_lib)
@@ -87,9 +88,10 @@ set --
 [ -n "$EXCLUDE_GROUP" ] && set -- "$@" --exclude-group "$EXCLUDE_GROUP"
 [ -n "$FILTER" ] && set -- "$@" --filter "$FILTER"
 
-# the platform is kept in svn: git has no svn:externals, so it is exported once (pinned revision)
+# the platform (public repository) is cloned once, pinned to a tag
 if [ ! -d "$PLATFORM_DIR" ]; then
-	"$SVN" export -q -r "${KA_TEST_PLATFORM_REV:-14}" https://svn.ka-station.com/ka_oc3_testing/trunk "$PLATFORM_DIR"
+	git clone -q --depth 1 --branch "${KA_TEST_PLATFORM_REF:-v1.0.0}" \
+		"${KA_TEST_PLATFORM_GIT:-https://github.com/karapuzec/ka_oc3_testing}" "$PLATFORM_DIR"
 fi
 [ -d "$PLATFORM_DIR/vendor" ] || (cd "$PLATFORM_DIR" && composer install)
 
