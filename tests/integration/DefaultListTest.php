@@ -202,8 +202,7 @@ class DefaultListTest extends LibraryTestCase {
 		$this->oc->request(static::DADMIN_ROUTE . '/delete', array(), array('selected' => array($a, $b)));
 		$this->assertNotEmpty($this->getItem($a));
 		$this->assertNotEmpty($this->getItem($b));
-		$this->assertStringContainsString('error_permission', json_encode($this->topMessages()) . json_encode(array_keys($this->oc->get('language')->all())));
-		$this->assertNotEmpty($this->topMessages());
+		$this->assertStringContainsString($this->oc->get('language')->get('error_permission'), json_encode($this->topMessages(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 		// ControllerList itself is not changed: no permission check
 		$this->removeModify(static::DLIST_ROUTE);
