@@ -215,10 +215,8 @@ class LicenseServerTest extends LibraryTestCase {
 	/**
 	 * The license server is not available: no module is disabled, the saved states are kept, the list shows
 	 * the modules as before and the admin pages work. Both requests are tried: the API and the old script.
-	 *
-	 * @dataProvider failures
 	 */
-	public function testServerNotAvailableChangesNothing($mode) {
+	protected function checkServerNotAvailable($mode) {
 		$this->grant();
 		$registered = array('masked_key' => 'IJKL-XXXX-XXXX-XXXX-XXXX', 'license_key' => 'IJKL-XXXX-XXXX-XXXX-XXXX', 'expiry_date' => '2030-01-01',
 			'is_registered' => 1, 'url' => HTTP_CATALOG);
@@ -256,8 +254,9 @@ class LicenseServerTest extends LibraryTestCase {
 		$this->assertSame($registered, $this->kareg('karegka_lib_test'));
 	}
 
-	public function failures() {
-		return array('connection refused' => array('down'), 'HTTP 500' => array('500'), 'empty answer' => array('empty'),
-			'invalid json' => array('invalid'), 'timeout' => array('timeout'));
-	}
+	public function testConnectionRefusedChangesNothing() { $this->checkServerNotAvailable('down'); }
+	public function testHttp500ChangesNothing()          { $this->checkServerNotAvailable('500'); }
+	public function testEmptyAnswerChangesNothing()      { $this->checkServerNotAvailable('empty'); }
+	public function testInvalidJsonChangesNothing()      { $this->checkServerNotAvailable('invalid'); }
+	public function testTimeoutChangesNothing()          { $this->checkServerNotAvailable('timeout'); }
 }
