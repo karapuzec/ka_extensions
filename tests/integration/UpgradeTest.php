@@ -32,6 +32,7 @@ class UpgradeTest extends LibraryTestCase {
 
 	protected function cleanUp() {
 		$this->db()->query("DELETE FROM `" . DB_PREFIX . "extension` WHERE `type` = 'ka_extensions' AND `code` = 'ka_lib_test'");
+		$this->db()->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `code` = 'kareg' AND `key` = 'karegka_lib_test'");
 		$this->deleteSettings('ka_lib_test');
 		$this->deleteSettings('ka_lib_test_hidden');
 		$this->dropItemTable();
@@ -106,6 +107,9 @@ class UpgradeTest extends LibraryTestCase {
 
 	public function testNotInstalledModuleHasTheInstallButton() {
 		$this->allowExtensionsPage();
+		// the install button is shown for a licensed or free module only, the test does not ask a real license server
+		$this->db()->query("INSERT INTO `" . DB_PREFIX . "setting` SET store_id = 0, `code` = 'kareg', `key` = 'karegka_lib_test',
+			`value` = '" . $this->esc(json_encode(array('license_key' => '', 'masked_key' => '', 'expiry_date' => '', 'is_free' => 1, 'url' => HTTP_CATALOG, 'is_registered' => 1))) . "', serialized = 1");
 		$output = $this->listPage();
 		$this->assertMatchesRegularExpression('#route=extension/extension/ka_extensions/install[^"]*extension=ka_lib_test#', $output);
 		$this->assertStringNotContainsString('onKaRefresh(event, this)', $output);
