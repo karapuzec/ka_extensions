@@ -568,8 +568,16 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 		
 	*/
 	protected function getInfoByDomain() {
+
+		// the new request; null - an error or the server does not support it, the old request is sent
+		//
+		$extensions = $this->kamodel_ka_extensions->checkModules($this->vendor);
+		if (!is_null($extensions)) {
+			return $extensions;
+		}
 	
 		$kacurl = new \KaCurl();
+
 		
 		$request_url = \KaGlobal::getKaStoreURL() . "?route=extension/domain_info";
 		
