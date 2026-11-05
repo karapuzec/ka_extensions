@@ -76,7 +76,7 @@ class LicenseServerTest extends LibraryTestCase {
 	}
 
 	public function testNewServerReturnsStatesOfAllModules() {
-		$this->server('new', array('ka_lib_test' => 'registered', 'ka_lib_kamod' => 'free', 'ka_lib_lite' => 'expired'));
+		$this->server('new', array('ka_lib_test' => 'registered', 'ka_lib_lite' => 'free'));
 
 		$extensions = $this->model()->checkModules('ka_extensions');
 
@@ -86,13 +86,15 @@ class LicenseServerTest extends LibraryTestCase {
 		$this->assertSame('1', $requests[0]['post']['api_version']);
 		$this->assertSame(VERSION, $requests[0]['post']['opencart_version']);
 		$this->assertSame(array('vendor' => 'ka_extensions', 'code' => 'ka_lib_test', 'edition' => 'oc3'), $this->findModule($requests[0], 'ka_lib_test'));
-		$this->assertNotNull($this->findModule($requests[0], 'ka_lib_kamod'), 'all installed modules are sent');
+		$this->assertNotNull($this->findModule($requests[0], 'ka_lib_lite'), 'all installed modules are sent');
 		$this->assertArrayHasKey('extensions', $requests[0]['post'], 'the old fields for an old server');
 
 		$this->assertSame(array('masked_key' => 'GOOD-XXXX-XXXX-XXXX-XXXX', 'license_key' => 'GOOD-XXXX-XXXX-XXXX-XXXX', 'is_registered' => 1,
 			'expiry_date' => '2030-01-01'), $extensions['ka_lib_test']);
-		$this->assertSame(1, $extensions['ka_lib_kamod']['is_free']);
-		$this->assertArrayNotHasKey('ka_lib_lite', $extensions, 'an expired license is not registered');
+		$this->assertSame(1, $extensions['ka_lib_lite']['is_free']);
+
+		$this->server('new', array('ka_lib_test' => 'expired'));
+		$this->assertArrayNotHasKey('ka_lib_test', $this->model()->checkModules('ka_extensions'), 'an expired license is not registered');
 	}
 
 	public function testSameCodeOfAnotherEditionIsNotRegistered() {
@@ -104,13 +106,13 @@ class LicenseServerTest extends LibraryTestCase {
 	}
 
 	public function testOldServerAnswerIsUsed() {
-		$this->server('old', array('ka_lib_test' => 'registered', 'ka_lib_kamod' => 'free'));
+		$this->server('old', array('ka_lib_test' => 'registered', 'ka_lib_lite' => 'free'));
 
 		$extensions = $this->model()->checkModules('ka_extensions');
 
 		$this->assertCount(1, $this->requests(), 'the old answer to the same request, no second request');
 		$this->assertSame(1, $extensions['ka_lib_test']['is_registered']);
-		$this->assertSame(1, $extensions['ka_lib_kamod']['is_free']);
+		$this->assertSame(1, $extensions['ka_lib_lite']['is_free']);
 	}
 
 	public function testErrorFallsBackToTheOldRequest() {
