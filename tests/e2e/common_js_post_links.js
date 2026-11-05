@@ -95,10 +95,16 @@ const cases = [
 			await bpage.goto(`http://localhost:${port}/${file}`);
 			const r = await bpage.evaluate(() => {
 				const first = window.ka_extensions;
-				if (typeof KaExtensions !== 'undefined' && typeof ka_extensions === 'undefined') { var ka_extensions = new KaExtensions(); }
-				return [typeof window.ka_extensions, window.ka_extensions instanceof KaExtensions, first === window.ka_extensions, typeof window.ka_extensions.showMessage];
+				// $.ka.alert(text, type) calls ka_extensions.showMessage(text, type)
+				const calls = [];
+				const show = window.ka_extensions.showMessage;
+				window.ka_extensions.showMessage = (text, type) => calls.push([text, type]);
+				$.ka.alert('Saved', 'S');
+				window.ka_extensions.showMessage = show;
+				return [typeof window.ka_extensions, window.ka_extensions instanceof KaExtensions, first === window.ka_extensions,
+					typeof window.ka_extensions.showMessage, typeof $.ka.alert, JSON.stringify(calls)];
 			});
-			const ok = JSON.stringify(r) === JSON.stringify(['object', true, true, 'function']);
+			const ok = JSON.stringify(r) === JSON.stringify(['object', true, true, 'function', 'function', '[["Saved","S"]]']);
 			if (!ok) failed++;
 			console.log((ok ? 'ok   ' : 'FAIL ') + 'object created by the file (' + file + '): ' + JSON.stringify(r));
 		}

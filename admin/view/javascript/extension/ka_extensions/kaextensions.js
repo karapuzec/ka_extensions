@@ -215,3 +215,13 @@ class KaExtensions {
 if (typeof ka_extensions === 'undefined') {
 	var ka_extensions = new KaExtensions();
 }
+
+(function ($) {
+	if (!$.ka) {
+		$.ka = {};
+	}
+    $.ka.alert = function(text, type) {
+    	ka_extensions.showMessage(text, type);
+    }
+    
+}(jQuery));
