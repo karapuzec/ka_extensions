@@ -15,7 +15,10 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 	protected $settings;
 	protected $kacurl;
 
-	// the version of the license server protocol (checkModules, register_key with api_version)
+	// the API of the license module (ka_licenses) on the license server
+	const LICENSE_API_ROUTE = 'extension/ka_extensions/ka_licenses/api/';
+
+	// the version of the API
 	protected $license_api_version = 1;
 
 	
@@ -275,33 +278,24 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 */	
 	public function registerKey($key, $extension) {
 
-		$ret = '';
-		
-		// send code to the remote server
+		// the API of the license module (a new license server)
+		//
+		$result = $this->linkLicense($key, $extension);
+		if (!is_null($result)) {
+			return $result;
+		}
+
+		// the old script: an old server or the API is not available
 		//
 		$data = array(
 			'key'       => $key,
 			'url'       => HTTP_CATALOG,
 			'extension' => $extension,
 		);
-
-		// a new license server answers in the format of api_version, an old one ignores these fields.
-		// The edition is not sent: the old server adds it to the code ('code@oc3') and would not find
-		// products without it, a new server takes the edition of opencart_version
-		//
-		$module = $this->getModuleParts($extension);
-		$data += array(
-			'api_version'      => $this->license_api_version,
-			'vendor'           => $module['vendor'],
-			'code'             => $module['code'],
-			'opencart_version' => VERSION,
-		);
-
 		
 		$request_url = \KaGlobal::getKaStoreURL() . '?route=extension/register_key';
 
 		$result = $this->kacurl->request($request_url, $data);
-
 
 		// process the response from the remote server
 		//
@@ -315,23 +309,12 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 			return false;
 		} 
 		
-		$result = json_decode($result, true);
-
-		if (isset($result['api_version'])) {
-			if (empty($result['result']) || $result['result'] != 'ok') {
-				$this->lastError = empty($result['message']) ? 'The license key was not accepted.' : $result['message'];
-				return false;
-			}
-			$result['ext_code'] = ($module['vendor'] == 'ka_extensions') ? $module['code'] : $module['vendor'] . '/' . $module['code'];
-		}
-
+		$result = json_decode($result, true);		
 		if (!empty($result['error'])) {
 			$this->lastError = $result['error'];
 			return false;
 		}	
 
-
-		
 		if (empty($result['ext_code'])) {
 			$this->lastError = 'Wrong request parameters:' . var_export($result, true);
 			return false;
@@ -345,10 +328,47 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		
 		return true;
 	}
-	
 
-	
-	
+
+	/*
+		Registers the key with the API of the license module (api/linkLicense, api_version 1).
+		Returns true / false (lastError is set), null when the server has no such API: an old server
+		(404, a page instead of json, an answer without api_version), a failed request. Then the caller
+		sends the old register_key request.
+	*/
+	protected function linkLicense($key, $extension) {
+
+		$module = $this->getModuleParts($extension);
+		$data = array(
+			'api_version'      => $this->license_api_version,
+			'license_key'      => $key,
+			'surface_uri'      => HTTP_CATALOG,
+			'vendor'           => $module['vendor'],
+			'code'             => $module['code'],
+			'edition'          => $module['edition'],
+			'opencart_version' => VERSION,
+		);
+
+		$result = $this->requestLicenseServer(static::LICENSE_API_ROUTE . 'linkLicense', $data);
+		if (empty($result) || !isset($result['api_version']) || empty($result['result'])) {
+			return null;
+		}
+
+		if ($result['result'] != 'ok') {
+			$this->lastError = empty($result['message']) ? 'The license key was not accepted.' : $result['message'];
+			return false;
+		}
+
+		$ext_code = ($module['vendor'] == 'ka_extensions') ? $module['code'] : $module['vendor'] . '/' . $module['code'];
+		if (!$this->saveReg($ext_code, array('is_registered' => true))) {
+			$this->lastError = 'saveReg failed';
+			return false;
+		}
+
+		return true;
+	}
+
+
 	/*
 		Returns the edition of license codes for this store: 'oc3' for Opencart 3.x
 	*/
@@ -380,44 +400,32 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 
 
 	/*
-		Requests the state of the modules of the vendor from the license server (checkModules, api_version 1).
-		The domain_info url is used: a new server answers with modules, an old one with the old format
-		because the request has the old fields too.
+		Requests the state of the modules of the vendor from the API of the license module
+		(api/checkModules, api_version 1): vendor, code and edition of every module, the Opencart version.
 
 		Returns the extensions in the format of the old domain_info response (see saveRegAll()):
 			[license_code => ['is_registered' => 1, ...] or ['is_free' => 1, ...]]
-		or null when the server does not support the request or returns an error (the caller uses the old request).
+		or null when the server has no such API (an old server: 404 or a page instead of json), the request
+		failed or the server returned an error. The caller sends the old domain_info request then.
 	*/
 	public function checkModules($vendor = 'ka_extensions') {
 
-		$extensions = $this->getLoadedExtensions($vendor);
-
 		$modules = array();
-		foreach ($extensions as $ext_code => $license_code) {
+		foreach ($this->getLoadedExtensions($vendor) as $ext_code => $license_code) {
 			$modules[$license_code] = $this->getModuleParts($license_code, $vendor);
 		}
 
 		$data = array(
-			'url'              => HTTP_CATALOG,
-			'protocol_version' => 4,
-			'opencart_version' => VERSION,
-			'vendor'           => $vendor,
-			'extensions'       => $extensions,
 			'api_version'      => $this->license_api_version,
+			'url'              => HTTP_CATALOG,
+			'opencart_version' => VERSION,
 			'modules'          => array_values($modules),
 		);
 
-		$result = $this->requestLicenseServer('extension/domain_info', $data);
-		if (empty($result) || empty($result['result']) || $result['result'] != 'ok') {
-			return null;
-		}
-
-		// an old server
-		if (!isset($result['api_version'])) {
-			return isset($result['extensions']) ? $result['extensions'] : null;
-		}
-
-		if (!isset($result['modules']) || !is_array($result['modules'])) {
+		$result = $this->requestLicenseServer(static::LICENSE_API_ROUTE . 'checkModules', $data);
+		if (empty($result) || !isset($result['api_version']) || empty($result['result']) || $result['result'] != 'ok'
+			|| !isset($result['modules']) || !is_array($result['modules'])
+		) {
 			return null;
 		}
 
