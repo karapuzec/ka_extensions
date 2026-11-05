@@ -209,3 +209,19 @@ class KaExtensions {
 		});
 	}
 }
+
+// The library object is created by this file, so it exists with any theme (also a theme with its own
+// header.twig / footer.twig without the library parts). The header and the footer create it only when it is missing.
+if (typeof ka_extensions === 'undefined') {
+	var ka_extensions = new KaExtensions();
+}
+
+(function ($) {
+	if (!$.ka) {
+		$.ka = {};
+	}
+    $.ka.alert = function(text, type) {
+    	ka_extensions.showMessage(text, type);
+    }
+    
+}(jQuery));
