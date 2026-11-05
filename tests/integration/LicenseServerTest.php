@@ -3,8 +3,8 @@
 namespace KaExtensionsTests\Integration;
 
 /**
- * Requests to the license server: the API of ka_licenses (api/checkModules, api/linkLicense, api_version 1) with
- * the fallback to the old scripts domain_info and register_key; a server that is not available.
+ * Requests to the license server: only the API of ka_licenses (api/checkModules, api/linkLicense, api_version 1),
+ * the old scripts domain_info and register_key are never called; a server that is not available.
  *
  * The server is tests/fixtures/license_server/router.php started with the PHP built-in server for every test;
  * the test writes its mode ('new', 'old', 'error') and the states of modules, the server logs the requests.
@@ -60,6 +60,9 @@ class LicenseServerTest extends LibraryTestCase {
 		$result = array();
 		foreach (file($this->log_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
 			$result[] = json_decode($line, true);
+		}
+		foreach ($result as $request) {
+			$this->assertNotContains($request['route'], array('extension/domain_info', 'extension/register_key'), 'the old scripts are not called');
 		}
 		return $result;
 	}
@@ -154,27 +157,10 @@ class LicenseServerTest extends LibraryTestCase {
 
 		$this->oc->request(static::EXT_ROUTE);
 
-		$this->assertSame(array(self::API . 'checkModules'), $this->routes(), 'the old script is not called');
+		$this->assertSame(array(self::API . 'checkModules'), $this->routes(), 'only the API is called');
 		$model = $this->oc->get('load')->kamodel('extension/ka_extensions');
 		$this->assertTrue($model->isRegistered('ka_lib_test', 'ka_extensions'));
 		$this->assertFalse($model->isRegistered('ka_lib_lite', 'ka_extensions'));
-	}
-
-	public function testOldServerFallbackToTheOldScript() {
-		$this->grant();
-		foreach (array('old' => '404 of the API', 'error' => 'an error of the API') as $mode => $case) {
-			$this->deleteSettings('kareg');
-			$this->server($mode, array('ka_lib_test' => 'registered'));
-			file_put_contents($this->log_file, '');
-
-			$this->oc->request(static::EXT_ROUTE);
-
-			$requests = $this->requests();
-			$this->assertSame(array(self::API . 'checkModules', 'extension/domain_info'), array_column($requests, 'route'), $case);
-			$this->assertSame(array('url', 'protocol_version', 'opencart_version', 'vendor', 'extensions'), array_keys($requests[1]['post']),
-				"$case: the old request as before");
-			$this->assertTrue($this->oc->get('load')->kamodel('extension/ka_extensions')->isRegistered('ka_lib_test', 'ka_extensions'), $case);
-		}
 	}
 
 	public function testRegisterKeyOnTheNewServer() {
@@ -198,23 +184,9 @@ class LicenseServerTest extends LibraryTestCase {
 		$this->assertTrue($model->isRegistered('vtest', 'ka_lib_vendor'));
 	}
 
-	public function testRegisterKeyOnTheOldServer() {
-		$this->server('old');
-		$model = $this->model();
-
-		$this->assertFalse($model->registerKey('WRONG', 'ka_lib_test'));
-		$this->assertStringStartsWith('The license key (WRONG) was not found', $model->getLastError());
-
-		$this->assertTrue($model->registerKey('GOOD-KEY', 'ka_lib_test'));
-		$requests = $this->requests();
-		$this->assertSame(array(self::API . 'linkLicense', 'extension/register_key'), array_column(array_slice($requests, 2), 'route'));
-		$this->assertSame(array('key' => 'GOOD-KEY', 'url' => HTTP_CATALOG, 'extension' => 'ka_lib_test'), $requests[3]['post'], 'the old request as before');
-		$this->assertTrue($model->isRegistered('ka_lib_test', 'ka_extensions'));
-	}
-
 	/**
 	 * The license server is not available: no module is disabled, the saved states are kept, the list shows
-	 * the modules as before and the admin pages work. Both requests are tried: the API and the old script.
+	 * the modules as before and the admin pages work. One request to the API, the old scripts are not called.
 	 */
 	protected function checkServerNotAvailable($mode) {
 		$this->grant();
@@ -234,7 +206,7 @@ class LicenseServerTest extends LibraryTestCase {
 		$output = $this->oc->request(static::EXT_ROUTE)['output'];
 
 		if ($mode != 'down') {
-			$this->assertSame(array(self::API . 'checkModules', 'extension/domain_info'), $this->routes(), 'the API, then the old script');
+			$this->assertSame(array(self::API . 'checkModules'), $this->routes(), 'one request to the API');
 		}
 		$this->assertStringNotContainsString('Fatal error', $output);
 		$this->assertStringNotContainsString('Warning:', $output);
@@ -251,10 +223,15 @@ class LicenseServerTest extends LibraryTestCase {
 		// the registration fails with a message, nothing is changed
 		$model = $this->oc->get('load')->kamodel('extension/ka_extensions');
 		$this->assertFalse($model->registerKey('GOOD-KEY', 'ka_lib_test'));
+		$this->assertStringStartsWith('A request to the license registration server failed', $model->getLastError());
 		$this->assertSame($registered, $this->kareg('karegka_lib_test'));
+		if ($mode != 'down') {
+			$this->assertSame(array(self::API . 'checkModules', self::API . 'linkLicense'), $this->routes(), 'one request to the API');
+		}
 	}
 
 	public function testConnectionRefusedChangesNothing() { $this->checkServerNotAvailable('down'); }
+	public function testOldServer404ChangesNothing()    { $this->checkServerNotAvailable('old'); }
 	public function testHttp500ChangesNothing()          { $this->checkServerNotAvailable('500'); }
 	public function testEmptyAnswerChangesNothing()      { $this->checkServerNotAvailable('empty'); }
 	public function testInvalidJsonChangesNothing()      { $this->checkServerNotAvailable('invalid'); }

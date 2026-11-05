@@ -278,66 +278,6 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 */	
 	public function registerKey($key, $extension) {
 
-		// the API of the license module (a new license server)
-		//
-		$result = $this->linkLicense($key, $extension);
-		if (!is_null($result)) {
-			return $result;
-		}
-
-		// the old script: an old server or the API is not available
-		//
-		$data = array(
-			'key'       => $key,
-			'url'       => HTTP_CATALOG,
-			'extension' => $extension,
-		);
-		
-		$request_url = \KaGlobal::getKaStoreURL() . '?route=extension/register_key';
-
-		$result = $this->kacurl->request($request_url, $data);
-
-		// process the response from the remote server
-		//
-		if (empty($result)) {
-			$this->lastError = 'A request to the license registration server failed with this error:' 
-				. $this->kacurl->getLastError()
-				. '<br />Please try again later.<br /><br />If you cannot activate the license key within 3 ' 
-				. 'days please contact us at support@ka-station.com.
-			';
-				
-			return false;
-		} 
-		
-		$result = json_decode($result, true);		
-		if (!empty($result['error'])) {
-			$this->lastError = $result['error'];
-			return false;
-		}	
-
-		if (empty($result['ext_code'])) {
-			$this->lastError = 'Wrong request parameters:' . var_export($result, true);
-			return false;
-		}
-		
-		$data['is_registered'] = true;
-		if (!$this->saveReg($result['ext_code'], $data)) {
-			$this->lastError = 'saveReg failed';
-			return false;
-		}
-		
-		return true;
-	}
-
-
-	/*
-		Registers the key with the API of the license module (api/linkLicense, api_version 1).
-		Returns true / false (lastError is set), null when the server has no such API: an old server
-		(404, a page instead of json, an answer without api_version), a failed request. Then the caller
-		sends the old register_key request.
-	*/
-	protected function linkLicense($key, $extension) {
-
 		$module = $this->getModuleParts($extension);
 		$data = array(
 			'api_version'      => $this->license_api_version,
@@ -350,8 +290,11 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		);
 
 		$result = $this->requestLicenseServer(static::LICENSE_API_ROUTE . 'linkLicense', $data);
-		if (empty($result) || !isset($result['api_version']) || empty($result['result'])) {
-			return null;
+		if (is_null($result) || $result['result'] == '') {
+			$this->lastError = 'A request to the license registration server failed. ' . $this->lastError
+				. '<br />Please try again later.<br /><br />If you cannot activate the license key within 3 '
+				. 'days please contact us at support@ka-station.com.';
+			return false;
 		}
 
 		if ($result['result'] != 'ok') {
@@ -405,8 +348,8 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 
 		Returns the extensions in the format of the old domain_info response (see saveRegAll()):
 			[license_code => ['is_registered' => 1, ...] or ['is_free' => 1, ...]]
-		or null when the server has no such API (an old server: 404 or a page instead of json), the request
-		failed or the server returned an error. The caller sends the old domain_info request then.
+		or null (lastError is set) when the server is not available or its answer is not valid (also 404 and
+		a page instead of json) or it returned an error. Then the saved states are not changed.
 	*/
 	public function checkModules($vendor = 'ka_extensions') {
 
@@ -423,9 +366,11 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		);
 
 		$result = $this->requestLicenseServer(static::LICENSE_API_ROUTE . 'checkModules', $data);
-		if (empty($result) || !isset($result['api_version']) || empty($result['result']) || $result['result'] != 'ok'
-			|| !isset($result['modules']) || !is_array($result['modules'])
-		) {
+		if (is_null($result)) {
+			return null;
+		}
+		if ($result['result'] != 'ok' || !isset($result['modules']) || !is_array($result['modules'])) {
+			$this->lastError = empty($result['message']) ? 'The license server returned an error.' : $result['message'];
 			return null;
 		}
 
@@ -473,7 +418,9 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 
 
 	/*
-		Sends a POST request to the license server. Returns the decoded json or null.
+		Sends a POST request to the API of the license server. Returns the decoded json answer of the API
+		(with api_version and result) or null (lastError is set): the server is not available, HTTP errors
+		(404 too), an empty answer, not json, no api_version.
 	*/
 	protected function requestLicenseServer($route, $data) {
 
@@ -484,7 +431,8 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 		}
 
 		$result = json_decode($result, true);
-		if (!is_array($result)) {
+		if (!is_array($result) || !isset($result['api_version']) || !isset($result['result'])) {
+			$this->lastError = 'The license server returned an invalid answer.';
 			return null;
 		}
 

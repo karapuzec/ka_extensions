@@ -569,60 +569,15 @@ class ControllerExtensionExtensionKaExtensions extends \extension\ka_extensions\
 	*/
 	protected function getInfoByDomain() {
 
-		// the new request; null - an error or the server does not support it, the old request is sent
+		// null - the server is not available or returned an error, the saved states are kept
 		//
 		$extensions = $this->kamodel_ka_extensions->checkModules($this->vendor);
-		if (!is_null($extensions)) {
-			return $extensions;
-		}
-	
-		$kacurl = new \KaCurl();
-
-		
-		$request_url = \KaGlobal::getKaStoreURL() . "?route=extension/domain_info";
-		
-		$extensions = $this->kamodel_ka_extensions->getLoadedExtensions($this->vendor);
-		
-		$data = array(
-			'url'              => HTTP_CATALOG,
-			'protocol_version' => 4,
-			'opencart_version' => VERSION ?? '3.0',
-			'vendor'           => $this->vendor,
-			'extensions'       => $extensions,
-		);
-		$result = $kacurl->request($request_url, $data);
-		
-		$info = var_export($request_url, true) . var_export($result, true) . var_export($data, true);
-		
-		// process the response from the remote server
-		//
-		if (empty($result)) {
-			$this->lastError = 'A request to the license registration server failed with this error:'
-				. $kacurl->getLastError();
-				
-
-			$this->infolog->write($this->lastError . ' extra:' . $info);
-				
-			return null;
-		}
-		
-		$result = json_decode($result, true);
-		if (!empty($result['error'])) {
-			$this->lastError = $result['error'];
-			return null;
+		if (is_null($extensions)) {
+			$this->lastError = $this->kamodel_ka_extensions->getLastError();
+			$this->infolog->write('checkModules failed: ' . $this->lastError);
 		}
 
-		if (empty($result['result']) || $result['result'] != 'ok') {
-			$this->lastError = 'Server response does not contain a successful result.';
-			return null;
-		}
-		
-		if (!isset($result['extensions'])) {
-			$this->lastError = 'Unknwon result format.';
-			return null;
-		}
-
-		return $result['extensions'];
+		return $extensions;
 	}
 	
 	/*
