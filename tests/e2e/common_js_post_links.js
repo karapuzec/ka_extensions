@@ -17,6 +17,8 @@ const port = 8299;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ka-common-js-'));
 fs.copyFileSync(jquery, path.join(dir, 'jquery.js'));
 fs.copyFileSync(path.join(root, 'admin/view/javascript/extension/ka_extensions/kaextensions.js'), path.join(dir, 'kaextensions.js'));
+// a theme without the library parts of header.twig / footer.twig: only the files (admin and storefront)
+fs.copyFileSync(path.join(root, 'catalog/view/javascript/extension/ka_extensions/kaextensions.js'), path.join(dir, 'kaextensions_catalog.js'));
 fs.writeFileSync(path.join(dir, 'echo.php'), '<?php echo $_SERVER["REQUEST_METHOD"], " ", $_SERVER["QUERY_STRING"];');
 const links = `<a id="post" href="echo.php?route=x/deleteRecord&amp;id=1" data-ka-post="1" data-confirm="Sure?">1</a>
 <a id="post-noconfirm" href="echo.php?id=2" data-ka-post="1">2</a>
@@ -85,6 +87,21 @@ const cases = [
 		const labels_ok = JSON.stringify(labels) === JSON.stringify(expected_labels);
 		if (!labels_ok) failed++;
 		console.log((labels_ok ? 'ok   ' : 'FAIL ') + 'getLabel params: ' + JSON.stringify(labels));
+		// the object exists without the inline script of the header (any theme), one object for both scripts
+		for (const [file, scripts] of [['nohead.html', '<script src="kaextensions.js"></script>'],
+			['nohead_catalog.html', '<script src="kaextensions_catalog.js"></script>'],
+			['twice.html', '<script src="kaextensions.js"></script>' + create]]) {
+			fs.writeFileSync(path.join(dir, file), page(scripts));
+			await bpage.goto(`http://localhost:${port}/${file}`);
+			const r = await bpage.evaluate(() => {
+				const first = window.ka_extensions;
+				if (typeof KaExtensions !== 'undefined' && typeof ka_extensions === 'undefined') { var ka_extensions = new KaExtensions(); }
+				return [typeof window.ka_extensions, window.ka_extensions instanceof KaExtensions, first === window.ka_extensions, typeof window.ka_extensions.showMessage];
+			});
+			const ok = JSON.stringify(r) === JSON.stringify(['object', true, true, 'function']);
+			if (!ok) failed++;
+			console.log((ok ? 'ok   ' : 'FAIL ') + 'object created by the file (' + file + '): ' + JSON.stringify(r));
+		}
 	} finally {
 		await browser.close();
 		server.kill();
