@@ -285,16 +285,18 @@ class ModelExtensionKaExtensions extends \extension\ka_extensions\Model {
 			'extension' => $extension,
 		);
 
-		// a new license server answers in the format of api_version, an old one ignores these fields
+		// a new license server answers in the format of api_version, an old one ignores these fields.
+		// The edition is not sent: the old server adds it to the code ('code@oc3') and would not find
+		// products without it, a new server takes the edition of opencart_version
 		//
 		$module = $this->getModuleParts($extension);
 		$data += array(
 			'api_version'      => $this->license_api_version,
 			'vendor'           => $module['vendor'],
 			'code'             => $module['code'],
-			'edition'          => $module['edition'],
 			'opencart_version' => VERSION,
 		);
+
 		
 		$request_url = \KaGlobal::getKaStoreURL() . '?route=extension/register_key';
 

@@ -73,14 +73,16 @@ if ($route == 'extension/register_key') {
 		if ($config['mode'] == 'error') {
 			echo json_encode(array('api_version' => 1, 'result' => 'error', 'message' => 'Server error', 'license_code' => ''));
 		} elseif ($key == $config['key']) {
-			echo json_encode(array('api_version' => 1, 'result' => 'ok', 'message' => '', 'license_code' => $_POST['vendor'] . '/' . $_POST['code'] . '@' . $_POST['edition']));
+			echo json_encode(array('api_version' => 1, 'result' => 'ok', 'message' => '', 'license_code' => $_POST['vendor'] . '/' . $_POST['code'] . '@'
+				. (empty($_POST['edition']) ? 'oc' . (int)$_POST['opencart_version'] : $_POST['edition'])));
 		} else {
 			echo json_encode(array('api_version' => 1, 'result' => 'error', 'message' => 'Invalid license key', 'license_code' => ''));
 		}
 		return;
 	}
 
-	if ($key == $config['key']) {
+	// the old script adds the edition to the code: a code with an edition is not found here
+	if ($key == $config['key'] && empty($_POST['edition'])) {
 		echo json_encode(array('ext_code' => explode('/', $_POST['extension'])[count(explode('/', $_POST['extension'])) - 1], 'result' => 'OK'));
 	} else {
 		echo json_encode(array('error' => 'The license key (' . $key . ') was not found for the extension "' . $_POST['extension'] . '". '));

@@ -158,7 +158,8 @@ class LicenseServerTest extends LibraryTestCase {
 		$this->assertTrue($model->registerKey('GOOD-KEY', 'ka_lib_test'));
 		$post = $this->requests()[1]['post'];
 		$this->assertSame(array('key' => 'GOOD-KEY', 'url' => HTTP_CATALOG, 'extension' => 'ka_lib_test', 'api_version' => '1',
-			'vendor' => 'ka_extensions', 'code' => 'ka_lib_test', 'edition' => 'oc3', 'opencart_version' => VERSION), $post);
+			'vendor' => 'ka_extensions', 'code' => 'ka_lib_test', 'opencart_version' => VERSION), $post);
+		$this->assertArrayNotHasKey('edition', $post, 'the old server would look for code@oc3');
 		$this->assertTrue($model->isRegistered('ka_lib_test', 'ka_extensions'));
 
 		$this->assertTrue($model->registerKey('GOOD-KEY', 'ka_lib_vendor/vtest'));
