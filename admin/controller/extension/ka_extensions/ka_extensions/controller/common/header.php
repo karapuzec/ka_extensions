@@ -17,13 +17,14 @@ class ControllerCommonHeader extends \ControllerCommonHeader {
 
 	public function index() {
 
+		// the class KaExtensions, the object ka_extensions is created in the header template.
+		// Scripts are added before the parent call, it reads the document scripts into the template data
+		$this->document->addScript('view/javascript/extension/ka_extensions/kaextensions.js');
+		$this->document->addStyle('view/stylesheet/extension/ka_extensions/stylesheet.css');
+
 		$this->disableRender();
 		parent::index();
 		$this->enableRender();
-	
-		// the class KaExtensions, the object ka_extensions is created in the header template
-		$this->document->addScript('view/javascript/extension/ka_extensions/kaextensions.js');
-		$this->document->addStyle('view/stylesheet/extension/ka_extensions/stylesheet.css');
 
 		$data     = $this->getRenderData();
 		$template = $this->getRenderTemplate();

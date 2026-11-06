@@ -1,0 +1,9 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[<footer id="footer">]]></search>
+			<text><![CDATA[{% include '@ka_common/footer_scripts.twig' %}
+<footer id="footer">]]></text>
+		</operation>
+	</changes>
+</kapatch>

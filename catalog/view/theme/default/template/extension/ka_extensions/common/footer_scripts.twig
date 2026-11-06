@@ -1,0 +1,61 @@
+<script type="text/javascript"><!--
+{% if ka_js_labels_json %}
+	// the labels of the page (Document::addKaJsLabels()), a JSON object safe in a script
+	// the object is created in the header, here only for themes without the header part of the library
+	if (typeof ka_extensions === 'undefined' && typeof KaExtensions !== 'undefined') {
+		var ka_extensions = new KaExtensions();
+	}
+	if (typeof ka_extensions !== 'undefined') {
+		ka_extensions.setLabels({{ ka_js_labels_json }});
+	}
+{% endif %}
+
+{% if ka_enable_form_validation %}
+$(document).ready(function() {
+
+	$('button[form]').each(function() {
+	
+		var formid = $(this).attr('form');
+		var $form = $('#' + formid);
+		if (!$form) {
+			return;
+		}
+
+		$form.on('submit', function(e) {
+		
+			var $form = $(this);
+			
+			var error = '';
+			
+			$form.find('[required]').each(function(idx, el) {
+					if (!el.checkValidity()) {
+						var name = $(el).closest('.form-group').find('label.control-label').text();
+						
+						if (!name) {
+							name = $(el).data('title');
+						}
+						
+						if (!name) {
+							name = $(el).attr('name');
+						}
+						if (!name) {
+							name = el.tagName;
+						}
+						
+						if (error) {
+							error += ', ';
+						}
+						error += (name);
+					}
+			});
+
+			if (error) {
+				ka_extensions.showMessage(ka_extensions.getLabel('txt_field_validation_error') + error, 'E');
+				e.preventDefault();
+				return;
+			}
+		});
+	});
+});
+{% endif %}
+//--></script>
