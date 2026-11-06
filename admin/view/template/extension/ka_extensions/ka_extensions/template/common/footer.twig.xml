@@ -2,7 +2,7 @@
 	<changes>
 		<operation type="replace">
 			<search><![CDATA[<footer id="footer">]]></search>
-			<text><![CDATA[{% include '@ka_common/footer_scripts.twig' %}
+			<text><![CDATA[{% include 'extension/ka_extensions/ka_extensions/footer/scripts.twig' ignore missing %}
 <footer id="footer">]]></text>
 		</operation>
 	</changes>

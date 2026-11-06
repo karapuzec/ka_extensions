@@ -1,0 +1,14 @@
+{# the labels of the page (Document::addKaJsLabels()) and the form validation for the library JS (kaextensions.js creates ka_extensions) #}
+{% if ka_js_labels_json or ka_enable_form_validation %}
+<script type="text/javascript"><!--
+if (typeof ka_extensions !== 'undefined') {
+{% if ka_js_labels_json %}
+	// a JSON object safe in a script
+	ka_extensions.setLabels({{ ka_js_labels_json }});
+{% endif %}
+{% if ka_enable_form_validation %}
+	ka_extensions.initFormValidation();
+{% endif %}
+}
+//--></script>
+{% endif %}

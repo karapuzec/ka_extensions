@@ -9,7 +9,7 @@ namespace KaExtensionsTests\Integration;
  * is reported. Without the constant the shorthand still gives the model.
  *
  * Also the parts moved from OCMOD to kamod and kapatch: one copy of kaextensions.js and of the stylesheet,
- * the object ka_extensions in the head, meta tags of Document::addKaMeta(), labels and form validation
+ * no object created by the templates (kaextensions.js creates it), meta tags of Document::addKaMeta(), labels and form validation
  * in the footer, the theme editor warning.
  *
  * @group deprecated
@@ -28,13 +28,12 @@ class DeprecatedApiTest extends LibraryTestCase {
 		$this->assertSame(1, substr_count($output, $dir . 'kaextensions.js'), 'kaextensions.js once');
 		$this->assertSame(1, substr_count($output, $css_dir . 'stylesheet.css'), 'stylesheet.css once');
 
-		$object = strpos($output, 'var ka_extensions = new KaExtensions();');
-		$this->assertNotFalse($object);
-		$this->assertLessThan(strpos($output, '</head>'), $object);
-		$this->assertLessThan($object, strpos($output, $dir . 'kaextensions.js'));
+		$this->assertLessThan(strpos($output, '</head>'), strpos($output, $dir . 'kaextensions.js'));
+		$this->assertStringNotContainsString('new KaExtensions(', $output);
 
 		$this->assertSame(1, substr_count($output, 'ka_extensions.setLabels('));
-		$this->assertStringContainsString("\$('button[form]').each(", $output);
+		$this->assertSame(1, substr_count($output, 'ka_extensions.initFormValidation();'));
+		$this->assertStringNotContainsString("$('button[form]')", $output);
 	}
 
 	public function testAssertionsAreActive() {

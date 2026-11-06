@@ -3,7 +3,7 @@
 		<operation type="replace">
 			<search><![CDATA[</footer>]]></search>
 			<text><![CDATA[</footer>
-{% include '@ka_common/footer_scripts.twig' %}]]></text>
+{% include 'default/template/extension/ka_extensions/ka_extensions/footer/scripts.twig' ignore missing %}]]></text>
 		</operation>
 	</changes>
 </kapatch>

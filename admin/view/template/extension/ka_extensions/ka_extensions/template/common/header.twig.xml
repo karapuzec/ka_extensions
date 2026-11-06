@@ -4,10 +4,5 @@
 			<search regexp="true"><![CDATA[\{\{ logout \}\}(.*)<\/ul>]]></search>
 			<text><![CDATA[{{ logout }}$1</ul>{% include 'extension/ka_extensions/ka_extensions/header/kamod_status.twig' ignore missing %}{% include 'extension/ka_extensions/ka_extensions/header/notifications.twig' ignore missing %}]]></text>
 		</operation>
-		<operation type="replace">
-			<search><![CDATA[</head>]]></search>
-			<text><![CDATA[<script type="text/javascript">if (typeof ka_extensions === 'undefined' && typeof KaExtensions !== 'undefined') { var ka_extensions = new KaExtensions(); }</script>
-</head>]]></text>
-		</operation>
 	</changes>
 </kapatch>
