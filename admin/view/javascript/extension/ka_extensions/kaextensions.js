@@ -4,7 +4,7 @@
 
 	$Version$ ($Revision$)
 
-	The class of the library object ka_extensions (created in the header of the page): messages, labels, overlays,
+	The class of the library object ka_extensions (created at the end of this file): messages, labels, overlays,
 	posting of urls. The labels are the English defaults; the language values come from the footer
 	(setLabels(), getLabel()).
 */
@@ -172,6 +172,65 @@ class KaExtensions {
 			Object.assign(this.labels, labels);
 		}
 
+		/*
+			Form validation of the library: called by the footer of the page (ka_extensions.initFormValidation()),
+			unless KA_DISABLE_FORM_VALIDATION is defined. When the page is loaded, every form named by the form
+			attribute of a button (<button form="form-id">, e.g. the Save buttons of the page header) gets a submit
+			handler: when a [required] field of the form is not valid (checkValidity()), the submit is cancelled and
+			the error message txt_field_validation_error is shown with the names of the fields (the label.control-label
+			of the .form-group of the field, the name attribute or the tag name). A second call does nothing.
+		*/
+		this.initFormValidation = () => {
+
+			if (this.form_validation_initialized) {
+				return;
+			}
+			this.form_validation_initialized = true;
+
+			$(document).ready(() => {
+
+				$('button[form]').each((idx, button) => {
+
+					var formid = $(button).attr('form');
+					var $form = $('#' + formid);
+					if (!$form) {
+						return;
+					}
+
+					$form.on('submit', (e) => {
+
+						var $form = $(e.currentTarget);
+
+						var error = '';
+
+						$form.find('[required]').each((idx, el) => {
+							if (!el.checkValidity()) {
+								var name = $(el).closest('.form-group').find('label.control-label').text();
+
+								if (!name) {
+									name = $(el).attr('name');
+								}
+								if (!name) {
+									name = el.tagName;
+								}
+
+								if (error) {
+									error += ', ';
+								}
+								error += (name);
+							}
+						});
+
+						if (error) {
+							this.showMessage(this.getLabel('txt_field_validation_error') + error, 'E');
+							e.preventDefault();
+							return;
+						}
+					});
+				});
+			});
+		}
+
 		// $.ka.alert(text, type) - a short form of showMessage()
 		//
 		if (!$.ka) {
@@ -211,7 +270,7 @@ class KaExtensions {
 }
 
 // The library object is created by this file, so it exists with any theme (also a theme with its own
-// header.twig / footer.twig without the library parts). The header and the footer create it only when it is missing.
+// header.twig / footer.twig without the library parts), only when it is missing (one object).
 if (typeof ka_extensions === 'undefined') {
 	var ka_extensions = new KaExtensions();
 }

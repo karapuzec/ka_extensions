@@ -4,7 +4,7 @@ namespace KaExtensionsTests\Integration;
 
 /**
  * The library JS on the admin and storefront pages: the header adds kaextensions.js
- * and creates the object ka_extensions; the footer passes the labels of the document
+ * (the file creates the object ka_extensions, the templates do not); the footer passes the labels of the document
  * (Document::addKaJsLabels(), the standard labels with txt_confirm always, also with
  * KA_DISABLE_FORM_VALIDATION) as ka_extensions.setLabels({...}), JSON safe in an inline script.
  * No global ka_js_labels.
@@ -51,16 +51,14 @@ class JsLabelsTest extends LibraryTestCase {
 		$this->assertSame(self::TEST_LABEL, $this->labels($output)['txt_test']);
 	}
 
-	// kaextensions.js, then the object is created in the head; the removed common.js is not included
+	// kaextensions.js in the head (it creates the object), no object created by the templates; the removed common.js is not included
 	protected function assertScripts($output, $dir) {
 		$class  = strpos($output, $dir . 'kaextensions.js');
-		$object = strpos($output, 'var ka_extensions = new KaExtensions();');
 		$this->assertNotFalse($class);
-		$this->assertNotFalse($object);
-		$this->assertLessThan($object, $class);
-		$this->assertLessThan(strpos($output, '</head>'), $object);
+		$this->assertLessThan(strpos($output, '</head>'), $class);
+		$this->assertStringNotContainsString('new KaExtensions(', $output);
 		$this->assertStringNotContainsString($dir . 'common.js', $output);
-		$this->assertLessThan(strpos($output, 'ka_extensions.setLabels('), $object);
+		$this->assertLessThan(strpos($output, 'ka_extensions.setLabels('), $class);
 	}
 
 	public function testAdminPage() {
@@ -69,7 +67,7 @@ class JsLabelsTest extends LibraryTestCase {
 		$output = $this->oc->request('common/dashboard')['output'];
 		$this->assertStandard($this->labels($output));
 		$this->checkTestLabel($output);
-		$this->assertStringContainsString("ka_extensions.getLabel('txt_field_validation_error')", $output);
+		$this->assertSame(1, substr_count($output, 'ka_extensions.initFormValidation();'));
 		$this->assertScripts($output, 'view/javascript/extension/ka_extensions/');
 	}
 
@@ -79,6 +77,7 @@ class JsLabelsTest extends LibraryTestCase {
 		$output = $this->oc->request('common/home')['output'];
 		$this->assertStandard($this->labels($output));
 		$this->checkTestLabel($output);
+		$this->assertSame(1, substr_count($output, 'ka_extensions.initFormValidation();'));
 		$this->assertScripts($output, 'catalog/view/javascript/extension/ka_extensions/');
 	}
 
@@ -87,7 +86,15 @@ class JsLabelsTest extends LibraryTestCase {
 		$this->bootAdmin();
 		$output = $this->oc->request('common/dashboard')['output'];
 		$this->assertStandard($this->labels($output));
-		// the validation script is not printed
-		$this->assertStringNotContainsString("getLabel('txt_field_validation_error') + error", $output);
+		// the form validation is not started
+		$this->assertStringNotContainsString('initFormValidation', $output);
+	}
+
+	public function testCatalogLabelsWithoutFormValidation() {
+		define('KA_DISABLE_FORM_VALIDATION', 1);
+		$this->bootCatalog();
+		$output = $this->oc->request('common/home')['output'];
+		$this->assertStandard($this->labels($output));
+		$this->assertStringNotContainsString('initFormValidation', $output);
 	}
 }

@@ -37,7 +37,7 @@ class JsLabelsTest extends \PHPUnit\Framework\TestCase {
 
 	public function testFootersPassTheLabels() {
 		$root = dirname(__DIR__, 2);
-		foreach (array('admin/controller/extension/ka_extensions/ka_extensions/controller/common/footer.php', 'catalog/controller/common/footer.php') as $file) {
+		foreach (array('admin/controller/extension/ka_extensions/ka_extensions/controller/common/footer.php', 'catalog/controller/extension/ka_extensions/ka_extensions/controller/common/footer.php') as $file) {
 			$code = file_get_contents("$root/$file");
 			foreach (self::KEYS as $key) {
 				$this->assertStringContainsString("'$key'", $code, "$file: $key");
