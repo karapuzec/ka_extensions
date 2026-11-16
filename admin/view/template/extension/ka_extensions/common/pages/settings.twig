@@ -19,11 +19,11 @@
 		<div id="service_line" class="well well-sm">
 			<table>
 				<tr>
-					<td><b>Module Version</b>: {{ extension_version }}&nbsp;&nbsp;&nbsp;</td>
-					<td><b>Author</b>: karapuz team&nbsp;&nbsp;&nbsp;</td>
-					<td><b>Contact Us</b>: &nbsp;&nbsp;&nbsp;
-						<a href="mailto:support@ka-station.com"><i class="fa fa-envelope"></i> E-mail</a>&nbsp; | 
-						&nbsp; <a href="https://www.ka-station.com/tickets/" target="_blank"><i class="fa fa-pencil"></i> Help Desk</a>
+					<td><b>{{ t('Module Version') }}</b>: {{ extension_version }}&nbsp;&nbsp;&nbsp;</td>
+					<td><b>{{ t('Author') }}</b>: karapuz team&nbsp;&nbsp;&nbsp;</td>
+					<td><b>{{ t('Contact Us') }}</b>: &nbsp;&nbsp;&nbsp;
+						<a href="mailto:support@ka-station.com"><i class="fa fa-envelope"></i> {{ t('E-mail') }}</a>&nbsp; | 
+						&nbsp; <a href="https://www.ka-station.com/tickets/" target="_blank"><i class="fa fa-pencil"></i> {{ t('Help Desk') }}</a>
 					</td>
 				</tr>
 			</table>
@@ -50,7 +50,7 @@
 								{% endif %}
 							{% endfor %}
 	      		{% else %}
-			      	<p>The extension does not have any settings.</p>
+			      	<p>{{ t('The extension does not have any settings.') }}</p>
 			      {% endif %}
 	      	{% endblock %}
 	      </form>
