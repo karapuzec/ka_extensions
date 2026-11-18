@@ -99,12 +99,23 @@ class Config {
 class Language {
 	protected $data = array();
 
+	public function __construct($directory = '') {
+	}
+
 	public function get($key) {
 		return isset($this->data[$key]) ? $this->data[$key] : $key;
 	}
 
 	public function set($key, $value) {
 		$this->data[$key] = $value;
+	}
+
+	public function has($key) {
+		return isset($this->data[$key]);
+	}
+
+	public function load($filename) {
+		return array();
 	}
 }
 

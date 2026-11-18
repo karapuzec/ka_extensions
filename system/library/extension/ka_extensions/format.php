@@ -50,6 +50,7 @@ class Format {
 	
 	protected $language;     // language object
 	protected $language_id;
+	protected $language_code;
 
 	/**
 		@internal
@@ -89,6 +90,7 @@ class Format {
 		}
 		
 		$this->language_id = $language['language_id'];
+		$this->language_code = $language['code'];
 		if (empty($language['directory'])) {
 			$language['directory'] = $language['code'];
 		}
@@ -557,5 +559,302 @@ class Format {
 		}
 		
 		return $lengths[$class_id]['unit'];
+	}
+
+	/*
+		Formats a date or time for display in the current language of this Format instance.
+
+		$value is a Unix timestamp, a date string or a DateTime object. An empty value and
+		the zero date 0000-00-00 become an empty string.
+
+		$format is a PHP date() pattern, or one of the OpenCart language keys date_format_long,
+		date_format_short, datetime_format and time_format (resolved from the registry language).
+		When $format is empty, date_format_short is used.
+
+		When IntlDateFormatter is available, the pattern is converted to ICU and formatted
+		in the locale of the language code (ru-ru -> ru_RU, en-gb -> en_GB). Otherwise
+		PHP date() is used (weekday and month names stay English).
+	*/
+	public function formatDateTime($value, $format = null) {
+
+		$timestamp = $this->parseDateTimeValue($value);
+		if ($timestamp === false) {
+			return '';
+		}
+
+		$format = $this->resolveDateTimeFormat($format);
+
+		if ($this->isIntlDateFormatterAvailable()) {
+			$formatted = $this->formatDateTimeWithIntl($timestamp, $format);
+			if ($formatted !== false) {
+				return $formatted;
+			}
+		}
+
+		return date($format, $timestamp);
+	}
+
+	/*
+		True when IntlDateFormatter can be used. Tests may override this hook
+		to check the date() fallback.
+	*/
+	protected function isIntlDateFormatterAvailable() {
+
+		return class_exists('\IntlDateFormatter');
+	}
+
+	/*
+		Unix timestamp of $value, or false when the value is empty or not a date.
+	*/
+	protected function parseDateTimeValue($value) {
+
+		if ($value instanceof \DateTimeInterface) {
+			return $value->getTimestamp();
+		}
+
+		if (is_int($value)) {
+			return $value;
+		}
+
+		if (is_float($value)) {
+			return (int)$value;
+		}
+
+		if (!is_string($value)) {
+			return false;
+		}
+
+		$value = trim($value);
+		if ($value === '' || strpos($value, '0000-00-00') === 0) {
+			return false;
+		}
+
+		if (preg_match('/^-?[0-9]+$/', $value) && strlen($value) >= 9) {
+			return (int)$value;
+		}
+
+		$timestamp = strtotime($value);
+		if ($timestamp === false) {
+			return false;
+		}
+
+		return $timestamp;
+	}
+
+	/*
+		PHP date() pattern for $format. OpenCart language keys are read from the
+		registry language. Missing keys fall back to a numeric pattern.
+	*/
+	protected function resolveDateTimeFormat($format) {
+
+		$keys = [
+			'date_format_long',
+			'date_format_short',
+			'datetime_format',
+			'time_format',
+		];
+
+		if ($format === null || $format === '') {
+			$format = 'date_format_short';
+		}
+
+		if (!in_array($format, $keys, true)) {
+			return $format;
+		}
+
+		$pattern = $this->getRegistryDateFormat($format);
+		if ($pattern !== '') {
+			return $pattern;
+		}
+
+		if ($format == 'time_format') {
+			return 'H:i:s';
+		}
+
+		if ($format == 'datetime_format') {
+			return 'Y-m-d H:i:s';
+		}
+
+		return 'Y-m-d';
+	}
+
+	/*
+		Value of an OpenCart date format key from the current registry language, or
+		an empty string when the key is not defined.
+	*/
+	protected function getRegistryDateFormat($key) {
+
+		if (empty($this->registry)) {
+			return '';
+		}
+
+		$language = $this->registry->get('language');
+		if (empty($language)) {
+			return '';
+		}
+
+		$text = $language->get($key);
+		if ($text === $key || $text === '') {
+			return '';
+		}
+
+		return $text;
+	}
+
+	/*
+		Formats $timestamp with IntlDateFormatter in the locale of this instance.
+		Returns false when the formatter cannot be created or fails.
+	*/
+	protected function formatDateTimeWithIntl($timestamp, $format) {
+
+		$locale = $this->getIcuLocale();
+		$pattern = $this->convertPhpDateFormatToIcu($format, $timestamp);
+		if ($pattern === '') {
+			return false;
+		}
+
+		try {
+			$formatter = new \IntlDateFormatter(
+				$locale,
+				\IntlDateFormatter::NONE,
+				\IntlDateFormatter::NONE,
+				date_default_timezone_get(),
+				\IntlDateFormatter::GREGORIAN,
+				$pattern
+			);
+		} catch (\Throwable $e) {
+			return false;
+		}
+
+		if (empty($formatter)) {
+			return false;
+		}
+
+		$formatted = $formatter->format($timestamp);
+		if ($formatted === false) {
+			return false;
+		}
+
+		return $formatted;
+	}
+
+	/*
+		ICU locale of the OpenCart language code of this instance (ru-ru -> ru_RU).
+	*/
+	protected function getIcuLocale() {
+
+		$code = !empty($this->language_code) ? $this->language_code : 'en-gb';
+		$code = str_replace('_', '-', $code);
+		$parts = explode('-', $code);
+		$language = strtolower($parts[0]);
+		if (empty($parts[1])) {
+			return $language;
+		}
+
+		return $language . '_' . strtoupper($parts[1]);
+	}
+
+	/*
+		Converts a PHP date() pattern to an ICU pattern for $timestamp.
+		The S token (English ordinal suffix) is kept only for English locales.
+		Unmapped letters are inserted as the date() value of that token, quoted
+		as ICU literals. A backslash escapes the next character as a literal.
+	*/
+	protected function convertPhpDateFormatToIcu($format, $timestamp) {
+
+		$map = [
+			'd' => 'dd',
+			'j' => 'd',
+			'D' => 'EEE',
+			'l' => 'EEEE',
+			'F' => 'MMMM',
+			'M' => 'MMM',
+			'm' => 'MM',
+			'n' => 'M',
+			'Y' => 'yyyy',
+			'y' => 'yy',
+			'o' => 'YYYY',
+			'H' => 'HH',
+			'G' => 'H',
+			'h' => 'hh',
+			'g' => 'h',
+			'i' => 'mm',
+			's' => 'ss',
+			'a' => 'a',
+			'A' => 'a',
+			'z' => 'D',
+			'W' => 'w',
+			'e' => 'VV',
+			'O' => 'xx',
+			'P' => 'xxx',
+			'T' => 'z',
+			'v' => 'SSS',
+		];
+
+		$is_english = $this->isEnglishLocale();
+		$icu = '';
+		$literals = '';
+		$length = strlen($format);
+
+		for ($i = 0; $i < $length; $i++) {
+			$char = $format[$i];
+
+			if ($char == '\\' && $i + 1 < $length) {
+				$literals .= $format[$i + 1];
+				$i++;
+				continue;
+			}
+
+			if (!preg_match('/[A-Za-z]/', $char)) {
+				$literals .= $char;
+				continue;
+			}
+
+			if ($char == 'S') {
+				if ($is_english) {
+					$literals .= date('S', $timestamp);
+				}
+				continue;
+			}
+
+			if (!isset($map[$char])) {
+				$literals .= date($char, $timestamp);
+				continue;
+			}
+
+			if ($literals !== '') {
+				$icu .= $this->quoteIcuLiteral($literals);
+				$literals = '';
+			}
+
+			$icu .= $map[$char];
+		}
+
+		if ($literals !== '') {
+			$icu .= $this->quoteIcuLiteral($literals);
+		}
+
+		return $icu;
+	}
+
+	/*
+		True when the language code of this instance is English (en, en-gb, en-us).
+	*/
+	protected function isEnglishLocale() {
+
+		$locale = $this->getIcuLocale();
+		return (strpos($locale, 'en') === 0);
+	}
+
+	/*
+		Wraps a literal string for an ICU date pattern.
+	*/
+	protected function quoteIcuLiteral($text) {
+
+		if ($text === '') {
+			return '';
+		}
+
+		return "'" . str_replace("'", "''", $text) . "'";
 	}
 }
