@@ -29,14 +29,6 @@ class ControllerCommonHeader extends Controller {
 		$data['base'] = $server;
 		$data['description'] = $this->document->getDescription();
 		$data['keywords'] = $this->document->getKeywords();
-//karapuz: after:$data['keywords'] = $this->document->getKeywords
-		if (class_exists('\KaGlobal')) {
-			// the class KaExtensions, the object ka_extensions is created in the header template
-			$this->document->addScript('catalog/view/javascript/extension/ka_extensions/kaextensions.js');
-			$this->document->addStyle('catalog/view/javascript/extension/ka_extensions/stylesheet.css');
-			$data['ka_meta'] = $this->document->getKaMeta();
-		}
-///karapuz
 		$data['links'] = $this->document->getLinks();
 		$data['styles'] = $this->document->getStyles();
 		$data['scripts'] = $this->document->getScripts('header');

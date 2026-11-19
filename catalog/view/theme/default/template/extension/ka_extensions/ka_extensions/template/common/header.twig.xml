@@ -1,0 +1,13 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[</head>]]></search>
+			<text><![CDATA[{% if ka_meta %}
+	{% for kmk,kmv in ka_meta %}
+		<meta name="{{ kmk }}" content="{{ kmv|e }}" />
+	{% endfor %}
+{% endif %}
+</head>]]></text>
+		</operation>
+	</changes>
+</kapatch>

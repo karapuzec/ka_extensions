@@ -6,10 +6,6 @@ class Document {
 	private $links = array();
 	private $styles = array();
 	private $scripts = array();
-//karapuz: after:e $scripts
-	protected $ka_meta = array();
-	protected $ka_labels = array();
-///karapuz
 
 	public function setTitle($title) {
 		$this->title = $title;
@@ -58,24 +54,6 @@ class Document {
 		return $this->styles;
 	}
 
-//karapuz: before:n addScript(
-	public function addKaMeta($name, $content) {
-		$this->ka_meta[$name] = $content;
-	}
-	
-	public function getKaMeta() {
-		return $this->ka_meta;
-	}
-
-	public function addKaJsLabels($data) {
-		$this->ka_labels = array_merge($this->ka_labels, $data);
-	}
-	
-	public function getKaJsLabels() {
-		return $this->ka_labels;
-	}
-	
-///karapuz	
 	public function addScript($href, $postion = 'header') {
 		$this->scripts[$postion][$href] = $href;
 	}

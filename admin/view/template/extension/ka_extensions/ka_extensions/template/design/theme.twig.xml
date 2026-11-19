@@ -1,0 +1,11 @@
+<kapatch version="1.0">
+	<changes>
+		<operation type="replace">
+			<search><![CDATA[<div id="recent">]]></search>
+			<text><![CDATA[<div class="alert alert-warning">
+	<p><b>Ka Extensions</b>: {{ t('txt_ka_theme_editor_refresh') }}</p>
+</div>
+<div id="recent">]]></text>
+		</operation>
+	</changes>
+</kapatch>
