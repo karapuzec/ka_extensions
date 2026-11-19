@@ -3,7 +3,7 @@
 namespace KaExtensionsTests\Integration;
 
 /**
- * The warning of Ka Extensions on the Design > Theme Editor page (the library ocmod of design/theme.twig):
+ * The warning of Ka Extensions on the Design > Theme Editor page (the library kapatch of design/theme.twig):
  * texts from the language files of the library in English and Russian.
  *
  * @group theme-files

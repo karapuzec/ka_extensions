@@ -36,14 +36,6 @@
 {% for analytic in analytics %}
 {{ analytic }}
 {% endfor %}
-{# //karapuz: before:</head> #}
-<script type="text/javascript">if (typeof ka_extensions === 'undefined' && typeof KaExtensions !== 'undefined') { var ka_extensions = new KaExtensions(); }</script>
-{% if ka_meta %}
-	{% for kmk,kmv in ka_meta %}
-		<meta name="{{ kmk }}" content="{{ kmv|e }}" />
-	{% endfor %}
-{% endif %}
-{# ///karapuz #}
 </head>
 <body>
 <nav id="top">
