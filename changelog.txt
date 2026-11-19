@@ -1,4 +1,4 @@
-4.1.1.34 (not released)
+4.1.1.34
 - Document: addKaMeta(), getKaMeta(), addKaJsLabels(), getKaJsLabels() moved from OCMOD to the kamod child \extension\ka_extensions\SystemLibraryDocument (system/library/document.php).
 - Storefront header and footer controllers: OCMOD replaced by kamod child classes (kaextensions.js, stylesheet, ka_meta, JS labels, form validation flag).
 - Admin header: the OCMOD is removed. The kamod child added kaextensions.js and the stylesheet too late (after the parent call), now before it.
@@ -6,7 +6,8 @@
 - Headers do not create the object ka_extensions any more, kaextensions.js creates it. After the update run Extensions > Modifications > Refresh.
 - JS: the form validation of the footers moved to kaextensions.js as ka_extensions.initFormValidation(), called by the footer unless KA_DISABLE_FORM_VALIDATION. Behaviour unchanged.
 - Registry: the shorthand $this->kamodel_xxx is deprecated, reported by an assertion with KA_DEBUG_DEPRECATED; it still works. Use $this->load->kamodel().
-- Tests: integration DeprecatedApiTest (group deprecated, needs zend.assertions = 1), e2e tests/e2e/form_validation.js.
+- Format: formatDateTime() displays dates with IntlDateFormatter when the intl extension is available (locale from the OpenCart language code, date() pattern converted to ICU), otherwise with PHP date().
+- Tests: integration DeprecatedApiTest (group deprecated, needs zend.assertions = 1), e2e tests/e2e/form_validation.js, unit FormatDateTimeTest.
 - Russian translation (ru-ru): the admin templates common/page.twig, common/pages/page.twig and the module info block of common/pages/settings.twig use t() instead of hardcoded English.
 - Russian translation: missing ru-ru files added: ka_extensions/settings.php, ka_extensions/mail/common.php and common_txt.php (admin and storefront).
 - Russian translation: ru-ru copies of the deprecated includes common/settings.php, common/mail/*.php (admin) and common.php, common/mail/*.php (storefront); before, only English was loaded.
