@@ -158,7 +158,7 @@ class PagesTest extends LibraryTestCase {
 		$language = new \Language('ru-ru');
 		$language->load('extension/ka_extensions/common');
 		$this->assertSame('Внимание: у вас нет прав на выполнение этого действия!', $language->get('error_permission'));
-		$this->assertSame('Operation has completed successfully.', $language->get('txt_operation_successful'));
+		$this->assertSame('Операция успешно выполнена.', $language->get('txt_operation_successful'));
 	}
 
 	// --- form
